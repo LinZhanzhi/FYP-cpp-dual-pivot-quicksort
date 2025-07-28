@@ -17,6 +17,8 @@ struct TimingResult {
     double std_dev_ms;
     double min_ms;
     double max_ms;
+    std::string type_name;
+    size_t type_size_bytes;
 };
 
 class BenchmarkTimer {
@@ -55,9 +57,11 @@ public:
         return calculate_statistics(times);
     }
     
-    // Time sorting algorithm with copy overhead measurement
+    // Time sorting algorithm with copy overhead measurement (template version)
     template<typename Container, typename SortFunc>
     TimingResult benchmark_sort(const Container& original_data, SortFunc sort_func, int iterations = 50) {
+        using T = typename Container::value_type;
+        
         std::vector<double> times;
         times.reserve(iterations);
         
@@ -79,13 +83,34 @@ public:
             times.push_back(duration.count() / 1e6);
         }
         
-        return calculate_statistics(times);
+        auto result = calculate_statistics(times);
+        
+        // Add type information
+        result.type_name = typeid(T).name();
+        result.type_size_bytes = sizeof(T);
+        
+        return result;
+    }
+    
+    // Memory access tracking version
+    template<typename Container, typename SortFunc>
+    TimingResult benchmark_sort_with_type_info(const Container& original_data, SortFunc sort_func, 
+                                              const std::string& type_name, int iterations = 50) {
+        using T = typename Container::value_type;
+        
+        auto result = benchmark_sort(original_data, sort_func, iterations);
+        result.type_name = type_name;
+        result.type_size_bytes = sizeof(T);
+        
+        return result;
     }
     
 private:
     TimingResult calculate_statistics(std::vector<double>& times) {
         TimingResult result;
         result.times_ms = times;
+        result.type_name = "";
+        result.type_size_bytes = 0;
         
         if (times.empty()) {
             result.mean_ms = result.median_ms = result.std_dev_ms = 0.0;

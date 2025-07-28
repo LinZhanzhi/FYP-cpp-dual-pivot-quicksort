@@ -5,10 +5,10 @@
 #include <string>
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 
 // Include our implementations
 #include "../include/dual_pivot_quicksort.hpp"
-#include "../include/classic_quicksort.hpp"
 #include "../include/dual_pivot_optimized.hpp"
 #include "data_generator.hpp"
 #include "timer.hpp"
@@ -17,9 +17,11 @@ class BenchmarkSuite {
 private:
     benchmark_timer::BenchmarkTimer timer;
     std::ofstream results_file;
+    std::string output_file_path;
     
 public:
-    BenchmarkSuite(const std::string& output_file = "benchmark_results.csv") {
+    BenchmarkSuite(const std::string& output_file = "benchmark_results.csv") 
+        : output_file_path(output_file) {
         results_file.open(output_file);
         write_csv_header();
     }
@@ -28,6 +30,9 @@ public:
         if (results_file.is_open()) {
             results_file.close();
         }
+        
+        // Generate plots after benchmark completion
+        generate_plots();
     }
     
     void run_comprehensive_benchmark() {
@@ -48,7 +53,8 @@ public:
             std::cout << "\n";
         }
         
-        std::cout << "Benchmark completed. Results saved to benchmark_results.csv\n";
+        std::cout << "Benchmark completed. Results saved to " << output_file_path << "\n";
+        std::cout << "Generating performance plots...\n";
     }
     
 private:
@@ -71,23 +77,27 @@ private:
         }, iterations);
         write_result(size, pattern, "std::stable_sort", std_stable_sort_result);
         
-        // Test classic quicksort
-        auto classic_qs_result = timer.benchmark_sort(data, [](std::vector<int>& arr) {
-            classic_quicksort::quicksort(arr.begin(), arr.end());
+        // Test legacy C qsort
+        auto qsort_result = timer.benchmark_sort(data, [](std::vector<int>& arr) {
+            std::qsort(arr.data(), arr.size(), sizeof(int), [](const void* a, const void* b) {
+                int arg1 = *static_cast<const int*>(a);
+                int arg2 = *static_cast<const int*>(b);
+                return (arg1 > arg2) - (arg1 < arg2);
+            });
         }, iterations);
-        write_result(size, pattern, "classic_quicksort", classic_qs_result);
+        write_result(size, pattern, "qsort", qsort_result);
         
-        // Test dual-pivot quicksort
+        // Test dual-pivot quicksort (unoptimized)
         auto dual_pivot_result = timer.benchmark_sort(data, [](std::vector<int>& arr) {
             dual_pivot::dual_pivot_quicksort(arr.begin(), arr.end());
         }, iterations);
         write_result(size, pattern, "dual_pivot_quicksort", dual_pivot_result);
         
-        // Test optimized dual-pivot
-        auto optimized_result = timer.benchmark_sort(data, [](std::vector<int>& arr) {
+        // Test dual-pivot quicksort (optimized)
+        auto dual_pivot_optimized_result = timer.benchmark_sort(data, [](std::vector<int>& arr) {
             dual_pivot_optimized::dual_pivot_introsort(arr.begin(), arr.end());
         }, iterations);
-        write_result(size, pattern, "dual_pivot_optimized", optimized_result);
+        write_result(size, pattern, "dual_pivot_optimized", dual_pivot_optimized_result);
     }
     
     void write_result(size_t size, benchmark_data::DataPattern pattern, 
@@ -102,6 +112,24 @@ private:
                     << result.min_ms << ","
                     << result.max_ms << "\n";
         results_file.flush();
+    }
+    
+    void generate_plots() {
+        std::cout << "Generating performance plots...\n";
+        
+        // Construct the Python script path relative to the executable
+        std::string python_script = "../scripts/plot_benchmark.py";
+        std::string command = "python " + python_script + " " + output_file_path;
+        
+        // Try to run the Python plotting script
+        int result = std::system(command.c_str());
+        
+        if (result == 0) {
+            std::cout << "✓ Performance plots generated successfully in results/plots/\n";
+        } else {
+            std::cout << "⚠ Warning: Could not generate plots. Make sure Python and matplotlib are installed.\n";
+            std::cout << "  You can manually generate plots by running: " << command << "\n";
+        }
     }
 };
 

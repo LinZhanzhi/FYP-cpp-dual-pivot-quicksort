@@ -1,0 +1,25 @@
+Type,Type_Size_Bytes,Size,Pattern,Algorithm,Time_ms
+char,1,1000,Random,std_sort,0.1
+char,1,1000,Random,dual_pivot,0.143
+char,1,1000,Nearly Sorted,std_sort,0.045
+char,1,1000,Nearly Sorted,dual_pivot,0.089
+short,2,1000,Random,std_sort,0.106
+short,2,1000,Random,dual_pivot,0.151
+short,2,1000,Nearly Sorted,std_sort,0.052
+short,2,1000,Nearly Sorted,dual_pivot,0.095
+int,4,1000,Random,std_sort,0.112
+int,4,1000,Random,dual_pivot,0.171
+int,4,1000,Nearly Sorted,std_sort,0.055
+int,4,1000,Nearly Sorted,dual_pivot,0.098
+long,4,1000,Random,std_sort,0.118
+long,4,1000,Random,dual_pivot,0.16
+long,4,1000,Nearly Sorted,std_sort,0.058
+long,4,1000,Nearly Sorted,dual_pivot,0.102
+float,4,1000,Random,std_sort,0.115
+float,4,1000,Random,dual_pivot,0.169
+float,4,1000,Nearly Sorted,std_sort,0.060
+float,4,1000,Nearly Sorted,dual_pivot,0.105
+double,8,1000,Random,std_sort,0.108
+double,8,1000,Random,dual_pivot,0.166
+double,8,1000,Nearly Sorted,std_sort,0.062
+double,8,1000,Nearly Sorted,dual_pivot,0.108

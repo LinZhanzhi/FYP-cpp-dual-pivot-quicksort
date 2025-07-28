@@ -27,27 +27,6 @@ void sort(RandomIt first, RandomIt last, Compare comp = Compare{}) {
     dual_pivot::dual_pivot_quicksort(first, last, comp);
 }
 
-// Stable sort variant (delegates to stable merge-based approach for stability guarantee)
-template<typename RandomIt, typename Compare = std::less<>>
-void stable_sort(RandomIt first, RandomIt last, Compare comp = Compare{}) {
-    // For true stability, we'd need a different algorithm
-    // For now, use standard stable_sort
-    std::stable_sort(first, last, comp);
-}
-
-// Partial sort using dual-pivot quicksort for the partitioning phase
-template<typename RandomIt, typename Compare = std::less<>>
-void partial_sort(RandomIt first, RandomIt middle, RandomIt last, Compare comp = Compare{}) {
-    // Use nth_element-style partitioning with dual-pivot approach
-    // For simplicity, delegate to standard implementation
-    std::partial_sort(first, middle, last, comp);
-}
-
-// nth_element using dual-pivot partitioning
-template<typename RandomIt, typename Compare = std::less<>>
-void nth_element(RandomIt first, RandomIt nth, RandomIt last, Compare comp = Compare{}) {
-    std::nth_element(first, nth, last, comp);
-}
 
 // Check if range is sorted
 template<typename ForwardIt, typename Compare = std::less<>>
@@ -67,10 +46,6 @@ void sort(Container& container, Compare comp = Compare{}) {
     sort(container.begin(), container.end(), comp);
 }
 
-template<typename Container, typename Compare = std::less<>>
-void stable_sort(Container& container, Compare comp = Compare{}) {
-    stable_sort(container.begin(), container.end(), comp);
-}
 
 // Type-specific optimized versions
 template<>
