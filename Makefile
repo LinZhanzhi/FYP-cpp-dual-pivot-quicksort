@@ -15,35 +15,35 @@ $(RESULTS_DIR):
 	mkdir -p $(RESULTS_DIR)
 
 # Optimized benchmark (for performance testing)
-benchmark_optimized: $(BENCHMARK_DIR)/main_benchmark.cpp $(RESULTS_DIR)
-	$(CXX) $(CXXFLAGS) $(OPTIMIZE_FLAGS) -o $(RESULTS_DIR)/benchmark_optimized.exe $(BENCHMARK_DIR)/main_benchmark.cpp
+benchmark_optimized: $(BENCHMARK_DIR)/minimal_benchmark.cpp $(RESULTS_DIR)
+	$(CXX) $(CXXFLAGS) $(OPTIMIZE_FLAGS) -o $(RESULTS_DIR)/benchmark_optimized $(BENCHMARK_DIR)/minimal_benchmark.cpp
 
 # Debug benchmark (for development)
 benchmark_debug: $(BENCHMARK_DIR)/main_benchmark.cpp $(RESULTS_DIR)
-	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -o $(RESULTS_DIR)/benchmark_debug.exe $(BENCHMARK_DIR)/main_benchmark.cpp
+	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -o $(RESULTS_DIR)/benchmark_debug $(BENCHMARK_DIR)/main_benchmark.cpp
 
 # Quick benchmark (for demonstration)
 quick_benchmark: $(BENCHMARK_DIR)/quick_benchmark.cpp $(RESULTS_DIR)
-	$(CXX) $(CXXFLAGS) $(OPTIMIZE_FLAGS) -o $(RESULTS_DIR)/quick_benchmark.exe $(BENCHMARK_DIR)/quick_benchmark.cpp
+	$(CXX) $(CXXFLAGS) $(OPTIMIZE_FLAGS) -o $(RESULTS_DIR)/quick_benchmark $(BENCHMARK_DIR)/quick_benchmark.cpp
 
 # Multi-type benchmark (for data type analysis)
 multi_type_benchmark: $(BENCHMARK_DIR)/multi_type_benchmark.cpp $(RESULTS_DIR)
-	$(CXX) $(CXXFLAGS) $(OPTIMIZE_FLAGS) -o $(RESULTS_DIR)/multi_type_benchmark.exe $(BENCHMARK_DIR)/multi_type_benchmark.cpp
+	$(CXX) $(CXXFLAGS) $(OPTIMIZE_FLAGS) -o $(RESULTS_DIR)/multi_type_benchmark $(BENCHMARK_DIR)/multi_type_benchmark.cpp
 
 # Multi-type benchmark debug version
 multi_type_benchmark_debug: $(BENCHMARK_DIR)/multi_type_benchmark.cpp $(RESULTS_DIR)
-	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -o $(RESULTS_DIR)/multi_type_benchmark_debug.exe $(BENCHMARK_DIR)/multi_type_benchmark.cpp
+	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -o $(RESULTS_DIR)/multi_type_benchmark_debug $(BENCHMARK_DIR)/multi_type_benchmark.cpp
 
 # Run quick benchmark with plotting
 run_quick_benchmark: quick_benchmark
 	@echo "Running quick benchmark demonstration..."
-	cd $(RESULTS_DIR) && quick_benchmark.exe
+	cd $(RESULTS_DIR) && ./quick_benchmark
 	@echo "Quick benchmark completed with plots!"
 
 # Run multi-type benchmark
 run_multi_type_benchmark: multi_type_benchmark
 	@echo "Running multi-type benchmark analysis..."
-	cd $(RESULTS_DIR) && multi_type_benchmark.exe
+	cd $(RESULTS_DIR) && ./multi_type_benchmark
 	@echo "Multi-type benchmark completed. Results in $(RESULTS_DIR)/multi_type_benchmark_results.csv"
 	@echo "Performance plots saved in $(RESULTS_DIR)/plots/"
 
@@ -57,21 +57,21 @@ run_benchmark: benchmark_optimized
 # Run multiple optimization levels
 run_all_optimizations: 
 	@echo "Building and running with -O0..."
-	$(CXX) $(CXXFLAGS) -O0 -o $(RESULTS_DIR)/benchmark_O0.exe $(BENCHMARK_DIR)/main_benchmark.cpp
-	cd $(RESULTS_DIR) && benchmark_O0.exe && mv benchmark_results.csv benchmark_results_O0.csv
+	$(CXX) $(CXXFLAGS) -O0 -o $(RESULTS_DIR)/benchmark_O0 $(BENCHMARK_DIR)/main_benchmark.cpp
+	cd $(RESULTS_DIR) && ./benchmark_O0 && mv benchmark_results.csv benchmark_results_O0.csv
 	
 	@echo "Building and running with -O2..."
-	$(CXX) $(CXXFLAGS) -O2 -o $(RESULTS_DIR)/benchmark_O2.exe $(BENCHMARK_DIR)/main_benchmark.cpp
-	cd $(RESULTS_DIR) && benchmark_O2.exe && mv benchmark_results.csv benchmark_results_O2.csv
+	$(CXX) $(CXXFLAGS) -O2 -o $(RESULTS_DIR)/benchmark_O2 $(BENCHMARK_DIR)/main_benchmark.cpp
+	cd $(RESULTS_DIR) && ./benchmark_O2 && mv benchmark_results.csv benchmark_results_O2.csv
 	
 	@echo "Building and running with -O3..."
-	$(CXX) $(CXXFLAGS) -O3 -march=native -o $(RESULTS_DIR)/benchmark_O3.exe $(BENCHMARK_DIR)/main_benchmark.cpp
-	cd $(RESULTS_DIR) && benchmark_O3.exe && mv benchmark_results.csv benchmark_results_O3.csv
+	$(CXX) $(CXXFLAGS) -O3 -march=native -o $(RESULTS_DIR)/benchmark_O3 $(BENCHMARK_DIR)/main_benchmark.cpp
+	cd $(RESULTS_DIR) && ./benchmark_O3 && mv benchmark_results.csv benchmark_results_O3.csv
 
 # Simple unit tests
 test: $(RESULTS_DIR)
-	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -DUNIT_TEST -o $(RESULTS_DIR)/unit_test.exe $(BENCHMARK_DIR)/main_benchmark.cpp
-	cd $(RESULTS_DIR) && unit_test.exe
+	$(CXX) $(CXXFLAGS) $(DEBUG_FLAGS) -DUNIT_TEST -o $(RESULTS_DIR)/unit_test $(BENCHMARK_DIR)/main_benchmark.cpp
+	cd $(RESULTS_DIR) && ./unit_test
 
 # Clean build artifacts
 clean:

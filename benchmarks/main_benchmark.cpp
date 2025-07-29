@@ -9,7 +9,6 @@
 
 // Include our implementations
 #include "../include/dual_pivot_quicksort.hpp"
-#include "../include/dual_pivot_optimized.hpp"
 #include "data_generator.hpp"
 #include "timer.hpp"
 
@@ -87,17 +86,11 @@ private:
         }, iterations);
         write_result(size, pattern, "qsort", qsort_result);
         
-        // Test dual-pivot quicksort (unoptimized)
+        // Test dual-pivot quicksort (Java implementation)
         auto dual_pivot_result = timer.benchmark_sort(data, [](std::vector<int>& arr) {
             dual_pivot::dual_pivot_quicksort(arr.begin(), arr.end());
         }, iterations);
         write_result(size, pattern, "dual_pivot_quicksort", dual_pivot_result);
-        
-        // Test dual-pivot quicksort (optimized)
-        auto dual_pivot_optimized_result = timer.benchmark_sort(data, [](std::vector<int>& arr) {
-            dual_pivot_optimized::dual_pivot_introsort(arr.begin(), arr.end());
-        }, iterations);
-        write_result(size, pattern, "dual_pivot_optimized", dual_pivot_optimized_result);
     }
     
     void write_result(size_t size, benchmark_data::DataPattern pattern, 
