@@ -307,7 +307,7 @@ run_benchmark_demo.bat
 make run_quick_benchmark
 
 # Full comprehensive benchmark (takes longer)
-make run_benchmark
+make full_benchmark
 
 # Generate plots from existing data
 cd results

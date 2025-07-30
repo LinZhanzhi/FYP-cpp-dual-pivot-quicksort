@@ -1,9 +1,2129 @@
-Size,Algorithm,Time_ms
-100,std::sort,0.003
-100,dual_pivot_quicksort,0.003
-1000,std::sort,0.035
-1000,dual_pivot_quicksort,0.034
-10000,std::sort,0.448
-10000,dual_pivot_quicksort,0.453
-50000,std::sort,2.378
-50000,dual_pivot_quicksort,2.247
+Algorithm,Pattern,DataType,ArraySize,ExecutionTime_ms
+DualPivotQuicksort,Random,int,1,0
+std::sort,Random,int,1,0.0019
+std::stable_sort,Random,int,1,0.0071
+qsort,Random,int,1,0.0089
+DualPivotQuicksort,Random,int,2,0.004
+std::sort,Random,int,2,0.0001
+std::stable_sort,Random,int,2,0.0018
+qsort,Random,int,2,0.0003
+DualPivotQuicksort,Random,int,3,0.0001
+std::sort,Random,int,3,0.0001
+std::stable_sort,Random,int,3,0.0002
+qsort,Random,int,3,0.0001
+DualPivotQuicksort,Random,int,4,0
+std::sort,Random,int,4,0.0001
+std::stable_sort,Random,int,4,0.0002
+qsort,Random,int,4,0.0002
+DualPivotQuicksort,Random,int,5,0.0001
+std::sort,Random,int,5,0.0001
+std::stable_sort,Random,int,5,0.0002
+qsort,Random,int,5,0.0003
+DualPivotQuicksort,Random,int,6,0.0001
+std::sort,Random,int,6,0
+std::stable_sort,Random,int,6,0.0002
+qsort,Random,int,6,0.0002
+DualPivotQuicksort,Random,int,8,0.0001
+std::sort,Random,int,8,0.0001
+std::stable_sort,Random,int,8,0.0002
+qsort,Random,int,8,0.0001
+DualPivotQuicksort,Random,int,10,0.0001
+std::sort,Random,int,10,0.0001
+std::stable_sort,Random,int,10,0.0002
+qsort,Random,int,10,0.0004
+DualPivotQuicksort,Random,int,13,0.0002
+std::sort,Random,int,13,0.0002
+std::stable_sort,Random,int,13,0.0004
+qsort,Random,int,13,0.0006
+DualPivotQuicksort,Random,int,16,0.0003
+std::sort,Random,int,16,0.0003
+std::stable_sort,Random,int,16,0.0006
+qsort,Random,int,16,0.0006
+DualPivotQuicksort,Random,int,21,0.0002
+std::sort,Random,int,21,0.0006
+std::stable_sort,Random,int,21,0.0012
+qsort,Random,int,21,0.0015
+DualPivotQuicksort,Random,int,26,0.0005
+std::sort,Random,int,26,0.0006
+std::stable_sort,Random,int,26,0.0007
+qsort,Random,int,26,0.0012
+DualPivotQuicksort,Random,int,33,0.0006
+std::sort,Random,int,33,0.0008
+std::stable_sort,Random,int,33,0.0013
+qsort,Random,int,33,0.0019
+DualPivotQuicksort,Random,int,42,0.0007
+std::sort,Random,int,42,0.0008
+std::stable_sort,Random,int,42,0.0011
+qsort,Random,int,42,0.0017
+DualPivotQuicksort,Random,int,54,0.0084
+std::sort,Random,int,54,0.001
+std::stable_sort,Random,int,54,0.0024
+qsort,Random,int,54,0.0021
+DualPivotQuicksort,Random,int,68,0.0012
+std::sort,Random,int,68,0.0012
+std::stable_sort,Random,int,68,0.0018
+qsort,Random,int,68,0.0028
+DualPivotQuicksort,Random,int,86,0.0018
+std::sort,Random,int,86,0.0016
+std::stable_sort,Random,int,86,0.0024
+qsort,Random,int,86,0.0039
+DualPivotQuicksort,Random,int,109,0.0022
+std::sort,Random,int,109,0.0023
+std::stable_sort,Random,int,109,0.0027
+qsort,Random,int,109,0.0051
+DualPivotQuicksort,Random,int,138,0.0028
+std::sort,Random,int,138,0.0031
+std::stable_sort,Random,int,138,0.0037
+qsort,Random,int,138,0.0069
+DualPivotQuicksort,Random,int,175,0.0038
+std::sort,Random,int,175,0.0039
+std::stable_sort,Random,int,175,0.005
+qsort,Random,int,175,0.0091
+DualPivotQuicksort,Random,int,222,0.005
+std::sort,Random,int,222,0.0053
+std::stable_sort,Random,int,222,0.0057
+qsort,Random,int,222,0.0118
+DualPivotQuicksort,Random,int,281,0.0061
+std::sort,Random,int,281,0.0072
+std::stable_sort,Random,int,281,0.0082
+qsort,Random,int,281,0.0168
+DualPivotQuicksort,Random,int,355,0.008
+std::sort,Random,int,355,0.0089
+std::stable_sort,Random,int,355,0.0162
+qsort,Random,int,355,0.0196
+DualPivotQuicksort,Random,int,449,0.0099
+std::sort,Random,int,449,0.011
+std::stable_sort,Random,int,449,0.0127
+qsort,Random,int,449,0.0254
+DualPivotQuicksort,Random,int,568,0.0132
+std::sort,Random,int,568,0.0143
+std::stable_sort,Random,int,568,0.0155
+qsort,Random,int,568,0.0335
+DualPivotQuicksort,Random,int,719,0.0177
+std::sort,Random,int,719,0.019
+std::stable_sort,Random,int,719,0.0238
+qsort,Random,int,719,0.0491
+DualPivotQuicksort,Random,int,910,0.0257
+std::sort,Random,int,910,0.0275
+std::stable_sort,Random,int,910,0.0303
+qsort,Random,int,910,0.0594
+DualPivotQuicksort,Random,int,1151,0.0311
+std::sort,Random,int,1151,0.035
+std::stable_sort,Random,int,1151,0.0373
+qsort,Random,int,1151,0.0777
+DualPivotQuicksort,Random,int,1456,0.0411
+std::sort,Random,int,1456,0.0449
+std::stable_sort,Random,int,1456,0.0505
+qsort,Random,int,1456,0.1044
+DualPivotQuicksort,Random,int,1842,0.0562
+std::sort,Random,int,1842,0.0562
+std::stable_sort,Random,int,1842,0.0629
+qsort,Random,int,1842,0.1298
+DualPivotQuicksort,Random,int,2329,0.0686
+std::sort,Random,int,2329,0.0729
+std::stable_sort,Random,int,2329,0.0815
+qsort,Random,int,2329,0.1688
+DualPivotQuicksort,Random,int,2947,0.0897
+std::sort,Random,int,2947,0.093
+std::stable_sort,Random,int,2947,0.1049
+qsort,Random,int,2947,0.216
+DualPivotQuicksort,Random,int,3727,0.1289
+std::sort,Random,int,3727,0.1337
+std::stable_sort,Random,int,3727,0.1354
+qsort,Random,int,3727,0.2781
+DualPivotQuicksort,Random,int,4714,0.1429
+std::sort,Random,int,4714,0.1414
+std::stable_sort,Random,int,4714,0.1604
+qsort,Random,int,4714,0.3287
+DualPivotQuicksort,Random,int,5963,0.1727
+std::sort,Random,int,5963,0.1838
+std::stable_sort,Random,int,5963,0.2079
+qsort,Random,int,5963,0.4212
+DualPivotQuicksort,Random,int,7543,0.2149
+std::sort,Random,int,7543,0.2334
+std::stable_sort,Random,int,7543,0.2725
+qsort,Random,int,7543,0.5262
+DualPivotQuicksort,Random,int,9540,0.279
+std::sort,Random,int,9540,0.3012
+std::stable_sort,Random,int,9540,0.331
+qsort,Random,int,9540,0.6812
+DualPivotQuicksort,Random,int,12067,0.3749
+std::sort,Random,int,12067,0.3899
+std::stable_sort,Random,int,12067,0.4585
+qsort,Random,int,12067,0.8908
+DualPivotQuicksort,Random,int,15264,0.4766
+std::sort,Random,int,15264,0.505
+std::stable_sort,Random,int,15264,0.5951
+qsort,Random,int,15264,1.1696
+DualPivotQuicksort,Random,int,19306,0.6156
+std::sort,Random,int,19306,0.6775
+std::stable_sort,Random,int,19306,0.767
+qsort,Random,int,19306,1.5917
+DualPivotQuicksort,Random,int,24420,0.9319
+std::sort,Random,int,24420,0.97
+std::stable_sort,Random,int,24420,1.1183
+qsort,Random,int,24420,2.2554
+DualPivotQuicksort,Random,int,30888,1.3817
+std::sort,Random,int,30888,1.3082
+std::stable_sort,Random,int,30888,1.4987
+qsort,Random,int,30888,2.7111
+DualPivotQuicksort,Random,int,39069,1.4907
+std::sort,Random,int,39069,1.649
+std::stable_sort,Random,int,39069,1.8637
+qsort,Random,int,39069,3.3489
+DualPivotQuicksort,Random,int,49417,1.751
+std::sort,Random,int,49417,1.8471
+std::stable_sort,Random,int,49417,2.0161
+qsort,Random,int,49417,4.1411
+DualPivotQuicksort,Random,int,62505,2.3443
+std::sort,Random,int,62505,2.4196
+std::stable_sort,Random,int,62505,2.8373
+qsort,Random,int,62505,5.5038
+DualPivotQuicksort,Random,int,79060,3.3512
+std::sort,Random,int,79060,3.5317
+std::stable_sort,Random,int,79060,3.5547
+qsort,Random,int,79060,6.9486
+DualPivotQuicksort,Random,int,100000,4.14
+std::sort,Random,int,100000,4.2179
+std::stable_sort,Random,int,100000,4.6062
+qsort,Random,int,100000,9.0288
+DualPivotQuicksort,Random,unsigned int,1,0
+std::sort,Random,unsigned int,1,0.0028
+std::stable_sort,Random,unsigned int,1,0.0005
+qsort,Random,unsigned int,1,0.0002
+DualPivotQuicksort,Random,unsigned int,2,0.0003
+std::sort,Random,unsigned int,2,0
+std::stable_sort,Random,unsigned int,2,0.0001
+qsort,Random,unsigned int,2,0.0003
+DualPivotQuicksort,Random,unsigned int,3,0.0001
+std::sort,Random,unsigned int,3,0
+std::stable_sort,Random,unsigned int,3,0.0001
+qsort,Random,unsigned int,3,0.0001
+DualPivotQuicksort,Random,unsigned int,4,0.0001
+std::sort,Random,unsigned int,4,0
+std::stable_sort,Random,unsigned int,4,0.0002
+qsort,Random,unsigned int,4,0.0001
+DualPivotQuicksort,Random,unsigned int,5,0.0001
+std::sort,Random,unsigned int,5,0.0001
+std::stable_sort,Random,unsigned int,5,0.0002
+qsort,Random,unsigned int,5,0.0001
+DualPivotQuicksort,Random,unsigned int,6,0.0001
+std::sort,Random,unsigned int,6,0.0001
+std::stable_sort,Random,unsigned int,6,0.0001
+qsort,Random,unsigned int,6,0.0002
+DualPivotQuicksort,Random,unsigned int,8,0.0001
+std::sort,Random,unsigned int,8,0.0001
+std::stable_sort,Random,unsigned int,8,0.0001
+qsort,Random,unsigned int,8,0.0003
+DualPivotQuicksort,Random,unsigned int,10,0.0001
+std::sort,Random,unsigned int,10,0.0001
+std::stable_sort,Random,unsigned int,10,0.0003
+qsort,Random,unsigned int,10,0.0005
+DualPivotQuicksort,Random,unsigned int,13,0.0001
+std::sort,Random,unsigned int,13,0.0002
+std::stable_sort,Random,unsigned int,13,0.0003
+qsort,Random,unsigned int,13,0.0005
+DualPivotQuicksort,Random,unsigned int,16,0.0003
+std::sort,Random,unsigned int,16,0.0002
+std::stable_sort,Random,unsigned int,16,0.0006
+qsort,Random,unsigned int,16,0.0007
+DualPivotQuicksort,Random,unsigned int,21,0.0004
+std::sort,Random,unsigned int,21,0.0003
+std::stable_sort,Random,unsigned int,21,0.0006
+qsort,Random,unsigned int,21,0.0009
+DualPivotQuicksort,Random,unsigned int,26,0.0003
+std::sort,Random,unsigned int,26,0.0004
+std::stable_sort,Random,unsigned int,26,0.0006
+qsort,Random,unsigned int,26,0.001
+DualPivotQuicksort,Random,unsigned int,33,0.0004
+std::sort,Random,unsigned int,33,0.0006
+std::stable_sort,Random,unsigned int,33,0.0009
+qsort,Random,unsigned int,33,0.0013
+DualPivotQuicksort,Random,unsigned int,42,0.0004
+std::sort,Random,unsigned int,42,0.0006
+std::stable_sort,Random,unsigned int,42,0.001
+qsort,Random,unsigned int,42,0.0016
+DualPivotQuicksort,Random,unsigned int,54,0.0041
+std::sort,Random,unsigned int,54,0.001
+std::stable_sort,Random,unsigned int,54,0.0012
+qsort,Random,unsigned int,54,0.0022
+DualPivotQuicksort,Random,unsigned int,68,0.0013
+std::sort,Random,unsigned int,68,0.0012
+std::stable_sort,Random,unsigned int,68,0.0016
+qsort,Random,unsigned int,68,0.0028
+DualPivotQuicksort,Random,unsigned int,86,0.0014
+std::sort,Random,unsigned int,86,0.0015
+std::stable_sort,Random,unsigned int,86,0.0022
+qsort,Random,unsigned int,86,0.0041
+DualPivotQuicksort,Random,unsigned int,109,0.0019
+std::sort,Random,unsigned int,109,0.0021
+std::stable_sort,Random,unsigned int,109,0.0023
+qsort,Random,unsigned int,109,0.0047
+DualPivotQuicksort,Random,unsigned int,138,0.0024
+std::sort,Random,unsigned int,138,0.0025
+std::stable_sort,Random,unsigned int,138,0.0033
+qsort,Random,unsigned int,138,0.0061
+DualPivotQuicksort,Random,unsigned int,175,0.0031
+std::sort,Random,unsigned int,175,0.0033
+std::stable_sort,Random,unsigned int,175,0.004
+qsort,Random,unsigned int,175,0.0086
+DualPivotQuicksort,Random,unsigned int,222,0.0039
+std::sort,Random,unsigned int,222,0.0042
+std::stable_sort,Random,unsigned int,222,0.0049
+qsort,Random,unsigned int,222,0.011
+DualPivotQuicksort,Random,unsigned int,281,0.0055
+std::sort,Random,unsigned int,281,0.0059
+std::stable_sort,Random,unsigned int,281,0.0067
+qsort,Random,unsigned int,281,0.0139
+DualPivotQuicksort,Random,unsigned int,355,0.0067
+std::sort,Random,unsigned int,355,0.0071
+std::stable_sort,Random,unsigned int,355,0.0336
+qsort,Random,unsigned int,355,0.0187
+DualPivotQuicksort,Random,unsigned int,449,0.0089
+std::sort,Random,unsigned int,449,0.0097
+std::stable_sort,Random,unsigned int,449,0.011
+qsort,Random,unsigned int,449,0.0237
+DualPivotQuicksort,Random,unsigned int,568,0.012
+std::sort,Random,unsigned int,568,0.0128
+std::stable_sort,Random,unsigned int,568,0.0139
+qsort,Random,unsigned int,568,0.0323
+DualPivotQuicksort,Random,unsigned int,719,0.0147
+std::sort,Random,unsigned int,719,0.0164
+std::stable_sort,Random,unsigned int,719,0.0183
+qsort,Random,unsigned int,719,0.041
+DualPivotQuicksort,Random,unsigned int,910,0.0197
+std::sort,Random,unsigned int,910,0.0211
+std::stable_sort,Random,unsigned int,910,0.0244
+qsort,Random,unsigned int,910,0.0528
+DualPivotQuicksort,Random,unsigned int,1151,0.0261
+std::sort,Random,unsigned int,1151,0.0281
+std::stable_sort,Random,unsigned int,1151,0.03
+qsort,Random,unsigned int,1151,0.0687
+DualPivotQuicksort,Random,unsigned int,1456,0.0343
+std::sort,Random,unsigned int,1456,0.0372
+std::stable_sort,Random,unsigned int,1456,0.0413
+qsort,Random,unsigned int,1456,0.0926
+DualPivotQuicksort,Random,unsigned int,1842,0.0438
+std::sort,Random,unsigned int,1842,0.0476
+std::stable_sort,Random,unsigned int,1842,0.0541
+qsort,Random,unsigned int,1842,0.1191
+DualPivotQuicksort,Random,unsigned int,2329,0.0573
+std::sort,Random,unsigned int,2329,0.0628
+std::stable_sort,Random,unsigned int,2329,0.0692
+qsort,Random,unsigned int,2329,0.1516
+DualPivotQuicksort,Random,unsigned int,2947,0.075
+std::sort,Random,unsigned int,2947,0.0792
+std::stable_sort,Random,unsigned int,2947,0.0908
+qsort,Random,unsigned int,2947,0.1963
+DualPivotQuicksort,Random,unsigned int,3727,0.0966
+std::sort,Random,unsigned int,3727,0.1038
+std::stable_sort,Random,unsigned int,3727,0.119
+qsort,Random,unsigned int,3727,0.2582
+DualPivotQuicksort,Random,unsigned int,4714,0.1224
+std::sort,Random,unsigned int,4714,0.1353
+std::stable_sort,Random,unsigned int,4714,0.1525
+qsort,Random,unsigned int,4714,0.3383
+DualPivotQuicksort,Random,unsigned int,5963,0.1756
+std::sort,Random,unsigned int,5963,0.1732
+std::stable_sort,Random,unsigned int,5963,0.2015
+qsort,Random,unsigned int,5963,0.4592
+DualPivotQuicksort,Random,unsigned int,7543,0.2282
+std::sort,Random,unsigned int,7543,0.24
+std::stable_sort,Random,unsigned int,7543,0.2674
+qsort,Random,unsigned int,7543,0.5591
+DualPivotQuicksort,Random,unsigned int,9540,0.2794
+std::sort,Random,unsigned int,9540,0.3014
+std::stable_sort,Random,unsigned int,9540,0.3583
+qsort,Random,unsigned int,9540,0.7324
+DualPivotQuicksort,Random,unsigned int,12067,0.3616
+std::sort,Random,unsigned int,12067,0.4536
+std::stable_sort,Random,unsigned int,12067,0.5081
+qsort,Random,unsigned int,12067,1.0066
+DualPivotQuicksort,Random,unsigned int,15264,0.4605
+std::sort,Random,unsigned int,15264,0.5032
+std::stable_sort,Random,unsigned int,15264,0.602
+qsort,Random,unsigned int,15264,1.3565
+DualPivotQuicksort,Random,unsigned int,19306,0.7221
+std::sort,Random,unsigned int,19306,0.6467
+std::stable_sort,Random,unsigned int,19306,0.7806
+qsort,Random,unsigned int,19306,1.6044
+DualPivotQuicksort,Random,unsigned int,24420,0.7891
+std::sort,Random,unsigned int,24420,0.8901
+std::stable_sort,Random,unsigned int,24420,1.0105
+qsort,Random,unsigned int,24420,2.0581
+DualPivotQuicksort,Random,unsigned int,30888,0.9911
+std::sort,Random,unsigned int,30888,1.1759
+std::stable_sort,Random,unsigned int,30888,1.3793
+qsort,Random,unsigned int,30888,2.6195
+DualPivotQuicksort,Random,unsigned int,39069,1.3673
+std::sort,Random,unsigned int,39069,1.3723
+std::stable_sort,Random,unsigned int,39069,1.5971
+qsort,Random,unsigned int,39069,3.3509
+DualPivotQuicksort,Random,unsigned int,49417,1.7319
+std::sort,Random,unsigned int,49417,1.9278
+std::stable_sort,Random,unsigned int,49417,2.1005
+qsort,Random,unsigned int,49417,4.6501
+DualPivotQuicksort,Random,unsigned int,62505,2.4009
+std::sort,Random,unsigned int,62505,2.3496
+std::stable_sort,Random,unsigned int,62505,2.9542
+qsort,Random,unsigned int,62505,5.8894
+DualPivotQuicksort,Random,unsigned int,79060,2.8419
+std::sort,Random,unsigned int,79060,3.0064
+std::stable_sort,Random,unsigned int,79060,3.6345
+qsort,Random,unsigned int,79060,7.5386
+DualPivotQuicksort,Random,unsigned int,100000,3.8606
+std::sort,Random,unsigned int,100000,4.325
+std::stable_sort,Random,unsigned int,100000,4.4782
+qsort,Random,unsigned int,100000,9.2829
+DualPivotQuicksort,Random,short,1,0
+std::sort,Random,short,1,0.0003
+std::stable_sort,Random,short,1,0.0028
+qsort,Random,short,1,0.0001
+DualPivotQuicksort,Random,short,2,0.0025
+std::sort,Random,short,2,0.0001
+std::stable_sort,Random,short,2,0.0002
+qsort,Random,short,2,0.0002
+DualPivotQuicksort,Random,short,3,0.0001
+std::sort,Random,short,3,0
+std::stable_sort,Random,short,3,0.0002
+qsort,Random,short,3,0.0001
+DualPivotQuicksort,Random,short,4,0.0001
+std::sort,Random,short,4,0.0001
+std::stable_sort,Random,short,4,0.0002
+qsort,Random,short,4,0
+DualPivotQuicksort,Random,short,5,0.0001
+std::sort,Random,short,5,0.0001
+std::stable_sort,Random,short,5,0.0002
+qsort,Random,short,5,0.0001
+DualPivotQuicksort,Random,short,6,0.0001
+std::sort,Random,short,6,0
+std::stable_sort,Random,short,6,0.0002
+qsort,Random,short,6,0.0001
+DualPivotQuicksort,Random,short,8,0.0001
+std::sort,Random,short,8,0.0001
+std::stable_sort,Random,short,8,0.0002
+qsort,Random,short,8,0.0002
+DualPivotQuicksort,Random,short,10,0.0001
+std::sort,Random,short,10,0.0002
+std::stable_sort,Random,short,10,0.0002
+qsort,Random,short,10,0.0004
+DualPivotQuicksort,Random,short,13,0.0001
+std::sort,Random,short,13,0.0002
+std::stable_sort,Random,short,13,0.0003
+qsort,Random,short,13,0.0004
+DualPivotQuicksort,Random,short,16,0.0002
+std::sort,Random,short,16,0.0002
+std::stable_sort,Random,short,16,0.0006
+qsort,Random,short,16,0.0004
+DualPivotQuicksort,Random,short,21,0.0004
+std::sort,Random,short,21,0.0004
+std::stable_sort,Random,short,21,0.0004
+qsort,Random,short,21,0.0007
+DualPivotQuicksort,Random,short,26,0.0003
+std::sort,Random,short,26,0.0005
+std::stable_sort,Random,short,26,0.0007
+qsort,Random,short,26,0.0009
+DualPivotQuicksort,Random,short,33,0.0004
+std::sort,Random,short,33,0.0005
+std::stable_sort,Random,short,33,0.0009
+qsort,Random,short,33,0.0012
+DualPivotQuicksort,Random,short,42,0.0005
+std::sort,Random,short,42,0.0006
+std::stable_sort,Random,short,42,0.001
+qsort,Random,short,42,0.0014
+DualPivotQuicksort,Random,short,54,0.0033
+std::sort,Random,short,54,0.0008
+std::stable_sort,Random,short,54,0.0011
+qsort,Random,short,54,0.0019
+DualPivotQuicksort,Random,short,68,0.0012
+std::sort,Random,short,68,0.0012
+std::stable_sort,Random,short,68,0.0018
+qsort,Random,short,68,0.0026
+DualPivotQuicksort,Random,short,86,0.0017
+std::sort,Random,short,86,0.0015
+std::stable_sort,Random,short,86,0.002
+qsort,Random,short,86,0.0031
+DualPivotQuicksort,Random,short,109,0.002
+std::sort,Random,short,109,0.0019
+std::stable_sort,Random,short,109,0.0025
+qsort,Random,short,109,0.0043
+DualPivotQuicksort,Random,short,138,0.0025
+std::sort,Random,short,138,0.0024
+std::stable_sort,Random,short,138,0.0032
+qsort,Random,short,138,0.0053
+DualPivotQuicksort,Random,short,175,0.0032
+std::sort,Random,short,175,0.0032
+std::stable_sort,Random,short,175,0.0043
+qsort,Random,short,175,0.0078
+DualPivotQuicksort,Random,short,222,0.0041
+std::sort,Random,short,222,0.0043
+std::stable_sort,Random,short,222,0.0053
+qsort,Random,short,222,0.0098
+DualPivotQuicksort,Random,short,281,0.0057
+std::sort,Random,short,281,0.0057
+std::stable_sort,Random,short,281,0.0075
+qsort,Random,short,281,0.0142
+DualPivotQuicksort,Random,short,355,0.008
+std::sort,Random,short,355,0.0082
+std::stable_sort,Random,short,355,0.0099
+qsort,Random,short,355,0.0191
+DualPivotQuicksort,Random,short,449,0.0109
+std::sort,Random,short,449,0.0115
+std::stable_sort,Random,short,449,0.0142
+qsort,Random,short,449,0.0268
+DualPivotQuicksort,Random,short,568,0.0146
+std::sort,Random,short,568,0.0152
+std::stable_sort,Random,short,568,0.0174
+qsort,Random,short,568,0.0335
+DualPivotQuicksort,Random,short,719,0.0172
+std::sort,Random,short,719,0.0191
+std::stable_sort,Random,short,719,0.0648
+qsort,Random,short,719,0.0436
+DualPivotQuicksort,Random,short,910,0.0232
+std::sort,Random,short,910,0.0242
+std::stable_sort,Random,short,910,0.0283
+qsort,Random,short,910,0.0544
+DualPivotQuicksort,Random,short,1151,0.0314
+std::sort,Random,short,1151,0.0313
+std::stable_sort,Random,short,1151,0.0338
+qsort,Random,short,1151,0.065
+DualPivotQuicksort,Random,short,1456,0.0336
+std::sort,Random,short,1456,0.0353
+std::stable_sort,Random,short,1456,0.041
+qsort,Random,short,1456,0.0833
+DualPivotQuicksort,Random,short,1842,0.0469
+std::sort,Random,short,1842,0.049
+std::stable_sort,Random,short,1842,0.0686
+qsort,Random,short,1842,0.1073
+DualPivotQuicksort,Random,short,2329,0.0585
+std::sort,Random,short,2329,0.0601
+std::stable_sort,Random,short,2329,0.0668
+qsort,Random,short,2329,0.136
+DualPivotQuicksort,Random,short,2947,0.0751
+std::sort,Random,short,2947,0.0787
+std::stable_sort,Random,short,2947,0.0869
+qsort,Random,short,2947,0.1778
+DualPivotQuicksort,Random,short,3727,0.0966
+std::sort,Random,short,3727,0.1029
+std::stable_sort,Random,short,3727,0.1156
+qsort,Random,short,3727,0.2288
+DualPivotQuicksort,Random,short,4714,0.1389
+std::sort,Random,short,4714,0.1321
+std::stable_sort,Random,short,4714,0.1519
+qsort,Random,short,4714,0.2949
+DualPivotQuicksort,Random,short,5963,0.1733
+std::sort,Random,short,5963,0.1736
+std::stable_sort,Random,short,5963,0.1987
+qsort,Random,short,5963,0.3811
+DualPivotQuicksort,Random,short,7543,0.2205
+std::sort,Random,short,7543,0.2479
+std::stable_sort,Random,short,7543,0.2713
+qsort,Random,short,7543,0.5005
+DualPivotQuicksort,Random,short,9540,0.2808
+std::sort,Random,short,9540,0.2871
+std::stable_sort,Random,short,9540,0.3445
+qsort,Random,short,9540,0.6536
+DualPivotQuicksort,Random,short,12067,0.4053
+std::sort,Random,short,12067,0.3834
+std::stable_sort,Random,short,12067,0.4596
+qsort,Random,short,12067,0.8399
+DualPivotQuicksort,Random,short,15264,0.4772
+std::sort,Random,short,15264,0.4904
+std::stable_sort,Random,short,15264,0.6165
+qsort,Random,short,15264,1.0936
+DualPivotQuicksort,Random,short,19306,0.6325
+std::sort,Random,short,19306,0.6496
+std::stable_sort,Random,short,19306,0.7361
+qsort,Random,short,19306,1.5106
+DualPivotQuicksort,Random,short,24420,0.8645
+std::sort,Random,short,24420,0.8826
+std::stable_sort,Random,short,24420,0.9776
+qsort,Random,short,24420,1.8295
+DualPivotQuicksort,Random,short,30888,1.0552
+std::sort,Random,short,30888,1.0511
+std::stable_sort,Random,short,30888,1.2097
+qsort,Random,short,30888,2.362
+DualPivotQuicksort,Random,short,39069,1.4055
+std::sort,Random,short,39069,1.385
+std::stable_sort,Random,short,39069,1.6387
+qsort,Random,short,39069,3.0978
+DualPivotQuicksort,Random,short,49417,1.7641
+std::sort,Random,short,49417,1.7376
+std::stable_sort,Random,short,49417,2.0187
+qsort,Random,short,49417,3.9058
+DualPivotQuicksort,Random,short,62505,2.2045
+std::sort,Random,short,62505,2.3511
+std::stable_sort,Random,short,62505,2.6607
+qsort,Random,short,62505,5.0843
+DualPivotQuicksort,Random,short,79060,2.5525
+std::sort,Random,short,79060,2.5648
+std::stable_sort,Random,short,79060,3.3672
+qsort,Random,short,79060,5.2902
+DualPivotQuicksort,Random,short,100000,3.6687
+std::sort,Random,short,100000,3.8957
+std::stable_sort,Random,short,100000,4.3833
+qsort,Random,short,100000,7.909
+DualPivotQuicksort,Random,unsigned short,1,0.0001
+std::sort,Random,unsigned short,1,0.0003
+std::stable_sort,Random,unsigned short,1,0.0026
+qsort,Random,unsigned short,1,0.0001
+DualPivotQuicksort,Random,unsigned short,2,0.0026
+std::sort,Random,unsigned short,2,0
+std::stable_sort,Random,unsigned short,2,0.0001
+qsort,Random,unsigned short,2,0.0003
+DualPivotQuicksort,Random,unsigned short,3,0.0001
+std::sort,Random,unsigned short,3,0
+std::stable_sort,Random,unsigned short,3,0.0002
+qsort,Random,unsigned short,3,0.0001
+DualPivotQuicksort,Random,unsigned short,4,0.0001
+std::sort,Random,unsigned short,4,0.0001
+std::stable_sort,Random,unsigned short,4,0.0002
+qsort,Random,unsigned short,4,0.0002
+DualPivotQuicksort,Random,unsigned short,5,0.0001
+std::sort,Random,unsigned short,5,0.0001
+std::stable_sort,Random,unsigned short,5,0.0002
+qsort,Random,unsigned short,5,0.0002
+DualPivotQuicksort,Random,unsigned short,6,0.0001
+std::sort,Random,unsigned short,6,0.0001
+std::stable_sort,Random,unsigned short,6,0.0003
+qsort,Random,unsigned short,6,0.0002
+DualPivotQuicksort,Random,unsigned short,8,0.0001
+std::sort,Random,unsigned short,8,0.0001
+std::stable_sort,Random,unsigned short,8,0.0002
+qsort,Random,unsigned short,8,0.0003
+DualPivotQuicksort,Random,unsigned short,10,0.0001
+std::sort,Random,unsigned short,10,0.0002
+std::stable_sort,Random,unsigned short,10,0.0003
+qsort,Random,unsigned short,10,0.0006
+DualPivotQuicksort,Random,unsigned short,13,0.0002
+std::sort,Random,unsigned short,13,0.0002
+std::stable_sort,Random,unsigned short,13,0.0003
+qsort,Random,unsigned short,13,0.0007
+DualPivotQuicksort,Random,unsigned short,16,0.0002
+std::sort,Random,unsigned short,16,0.0002
+std::stable_sort,Random,unsigned short,16,0.0005
+qsort,Random,unsigned short,16,0.0005
+DualPivotQuicksort,Random,unsigned short,21,0.0003
+std::sort,Random,unsigned short,21,0.0004
+std::stable_sort,Random,unsigned short,21,0.0006
+qsort,Random,unsigned short,21,0.0007
+DualPivotQuicksort,Random,unsigned short,26,0.0003
+std::sort,Random,unsigned short,26,0.0004
+std::stable_sort,Random,unsigned short,26,0.0007
+qsort,Random,unsigned short,26,0.001
+DualPivotQuicksort,Random,unsigned short,33,0.0004
+std::sort,Random,unsigned short,33,0.0004
+std::stable_sort,Random,unsigned short,33,0.0011
+qsort,Random,unsigned short,33,0.0013
+DualPivotQuicksort,Random,unsigned short,42,0.0005
+std::sort,Random,unsigned short,42,0.0007
+std::stable_sort,Random,unsigned short,42,0.001
+qsort,Random,unsigned short,42,0.0018
+DualPivotQuicksort,Random,unsigned short,54,0.0011
+std::sort,Random,unsigned short,54,0.0008
+std::stable_sort,Random,unsigned short,54,0.0014
+qsort,Random,unsigned short,54,0.0022
+DualPivotQuicksort,Random,unsigned short,68,0.0011
+std::sort,Random,unsigned short,68,0.0012
+std::stable_sort,Random,unsigned short,68,0.0018
+qsort,Random,unsigned short,68,0.0028
+DualPivotQuicksort,Random,unsigned short,86,0.0014
+std::sort,Random,unsigned short,86,0.0014
+std::stable_sort,Random,unsigned short,86,0.002
+qsort,Random,unsigned short,86,0.0037
+DualPivotQuicksort,Random,unsigned short,109,0.0019
+std::sort,Random,unsigned short,109,0.002
+std::stable_sort,Random,unsigned short,109,0.0026
+qsort,Random,unsigned short,109,0.005
+DualPivotQuicksort,Random,unsigned short,138,0.0023
+std::sort,Random,unsigned short,138,0.0026
+std::stable_sort,Random,unsigned short,138,0.0033
+qsort,Random,unsigned short,138,0.0064
+DualPivotQuicksort,Random,unsigned short,175,0.0031
+std::sort,Random,unsigned short,175,0.0032
+std::stable_sort,Random,unsigned short,175,0.0042
+qsort,Random,unsigned short,175,0.0084
+DualPivotQuicksort,Random,unsigned short,222,0.0039
+std::sort,Random,unsigned short,222,0.0041
+std::stable_sort,Random,unsigned short,222,0.0051
+qsort,Random,unsigned short,222,0.0109
+DualPivotQuicksort,Random,unsigned short,281,0.0052
+std::sort,Random,unsigned short,281,0.0056
+std::stable_sort,Random,unsigned short,281,0.0067
+qsort,Random,unsigned short,281,0.0144
+DualPivotQuicksort,Random,unsigned short,355,0.0069
+std::sort,Random,unsigned short,355,0.0072
+std::stable_sort,Random,unsigned short,355,0.0085
+qsort,Random,unsigned short,355,0.0195
+DualPivotQuicksort,Random,unsigned short,449,0.0093
+std::sort,Random,unsigned short,449,0.0095
+std::stable_sort,Random,unsigned short,449,0.0111
+qsort,Random,unsigned short,449,0.0234
+DualPivotQuicksort,Random,unsigned short,568,0.0125
+std::sort,Random,unsigned short,568,0.0122
+std::stable_sort,Random,unsigned short,568,0.0139
+qsort,Random,unsigned short,568,0.031
+DualPivotQuicksort,Random,unsigned short,719,0.0154
+std::sort,Random,unsigned short,719,0.0162
+std::stable_sort,Random,unsigned short,719,0.0352
+qsort,Random,unsigned short,719,0.04
+DualPivotQuicksort,Random,unsigned short,910,0.0203
+std::sort,Random,unsigned short,910,0.0219
+std::stable_sort,Random,unsigned short,910,0.0247
+qsort,Random,unsigned short,910,0.0525
+DualPivotQuicksort,Random,unsigned short,1151,0.0265
+std::sort,Random,unsigned short,1151,0.0271
+std::stable_sort,Random,unsigned short,1151,0.0307
+qsort,Random,unsigned short,1151,0.0691
+DualPivotQuicksort,Random,unsigned short,1456,0.033
+std::sort,Random,unsigned short,1456,0.0359
+std::stable_sort,Random,unsigned short,1456,0.041
+qsort,Random,unsigned short,1456,0.0894
+DualPivotQuicksort,Random,unsigned short,1842,0.0434
+std::sort,Random,unsigned short,1842,0.0469
+std::stable_sort,Random,unsigned short,1842,0.0547
+qsort,Random,unsigned short,1842,0.1152
+DualPivotQuicksort,Random,unsigned short,2329,0.0579
+std::sort,Random,unsigned short,2329,0.0626
+std::stable_sort,Random,unsigned short,2329,0.0683
+qsort,Random,unsigned short,2329,0.1517
+DualPivotQuicksort,Random,unsigned short,2947,0.077
+std::sort,Random,unsigned short,2947,0.0808
+std::stable_sort,Random,unsigned short,2947,0.0883
+qsort,Random,unsigned short,2947,0.1938
+DualPivotQuicksort,Random,unsigned short,3727,0.1017
+std::sort,Random,unsigned short,3727,0.1043
+std::stable_sort,Random,unsigned short,3727,0.1185
+qsort,Random,unsigned short,3727,0.2906
+DualPivotQuicksort,Random,unsigned short,4714,0.1333
+std::sort,Random,unsigned short,4714,0.1369
+std::stable_sort,Random,unsigned short,4714,0.1537
+qsort,Random,unsigned short,4714,0.3887
+DualPivotQuicksort,Random,unsigned short,5963,0.1801
+std::sort,Random,unsigned short,5963,0.1787
+std::stable_sort,Random,unsigned short,5963,0.2083
+qsort,Random,unsigned short,5963,0.4216
+DualPivotQuicksort,Random,unsigned short,7543,0.2156
+std::sort,Random,unsigned short,7543,0.2291
+std::stable_sort,Random,unsigned short,7543,0.2655
+qsort,Random,unsigned short,7543,0.5581
+DualPivotQuicksort,Random,unsigned short,9540,0.2908
+std::sort,Random,unsigned short,9540,0.2966
+std::stable_sort,Random,unsigned short,9540,0.3346
+qsort,Random,unsigned short,9540,0.7907
+DualPivotQuicksort,Random,unsigned short,12067,0.4279
+std::sort,Random,unsigned short,12067,0.4319
+std::stable_sort,Random,unsigned short,12067,0.4902
+qsort,Random,unsigned short,12067,1.0814
+DualPivotQuicksort,Random,unsigned short,15264,0.5568
+std::sort,Random,unsigned short,15264,0.6168
+std::stable_sort,Random,unsigned short,15264,0.6546
+qsort,Random,unsigned short,15264,1.4475
+DualPivotQuicksort,Random,unsigned short,19306,0.736
+std::sort,Random,unsigned short,19306,0.7544
+std::stable_sort,Random,unsigned short,19306,0.874
+qsort,Random,unsigned short,19306,1.9065
+DualPivotQuicksort,Random,unsigned short,24420,0.9846
+std::sort,Random,unsigned short,24420,0.9124
+std::stable_sort,Random,unsigned short,24420,1.0694
+qsort,Random,unsigned short,24420,2.407
+DualPivotQuicksort,Random,unsigned short,30888,1.2565
+std::sort,Random,unsigned short,30888,1.2047
+std::stable_sort,Random,unsigned short,30888,1.4102
+qsort,Random,unsigned short,30888,2.9539
+DualPivotQuicksort,Random,unsigned short,39069,1.4853
+std::sort,Random,unsigned short,39069,1.6277
+std::stable_sort,Random,unsigned short,39069,1.8463
+qsort,Random,unsigned short,39069,3.9585
+DualPivotQuicksort,Random,unsigned short,49417,2.1566
+std::sort,Random,unsigned short,49417,2.1052
+std::stable_sort,Random,unsigned short,49417,2.3272
+qsort,Random,unsigned short,49417,4.8992
+DualPivotQuicksort,Random,unsigned short,62505,2.2021
+std::sort,Random,unsigned short,62505,2.4094
+std::stable_sort,Random,unsigned short,62505,2.6939
+qsort,Random,unsigned short,62505,5.9211
+DualPivotQuicksort,Random,unsigned short,79060,2.844
+std::sort,Random,unsigned short,79060,2.6666
+std::stable_sort,Random,unsigned short,79060,3.2555
+qsort,Random,unsigned short,79060,5.7706
+DualPivotQuicksort,Random,unsigned short,100000,3.9277
+std::sort,Random,unsigned short,100000,3.8336
+std::stable_sort,Random,unsigned short,100000,4.4164
+qsort,Random,unsigned short,100000,9.0386
+DualPivotQuicksort,Random,long,1,0.0001
+std::sort,Random,long,1,0.0089
+std::stable_sort,Random,long,1,0.0029
+qsort,Random,long,1,0.0003
+DualPivotQuicksort,Random,long,2,0.0003
+std::sort,Random,long,2,0.0001
+std::stable_sort,Random,long,2,0.0002
+qsort,Random,long,2,0.0002
+DualPivotQuicksort,Random,long,3,0.0001
+std::sort,Random,long,3,0
+std::stable_sort,Random,long,3,0.0002
+qsort,Random,long,3,0.0001
+DualPivotQuicksort,Random,long,4,0.0001
+std::sort,Random,long,4,0.0001
+std::stable_sort,Random,long,4,0.0002
+qsort,Random,long,4,0.0001
+DualPivotQuicksort,Random,long,5,0.0001
+std::sort,Random,long,5,0
+std::stable_sort,Random,long,5,0.0001
+qsort,Random,long,5,0.0001
+DualPivotQuicksort,Random,long,6,0.0001
+std::sort,Random,long,6,0
+std::stable_sort,Random,long,6,0.0002
+qsort,Random,long,6,0.0002
+DualPivotQuicksort,Random,long,8,0.0002
+std::sort,Random,long,8,0.0001
+std::stable_sort,Random,long,8,0.0003
+qsort,Random,long,8,0.0002
+DualPivotQuicksort,Random,long,10,0.0002
+std::sort,Random,long,10,0.0001
+std::stable_sort,Random,long,10,0.0003
+qsort,Random,long,10,0.0006
+DualPivotQuicksort,Random,long,13,0.0002
+std::sort,Random,long,13,0.0002
+std::stable_sort,Random,long,13,0.0006
+qsort,Random,long,13,0.0007
+DualPivotQuicksort,Random,long,16,0.0003
+std::sort,Random,long,16,0.0002
+std::stable_sort,Random,long,16,0.0008
+qsort,Random,long,16,0.0008
+DualPivotQuicksort,Random,long,21,0.0003
+std::sort,Random,long,21,0.0004
+std::stable_sort,Random,long,21,0.0008
+qsort,Random,long,21,0.0008
+DualPivotQuicksort,Random,long,26,0.0004
+std::sort,Random,long,26,0.0006
+std::stable_sort,Random,long,26,0.0007
+qsort,Random,long,26,0.0011
+DualPivotQuicksort,Random,long,33,0.0005
+std::sort,Random,long,33,0.0007
+std::stable_sort,Random,long,33,0.0012
+qsort,Random,long,33,0.0015
+DualPivotQuicksort,Random,long,42,0.0006
+std::sort,Random,long,42,0.0008
+std::stable_sort,Random,long,42,0.0011
+qsort,Random,long,42,0.0015
+DualPivotQuicksort,Random,long,54,0.0011
+std::sort,Random,long,54,0.001
+std::stable_sort,Random,long,54,0.0013
+qsort,Random,long,54,0.0021
+DualPivotQuicksort,Random,long,68,0.0012
+std::sort,Random,long,68,0.0013
+std::stable_sort,Random,long,68,0.002
+qsort,Random,long,68,0.0028
+DualPivotQuicksort,Random,long,86,0.0017
+std::sort,Random,long,86,0.0017
+std::stable_sort,Random,long,86,0.0022
+qsort,Random,long,86,0.0035
+DualPivotQuicksort,Random,long,109,0.0021
+std::sort,Random,long,109,0.0021
+std::stable_sort,Random,long,109,0.0027
+qsort,Random,long,109,0.0049
+DualPivotQuicksort,Random,long,138,0.0027
+std::sort,Random,long,138,0.0029
+std::stable_sort,Random,long,138,0.0035
+qsort,Random,long,138,0.0061
+DualPivotQuicksort,Random,long,175,0.0032
+std::sort,Random,long,175,0.0038
+std::stable_sort,Random,long,175,0.0045
+qsort,Random,long,175,0.0083
+DualPivotQuicksort,Random,long,222,0.0043
+std::sort,Random,long,222,0.0046
+std::stable_sort,Random,long,222,0.0057
+qsort,Random,long,222,0.0114
+DualPivotQuicksort,Random,long,281,0.0052
+std::sort,Random,long,281,0.0059
+std::stable_sort,Random,long,281,0.007
+qsort,Random,long,281,0.0136
+DualPivotQuicksort,Random,long,355,0.0073
+std::sort,Random,long,355,0.0079
+std::stable_sort,Random,long,355,0.0261
+qsort,Random,long,355,0.0182
+DualPivotQuicksort,Random,long,449,0.0097
+std::sort,Random,long,449,0.0108
+std::stable_sort,Random,long,449,0.0125
+qsort,Random,long,449,0.0253
+DualPivotQuicksort,Random,long,568,0.0131
+std::sort,Random,long,568,0.0154
+std::stable_sort,Random,long,568,0.0157
+qsort,Random,long,568,0.0316
+DualPivotQuicksort,Random,long,719,0.0176
+std::sort,Random,long,719,0.0184
+std::stable_sort,Random,long,719,0.0209
+qsort,Random,long,719,0.0435
+DualPivotQuicksort,Random,long,910,0.023
+std::sort,Random,long,910,0.0259
+std::stable_sort,Random,long,910,0.0276
+qsort,Random,long,910,0.0544
+DualPivotQuicksort,Random,long,1151,0.0292
+std::sort,Random,long,1151,0.0339
+std::stable_sort,Random,long,1151,0.0346
+qsort,Random,long,1151,0.0704
+DualPivotQuicksort,Random,long,1456,0.0382
+std::sort,Random,long,1456,0.0403
+std::stable_sort,Random,long,1456,0.0443
+qsort,Random,long,1456,0.0917
+DualPivotQuicksort,Random,long,1842,0.0532
+std::sort,Random,long,1842,0.0565
+std::stable_sort,Random,long,1842,0.0609
+qsort,Random,long,1842,0.1225
+DualPivotQuicksort,Random,long,2329,0.063
+std::sort,Random,long,2329,0.0701
+std::stable_sort,Random,long,2329,0.0775
+qsort,Random,long,2329,0.1548
+DualPivotQuicksort,Random,long,2947,0.078
+std::sort,Random,long,2947,0.0865
+std::stable_sort,Random,long,2947,0.0972
+qsort,Random,long,2947,0.1953
+DualPivotQuicksort,Random,long,3727,0.1035
+std::sort,Random,long,3727,0.1104
+std::stable_sort,Random,long,3727,0.1323
+qsort,Random,long,3727,0.2605
+DualPivotQuicksort,Random,long,4714,0.1381
+std::sort,Random,long,4714,0.1466
+std::stable_sort,Random,long,4714,0.1664
+qsort,Random,long,4714,0.3282
+DualPivotQuicksort,Random,long,5963,0.1807
+std::sort,Random,long,5963,0.1953
+std::stable_sort,Random,long,5963,0.2267
+qsort,Random,long,5963,0.4775
+DualPivotQuicksort,Random,long,7543,0.2274
+std::sort,Random,long,7543,0.2415
+std::stable_sort,Random,long,7543,0.2906
+qsort,Random,long,7543,0.5718
+DualPivotQuicksort,Random,long,9540,0.3058
+std::sort,Random,long,9540,0.3031
+std::stable_sort,Random,long,9540,0.3638
+qsort,Random,long,9540,0.7124
+DualPivotQuicksort,Random,long,12067,0.4913
+std::sort,Random,long,12067,0.494
+std::stable_sort,Random,long,12067,0.5151
+qsort,Random,long,12067,0.9859
+DualPivotQuicksort,Random,long,15264,0.5644
+std::sort,Random,long,15264,0.5372
+std::stable_sort,Random,long,15264,0.6004
+qsort,Random,long,15264,1.1664
+DualPivotQuicksort,Random,long,19306,0.619
+std::sort,Random,long,19306,0.6596
+std::stable_sort,Random,long,19306,0.7466
+qsort,Random,long,19306,1.4888
+DualPivotQuicksort,Random,long,24420,0.8826
+std::sort,Random,long,24420,0.8742
+std::stable_sort,Random,long,24420,0.9387
+qsort,Random,long,24420,1.9465
+DualPivotQuicksort,Random,long,30888,1.1208
+std::sort,Random,long,30888,1.0982
+std::stable_sort,Random,long,30888,1.3374
+qsort,Random,long,30888,2.6045
+DualPivotQuicksort,Random,long,39069,1.5104
+std::sort,Random,long,39069,1.5603
+std::stable_sort,Random,long,39069,1.6737
+qsort,Random,long,39069,3.3874
+DualPivotQuicksort,Random,long,49417,1.8664
+std::sort,Random,long,49417,1.8612
+std::stable_sort,Random,long,49417,2.1025
+qsort,Random,long,49417,4.0984
+DualPivotQuicksort,Random,long,62505,2.2844
+std::sort,Random,long,62505,2.2463
+std::stable_sort,Random,long,62505,2.6151
+qsort,Random,long,62505,5.4446
+DualPivotQuicksort,Random,long,79060,2.9069
+std::sort,Random,long,79060,2.9318
+std::stable_sort,Random,long,79060,3.3473
+qsort,Random,long,79060,7.0853
+DualPivotQuicksort,Random,long,100000,3.7235
+std::sort,Random,long,100000,3.7471
+std::stable_sort,Random,long,100000,4.4587
+qsort,Random,long,100000,10.4321
+DualPivotQuicksort,Random,unsigned long,1,0.0001
+std::sort,Random,unsigned long,1,0.0002
+std::stable_sort,Random,unsigned long,1,0.0005
+qsort,Random,unsigned long,1,0.0003
+DualPivotQuicksort,Random,unsigned long,2,0.0002
+std::sort,Random,unsigned long,2,0.0001
+std::stable_sort,Random,unsigned long,2,0.0002
+qsort,Random,unsigned long,2,0.0002
+DualPivotQuicksort,Random,unsigned long,3,0.0001
+std::sort,Random,unsigned long,3,0
+std::stable_sort,Random,unsigned long,3,0.0002
+qsort,Random,unsigned long,3,0.0001
+DualPivotQuicksort,Random,unsigned long,4,0.0001
+std::sort,Random,unsigned long,4,0.0001
+std::stable_sort,Random,unsigned long,4,0.0002
+qsort,Random,unsigned long,4,0.0002
+DualPivotQuicksort,Random,unsigned long,5,0.0001
+std::sort,Random,unsigned long,5,0
+std::stable_sort,Random,unsigned long,5,0.0002
+qsort,Random,unsigned long,5,0.0002
+DualPivotQuicksort,Random,unsigned long,6,0.0001
+std::sort,Random,unsigned long,6,0.0002
+std::stable_sort,Random,unsigned long,6,0.0003
+qsort,Random,unsigned long,6,0.0003
+DualPivotQuicksort,Random,unsigned long,8,0.0001
+std::sort,Random,unsigned long,8,0.0001
+std::stable_sort,Random,unsigned long,8,0.0003
+qsort,Random,unsigned long,8,0.0003
+DualPivotQuicksort,Random,unsigned long,10,0.0002
+std::sort,Random,unsigned long,10,0.0002
+std::stable_sort,Random,unsigned long,10,0.0003
+qsort,Random,unsigned long,10,0.0007
+DualPivotQuicksort,Random,unsigned long,13,0.0002
+std::sort,Random,unsigned long,13,0.0004
+std::stable_sort,Random,unsigned long,13,0.0006
+qsort,Random,unsigned long,13,0.0006
+DualPivotQuicksort,Random,unsigned long,16,0.0002
+std::sort,Random,unsigned long,16,0.0002
+std::stable_sort,Random,unsigned long,16,0.001
+qsort,Random,unsigned long,16,0.0007
+DualPivotQuicksort,Random,unsigned long,21,0.0003
+std::sort,Random,unsigned long,21,0.0005
+std::stable_sort,Random,unsigned long,21,0.0009
+qsort,Random,unsigned long,21,0.0012
+DualPivotQuicksort,Random,unsigned long,26,0.0004
+std::sort,Random,unsigned long,26,0.0005
+std::stable_sort,Random,unsigned long,26,0.0009
+qsort,Random,unsigned long,26,0.0015
+DualPivotQuicksort,Random,unsigned long,33,0.0006
+std::sort,Random,unsigned long,33,0.0007
+std::stable_sort,Random,unsigned long,33,0.0014
+qsort,Random,unsigned long,33,0.0017
+DualPivotQuicksort,Random,unsigned long,42,0.0005
+std::sort,Random,unsigned long,42,0.0008
+std::stable_sort,Random,unsigned long,42,0.0012
+qsort,Random,unsigned long,42,0.002
+DualPivotQuicksort,Random,unsigned long,54,0.0012
+std::sort,Random,unsigned long,54,0.0012
+std::stable_sort,Random,unsigned long,54,0.0015
+qsort,Random,unsigned long,54,0.0025
+DualPivotQuicksort,Random,unsigned long,68,0.0013
+std::sort,Random,unsigned long,68,0.0013
+std::stable_sort,Random,unsigned long,68,0.0019
+qsort,Random,unsigned long,68,0.0033
+DualPivotQuicksort,Random,unsigned long,86,0.0017
+std::sort,Random,unsigned long,86,0.0016
+std::stable_sort,Random,unsigned long,86,0.0023
+qsort,Random,unsigned long,86,0.0045
+DualPivotQuicksort,Random,unsigned long,109,0.0021
+std::sort,Random,unsigned long,109,0.0023
+std::stable_sort,Random,unsigned long,109,0.0029
+qsort,Random,unsigned long,109,0.0056
+DualPivotQuicksort,Random,unsigned long,138,0.0029
+std::sort,Random,unsigned long,138,0.0029
+std::stable_sort,Random,unsigned long,138,0.0037
+qsort,Random,unsigned long,138,0.0074
+DualPivotQuicksort,Random,unsigned long,175,0.0035
+std::sort,Random,unsigned long,175,0.0039
+std::stable_sort,Random,unsigned long,175,0.0047
+qsort,Random,unsigned long,175,0.0099
+DualPivotQuicksort,Random,unsigned long,222,0.0047
+std::sort,Random,unsigned long,222,0.0055
+std::stable_sort,Random,unsigned long,222,0.006
+qsort,Random,unsigned long,222,0.0126
+DualPivotQuicksort,Random,unsigned long,281,0.006
+std::sort,Random,unsigned long,281,0.0066
+std::stable_sort,Random,unsigned long,281,0.0075
+qsort,Random,unsigned long,281,0.0165
+DualPivotQuicksort,Random,unsigned long,355,0.0077
+std::sort,Random,unsigned long,355,0.0089
+std::stable_sort,Random,unsigned long,355,0.0795
+qsort,Random,unsigned long,355,0.0206
+DualPivotQuicksort,Random,unsigned long,449,0.0101
+std::sort,Random,unsigned long,449,0.0114
+std::stable_sort,Random,unsigned long,449,0.0129
+qsort,Random,unsigned long,449,0.0263
+DualPivotQuicksort,Random,unsigned long,568,0.0128
+std::sort,Random,unsigned long,568,0.0146
+std::stable_sort,Random,unsigned long,568,0.0164
+qsort,Random,unsigned long,568,0.0365
+DualPivotQuicksort,Random,unsigned long,719,0.018
+std::sort,Random,unsigned long,719,0.0186
+std::stable_sort,Random,unsigned long,719,0.0215
+qsort,Random,unsigned long,719,0.0483
+DualPivotQuicksort,Random,unsigned long,910,0.0223
+std::sort,Random,unsigned long,910,0.0253
+std::stable_sort,Random,unsigned long,910,0.0295
+qsort,Random,unsigned long,910,0.0612
+DualPivotQuicksort,Random,unsigned long,1151,0.0279
+std::sort,Random,unsigned long,1151,0.0314
+std::stable_sort,Random,unsigned long,1151,0.0359
+qsort,Random,unsigned long,1151,0.0759
+DualPivotQuicksort,Random,unsigned long,1456,0.0376
+std::sort,Random,unsigned long,1456,0.0393
+std::stable_sort,Random,unsigned long,1456,0.0467
+qsort,Random,unsigned long,1456,0.1071
+DualPivotQuicksort,Random,unsigned long,1842,0.0479
+std::sort,Random,unsigned long,1842,0.0518
+std::stable_sort,Random,unsigned long,1842,0.0579
+qsort,Random,unsigned long,1842,0.1247
+DualPivotQuicksort,Random,unsigned long,2329,0.0549
+std::sort,Random,unsigned long,2329,0.0647
+std::stable_sort,Random,unsigned long,2329,0.0719
+qsort,Random,unsigned long,2329,0.1572
+DualPivotQuicksort,Random,unsigned long,2947,0.0797
+std::sort,Random,unsigned long,2947,0.0823
+std::stable_sort,Random,unsigned long,2947,0.0922
+qsort,Random,unsigned long,2947,0.1982
+DualPivotQuicksort,Random,unsigned long,3727,0.1047
+std::sort,Random,unsigned long,3727,0.1127
+std::stable_sort,Random,unsigned long,3727,0.1296
+qsort,Random,unsigned long,3727,0.2824
+DualPivotQuicksort,Random,unsigned long,4714,0.1538
+std::sort,Random,unsigned long,4714,0.1395
+std::stable_sort,Random,unsigned long,4714,0.165
+qsort,Random,unsigned long,4714,0.3466
+DualPivotQuicksort,Random,unsigned long,5963,0.2035
+std::sort,Random,unsigned long,5963,0.2132
+std::stable_sort,Random,unsigned long,5963,0.247
+qsort,Random,unsigned long,5963,0.4576
+DualPivotQuicksort,Random,unsigned long,7543,0.2194
+std::sort,Random,unsigned long,7543,0.2356
+std::stable_sort,Random,unsigned long,7543,0.2663
+qsort,Random,unsigned long,7543,0.5663
+DualPivotQuicksort,Random,unsigned long,9540,0.2892
+std::sort,Random,unsigned long,9540,0.3037
+std::stable_sort,Random,unsigned long,9540,0.353
+qsort,Random,unsigned long,9540,0.7364
+DualPivotQuicksort,Random,unsigned long,12067,0.3597
+std::sort,Random,unsigned long,12067,0.3999
+std::stable_sort,Random,unsigned long,12067,0.4705
+qsort,Random,unsigned long,12067,0.9419
+DualPivotQuicksort,Random,unsigned long,15264,0.4623
+std::sort,Random,unsigned long,15264,0.5014
+std::stable_sort,Random,unsigned long,15264,0.602
+qsort,Random,unsigned long,15264,1.228
+DualPivotQuicksort,Random,unsigned long,19306,0.6016
+std::sort,Random,unsigned long,19306,0.6847
+std::stable_sort,Random,unsigned long,19306,0.7396
+qsort,Random,unsigned long,19306,1.6416
+DualPivotQuicksort,Random,unsigned long,24420,0.7583
+std::sort,Random,unsigned long,24420,0.8814
+std::stable_sort,Random,unsigned long,24420,1.0499
+qsort,Random,unsigned long,24420,2.1236
+DualPivotQuicksort,Random,unsigned long,30888,1.0777
+std::sort,Random,unsigned long,30888,1.2428
+std::stable_sort,Random,unsigned long,30888,1.3016
+qsort,Random,unsigned long,30888,2.6552
+DualPivotQuicksort,Random,unsigned long,39069,1.2841
+std::sort,Random,unsigned long,39069,1.4181
+std::stable_sort,Random,unsigned long,39069,1.6087
+qsort,Random,unsigned long,39069,3.6913
+DualPivotQuicksort,Random,unsigned long,49417,1.7456
+std::sort,Random,unsigned long,49417,1.8326
+std::stable_sort,Random,unsigned long,49417,2.0397
+qsort,Random,unsigned long,49417,4.3983
+DualPivotQuicksort,Random,unsigned long,62505,2.2208
+std::sort,Random,unsigned long,62505,2.6314
+std::stable_sort,Random,unsigned long,62505,3.0442
+qsort,Random,unsigned long,62505,6.1757
+DualPivotQuicksort,Random,unsigned long,79060,2.9367
+std::sort,Random,unsigned long,79060,3.1597
+std::stable_sort,Random,unsigned long,79060,3.4479
+qsort,Random,unsigned long,79060,7.2963
+DualPivotQuicksort,Random,unsigned long,100000,3.6843
+std::sort,Random,unsigned long,100000,4.0319
+std::stable_sort,Random,unsigned long,100000,4.4558
+qsort,Random,unsigned long,100000,9.4338
+DualPivotQuicksort,Random,long long,1,0
+std::sort,Random,long long,1,0.0004
+std::stable_sort,Random,long long,1,0.0006
+qsort,Random,long long,1,0.0001
+DualPivotQuicksort,Random,long long,2,0.0003
+std::sort,Random,long long,2,0.0001
+std::stable_sort,Random,long long,2,0.0001
+qsort,Random,long long,2,0.0003
+DualPivotQuicksort,Random,long long,3,0.0001
+std::sort,Random,long long,3,0.0001
+std::stable_sort,Random,long long,3,0.0001
+qsort,Random,long long,3,0.0001
+DualPivotQuicksort,Random,long long,4,0.0001
+std::sort,Random,long long,4,0.0001
+std::stable_sort,Random,long long,4,0.0003
+qsort,Random,long long,4,0.0001
+DualPivotQuicksort,Random,long long,5,0.0001
+std::sort,Random,long long,5,0
+std::stable_sort,Random,long long,5,0.0002
+qsort,Random,long long,5,0.0002
+DualPivotQuicksort,Random,long long,6,0.0001
+std::sort,Random,long long,6,0.0001
+std::stable_sort,Random,long long,6,0.0002
+qsort,Random,long long,6,0.0002
+DualPivotQuicksort,Random,long long,8,0.0001
+std::sort,Random,long long,8,0.0001
+std::stable_sort,Random,long long,8,0.0004
+qsort,Random,long long,8,0.0002
+DualPivotQuicksort,Random,long long,10,0.0001
+std::sort,Random,long long,10,0.0001
+std::stable_sort,Random,long long,10,0.0004
+qsort,Random,long long,10,0.0005
+DualPivotQuicksort,Random,long long,13,0.0002
+std::sort,Random,long long,13,0.0003
+std::stable_sort,Random,long long,13,0.0005
+qsort,Random,long long,13,0.0007
+DualPivotQuicksort,Random,long long,16,0.0003
+std::sort,Random,long long,16,0.0003
+std::stable_sort,Random,long long,16,0.001
+qsort,Random,long long,16,0.0007
+DualPivotQuicksort,Random,long long,21,0.0004
+std::sort,Random,long long,21,0.0004
+std::stable_sort,Random,long long,21,0.0008
+qsort,Random,long long,21,0.0019
+DualPivotQuicksort,Random,long long,26,0.0015
+std::sort,Random,long long,26,0.0004
+std::stable_sort,Random,long long,26,0.0008
+qsort,Random,long long,26,0.001
+DualPivotQuicksort,Random,long long,33,0.0005
+std::sort,Random,long long,33,0.0005
+std::stable_sort,Random,long long,33,0.0009
+qsort,Random,long long,33,0.0011
+DualPivotQuicksort,Random,long long,42,0.0005
+std::sort,Random,long long,42,0.0006
+std::stable_sort,Random,long long,42,0.001
+qsort,Random,long long,42,0.0017
+DualPivotQuicksort,Random,long long,54,0.0013
+std::sort,Random,long long,54,0.0009
+std::stable_sort,Random,long long,54,0.0013
+qsort,Random,long long,54,0.0022
+DualPivotQuicksort,Random,long long,68,0.0011
+std::sort,Random,long long,68,0.0012
+std::stable_sort,Random,long long,68,0.002
+qsort,Random,long long,68,0.0028
+DualPivotQuicksort,Random,long long,86,0.0014
+std::sort,Random,long long,86,0.0014
+std::stable_sort,Random,long long,86,0.002
+qsort,Random,long long,86,0.0039
+DualPivotQuicksort,Random,long long,109,0.006
+std::sort,Random,long long,109,0.0022
+std::stable_sort,Random,long long,109,0.0026
+qsort,Random,long long,109,0.0047
+DualPivotQuicksort,Random,long long,138,0.0036
+std::sort,Random,long long,138,0.0025
+std::stable_sort,Random,long long,138,0.0034
+qsort,Random,long long,138,0.0062
+DualPivotQuicksort,Random,long long,175,0.0029
+std::sort,Random,long long,175,0.0034
+std::stable_sort,Random,long long,175,0.0501
+qsort,Random,long long,175,0.0082
+DualPivotQuicksort,Random,long long,222,0.004
+std::sort,Random,long long,222,0.0045
+std::stable_sort,Random,long long,222,0.0053
+qsort,Random,long long,222,0.0108
+DualPivotQuicksort,Random,long long,281,0.0054
+std::sort,Random,long long,281,0.0057
+std::stable_sort,Random,long long,281,0.0069
+qsort,Random,long long,281,0.014
+DualPivotQuicksort,Random,long long,355,0.0066
+std::sort,Random,long long,355,0.0076
+std::stable_sort,Random,long long,355,0.0091
+qsort,Random,long long,355,0.0192
+DualPivotQuicksort,Random,long long,449,0.0093
+std::sort,Random,long long,449,0.0111
+std::stable_sort,Random,long long,449,0.0124
+qsort,Random,long long,449,0.0244
+DualPivotQuicksort,Random,long long,568,0.0124
+std::sort,Random,long long,568,0.0139
+std::stable_sort,Random,long long,568,0.0148
+qsort,Random,long long,568,0.032
+DualPivotQuicksort,Random,long long,719,0.016
+std::sort,Random,long long,719,0.0167
+std::stable_sort,Random,long long,719,0.029
+qsort,Random,long long,719,0.0427
+DualPivotQuicksort,Random,long long,910,0.0201
+std::sort,Random,long long,910,0.0234
+std::stable_sort,Random,long long,910,0.0282
+qsort,Random,long long,910,0.0585
+DualPivotQuicksort,Random,long long,1151,0.0257
+std::sort,Random,long long,1151,0.0278
+std::stable_sort,Random,long long,1151,0.034
+qsort,Random,long long,1151,0.0706
+DualPivotQuicksort,Random,long long,1456,0.0332
+std::sort,Random,long long,1456,0.037
+std::stable_sort,Random,long long,1456,0.0449
+qsort,Random,long long,1456,0.0914
+DualPivotQuicksort,Random,long long,1842,0.0439
+std::sort,Random,long long,1842,0.0454
+std::stable_sort,Random,long long,1842,0.0574
+qsort,Random,long long,1842,0.1214
+DualPivotQuicksort,Random,long long,2329,0.0563
+std::sort,Random,long long,2329,0.0622
+std::stable_sort,Random,long long,2329,0.075
+qsort,Random,long long,2329,0.1537
+DualPivotQuicksort,Random,long long,2947,0.0735
+std::sort,Random,long long,2947,0.0801
+std::stable_sort,Random,long long,2947,0.099
+qsort,Random,long long,2947,0.1984
+DualPivotQuicksort,Random,long long,3727,0.0966
+std::sort,Random,long long,3727,0.1031
+std::stable_sort,Random,long long,3727,0.1274
+qsort,Random,long long,3727,0.2602
+DualPivotQuicksort,Random,long long,4714,0.1443
+std::sort,Random,long long,4714,0.142
+std::stable_sort,Random,long long,4714,0.1644
+qsort,Random,long long,4714,0.3418
+DualPivotQuicksort,Random,long long,5963,0.1648
+std::sort,Random,long long,5963,0.1728
+std::stable_sort,Random,long long,5963,0.2105
+qsort,Random,long long,5963,0.4414
+DualPivotQuicksort,Random,long long,7543,0.2109
+std::sort,Random,long long,7543,0.234
+std::stable_sort,Random,long long,7543,0.2783
+qsort,Random,long long,7543,0.5711
+DualPivotQuicksort,Random,long long,9540,0.2735
+std::sort,Random,long long,9540,0.3
+std::stable_sort,Random,long long,9540,0.3751
+qsort,Random,long long,9540,0.749
+DualPivotQuicksort,Random,long long,12067,0.3824
+std::sort,Random,long long,12067,0.3736
+std::stable_sort,Random,long long,12067,0.4716
+qsort,Random,long long,12067,0.9569
+DualPivotQuicksort,Random,long long,15264,0.5097
+std::sort,Random,long long,15264,0.5032
+std::stable_sort,Random,long long,15264,0.6083
+qsort,Random,long long,15264,1.2989
+DualPivotQuicksort,Random,long long,19306,0.6273
+std::sort,Random,long long,19306,0.6526
+std::stable_sort,Random,long long,19306,0.8547
+qsort,Random,long long,19306,1.6299
+DualPivotQuicksort,Random,long long,24420,0.7844
+std::sort,Random,long long,24420,0.8516
+std::stable_sort,Random,long long,24420,0.9722
+qsort,Random,long long,24420,2.0797
+DualPivotQuicksort,Random,long long,30888,1.0166
+std::sort,Random,long long,30888,1.08
+std::stable_sort,Random,long long,30888,1.2811
+qsort,Random,long long,30888,2.7103
+DualPivotQuicksort,Random,long long,39069,1.3306
+std::sort,Random,long long,39069,1.3416
+std::stable_sort,Random,long long,39069,1.6547
+qsort,Random,long long,39069,3.4879
+DualPivotQuicksort,Random,long long,49417,1.6946
+std::sort,Random,long long,49417,1.7566
+std::stable_sort,Random,long long,49417,2.1469
+qsort,Random,long long,49417,4.4909
+DualPivotQuicksort,Random,long long,62505,2.2024
+std::sort,Random,long long,62505,2.2913
+std::stable_sort,Random,long long,62505,2.7199
+qsort,Random,long long,62505,5.8247
+DualPivotQuicksort,Random,long long,79060,2.9379
+std::sort,Random,long long,79060,2.9223
+std::stable_sort,Random,long long,79060,3.4885
+qsort,Random,long long,79060,7.5352
+DualPivotQuicksort,Random,long long,100000,3.7484
+std::sort,Random,long long,100000,3.7206
+std::stable_sort,Random,long long,100000,4.4494
+qsort,Random,long long,100000,9.6533
+DualPivotQuicksort,Random,unsigned long long,1,0
+std::sort,Random,unsigned long long,1,0.0003
+std::stable_sort,Random,unsigned long long,1,0.0004
+qsort,Random,unsigned long long,1,0.0001
+DualPivotQuicksort,Random,unsigned long long,2,0.0001
+std::sort,Random,unsigned long long,2,0
+std::stable_sort,Random,unsigned long long,2,0.0001
+qsort,Random,unsigned long long,2,0.0001
+DualPivotQuicksort,Random,unsigned long long,3,0.0001
+std::sort,Random,unsigned long long,3,0.0001
+std::stable_sort,Random,unsigned long long,3,0.0002
+qsort,Random,unsigned long long,3,0.0002
+DualPivotQuicksort,Random,unsigned long long,4,0.0001
+std::sort,Random,unsigned long long,4,0.0001
+std::stable_sort,Random,unsigned long long,4,0.0002
+qsort,Random,unsigned long long,4,0.0001
+DualPivotQuicksort,Random,unsigned long long,5,0
+std::sort,Random,unsigned long long,5,0
+std::stable_sort,Random,unsigned long long,5,0.0001
+qsort,Random,unsigned long long,5,0.0001
+DualPivotQuicksort,Random,unsigned long long,6,0.0001
+std::sort,Random,unsigned long long,6,0
+std::stable_sort,Random,unsigned long long,6,0.0002
+qsort,Random,unsigned long long,6,0.0002
+DualPivotQuicksort,Random,unsigned long long,8,0.0002
+std::sort,Random,unsigned long long,8,0.0001
+std::stable_sort,Random,unsigned long long,8,0.0002
+qsort,Random,unsigned long long,8,0.0003
+DualPivotQuicksort,Random,unsigned long long,10,0.0001
+std::sort,Random,unsigned long long,10,0.0001
+std::stable_sort,Random,unsigned long long,10,0.0003
+qsort,Random,unsigned long long,10,0.0005
+DualPivotQuicksort,Random,unsigned long long,13,0.0001
+std::sort,Random,unsigned long long,13,0.0002
+std::stable_sort,Random,unsigned long long,13,0.0004
+qsort,Random,unsigned long long,13,0.0006
+DualPivotQuicksort,Random,unsigned long long,16,0.0002
+std::sort,Random,unsigned long long,16,0.0002
+std::stable_sort,Random,unsigned long long,16,0.0007
+qsort,Random,unsigned long long,16,0.0007
+DualPivotQuicksort,Random,unsigned long long,21,0.0003
+std::sort,Random,unsigned long long,21,0.0004
+std::stable_sort,Random,unsigned long long,21,0.0006
+qsort,Random,unsigned long long,21,0.0007
+DualPivotQuicksort,Random,unsigned long long,26,0.0003
+std::sort,Random,unsigned long long,26,0.0005
+std::stable_sort,Random,unsigned long long,26,0.0006
+qsort,Random,unsigned long long,26,0.0011
+DualPivotQuicksort,Random,unsigned long long,33,0.0003
+std::sort,Random,unsigned long long,33,0.0007
+std::stable_sort,Random,unsigned long long,33,0.001
+qsort,Random,unsigned long long,33,0.0012
+DualPivotQuicksort,Random,unsigned long long,42,0.0005
+std::sort,Random,unsigned long long,42,0.0007
+std::stable_sort,Random,unsigned long long,42,0.0011
+qsort,Random,unsigned long long,42,0.0018
+DualPivotQuicksort,Random,unsigned long long,54,0.0012
+std::sort,Random,unsigned long long,54,0.0009
+std::stable_sort,Random,unsigned long long,54,0.0012
+qsort,Random,unsigned long long,54,0.0024
+DualPivotQuicksort,Random,unsigned long long,68,0.0011
+std::sort,Random,unsigned long long,68,0.0012
+std::stable_sort,Random,unsigned long long,68,0.0018
+qsort,Random,unsigned long long,68,0.003
+DualPivotQuicksort,Random,unsigned long long,86,0.0014
+std::sort,Random,unsigned long long,86,0.0016
+std::stable_sort,Random,unsigned long long,86,0.0022
+qsort,Random,unsigned long long,86,0.0038
+DualPivotQuicksort,Random,unsigned long long,109,0.0018
+std::sort,Random,unsigned long long,109,0.0017
+std::stable_sort,Random,unsigned long long,109,0.0027
+qsort,Random,unsigned long long,109,0.0052
+DualPivotQuicksort,Random,unsigned long long,138,0.0025
+std::sort,Random,unsigned long long,138,0.0025
+std::stable_sort,Random,unsigned long long,138,0.0031
+qsort,Random,unsigned long long,138,0.0071
+DualPivotQuicksort,Random,unsigned long long,175,0.003
+std::sort,Random,unsigned long long,175,0.0033
+std::stable_sort,Random,unsigned long long,175,0.004
+qsort,Random,unsigned long long,175,0.0085
+DualPivotQuicksort,Random,unsigned long long,222,0.004
+std::sort,Random,unsigned long long,222,0.0045
+std::stable_sort,Random,unsigned long long,222,0.005
+qsort,Random,unsigned long long,222,0.0112
+DualPivotQuicksort,Random,unsigned long long,281,0.0051
+std::sort,Random,unsigned long long,281,0.0058
+std::stable_sort,Random,unsigned long long,281,0.0067
+qsort,Random,unsigned long long,281,0.0149
+DualPivotQuicksort,Random,unsigned long long,355,0.0071
+std::sort,Random,unsigned long long,355,0.0074
+std::stable_sort,Random,unsigned long long,355,0.0088
+qsort,Random,unsigned long long,355,0.0196
+DualPivotQuicksort,Random,unsigned long long,449,0.0089
+std::sort,Random,unsigned long long,449,0.0098
+std::stable_sort,Random,unsigned long long,449,0.0122
+qsort,Random,unsigned long long,449,0.0255
+DualPivotQuicksort,Random,unsigned long long,568,0.0119
+std::sort,Random,unsigned long long,568,0.0124
+std::stable_sort,Random,unsigned long long,568,0.0145
+qsort,Random,unsigned long long,568,0.0334
+DualPivotQuicksort,Random,unsigned long long,719,0.0153
+std::sort,Random,unsigned long long,719,0.0164
+std::stable_sort,Random,unsigned long long,719,0.0188
+qsort,Random,unsigned long long,719,0.0436
+DualPivotQuicksort,Random,unsigned long long,910,0.0191
+std::sort,Random,unsigned long long,910,0.0206
+std::stable_sort,Random,unsigned long long,910,0.0245
+qsort,Random,unsigned long long,910,0.0561
+DualPivotQuicksort,Random,unsigned long long,1151,0.0248
+std::sort,Random,unsigned long long,1151,0.0271
+std::stable_sort,Random,unsigned long long,1151,0.0322
+qsort,Random,unsigned long long,1151,0.0734
+DualPivotQuicksort,Random,unsigned long long,1456,0.0336
+std::sort,Random,unsigned long long,1456,0.0369
+std::stable_sort,Random,unsigned long long,1456,0.0428
+qsort,Random,unsigned long long,1456,0.0929
+DualPivotQuicksort,Random,unsigned long long,1842,0.0442
+std::sort,Random,unsigned long long,1842,0.0475
+std::stable_sort,Random,unsigned long long,1842,0.0585
+qsort,Random,unsigned long long,1842,0.1265
+DualPivotQuicksort,Random,unsigned long long,2329,0.0615
+std::sort,Random,unsigned long long,2329,0.0618
+std::stable_sort,Random,unsigned long long,2329,0.072
+qsort,Random,unsigned long long,2329,0.1613
+DualPivotQuicksort,Random,unsigned long long,2947,0.0754
+std::sort,Random,unsigned long long,2947,0.0805
+std::stable_sort,Random,unsigned long long,2947,0.0927
+qsort,Random,unsigned long long,2947,0.2114
+DualPivotQuicksort,Random,unsigned long long,3727,0.0983
+std::sort,Random,unsigned long long,3727,0.1089
+std::stable_sort,Random,unsigned long long,3727,0.119
+qsort,Random,unsigned long long,3727,0.2661
+DualPivotQuicksort,Random,unsigned long long,4714,0.1251
+std::sort,Random,unsigned long long,4714,0.1418
+std::stable_sort,Random,unsigned long long,4714,0.1581
+qsort,Random,unsigned long long,4714,0.3497
+DualPivotQuicksort,Random,unsigned long long,5963,0.1723
+std::sort,Random,unsigned long long,5963,0.1829
+std::stable_sort,Random,unsigned long long,5963,0.2143
+qsort,Random,unsigned long long,5963,0.4575
+DualPivotQuicksort,Random,unsigned long long,7543,0.2181
+std::sort,Random,unsigned long long,7543,0.2266
+std::stable_sort,Random,unsigned long long,7543,0.2744
+qsort,Random,unsigned long long,7543,0.6008
+DualPivotQuicksort,Random,unsigned long long,9540,0.2848
+std::sort,Random,unsigned long long,9540,0.291
+std::stable_sort,Random,unsigned long long,9540,0.3636
+qsort,Random,unsigned long long,9540,0.7757
+DualPivotQuicksort,Random,unsigned long long,12067,0.3793
+std::sort,Random,unsigned long long,12067,0.3946
+std::stable_sort,Random,unsigned long long,12067,0.4532
+qsort,Random,unsigned long long,12067,0.9938
+DualPivotQuicksort,Random,unsigned long long,15264,0.4789
+std::sort,Random,unsigned long long,15264,0.4781
+std::stable_sort,Random,unsigned long long,15264,0.5997
+qsort,Random,unsigned long long,15264,1.2744
+DualPivotQuicksort,Random,unsigned long long,19306,0.6075
+std::sort,Random,unsigned long long,19306,0.6432
+std::stable_sort,Random,unsigned long long,19306,0.7592
+qsort,Random,unsigned long long,19306,1.6936
+DualPivotQuicksort,Random,unsigned long long,24420,0.7987
+std::sort,Random,unsigned long long,24420,0.8486
+std::stable_sort,Random,unsigned long long,24420,1.0165
+qsort,Random,unsigned long long,24420,2.1577
+DualPivotQuicksort,Random,unsigned long long,30888,1.039
+std::sort,Random,unsigned long long,30888,1.0802
+std::stable_sort,Random,unsigned long long,30888,1.2508
+qsort,Random,unsigned long long,30888,2.7737
+DualPivotQuicksort,Random,unsigned long long,39069,1.3873
+std::sort,Random,unsigned long long,39069,1.3767
+std::stable_sort,Random,unsigned long long,39069,1.7192
+qsort,Random,unsigned long long,39069,3.6078
+DualPivotQuicksort,Random,unsigned long long,49417,1.7416
+std::sort,Random,unsigned long long,49417,1.7749
+std::stable_sort,Random,unsigned long long,49417,2.1071
+qsort,Random,unsigned long long,49417,4.5994
+DualPivotQuicksort,Random,unsigned long long,62505,2.3405
+std::sort,Random,unsigned long long,62505,2.318
+std::stable_sort,Random,unsigned long long,62505,2.7279
+qsort,Random,unsigned long long,62505,5.9498
+DualPivotQuicksort,Random,unsigned long long,79060,3.0216
+std::sort,Random,unsigned long long,79060,3.539
+std::stable_sort,Random,unsigned long long,79060,4.139
+qsort,Random,unsigned long long,79060,8.39
+DualPivotQuicksort,Random,unsigned long long,100000,3.7368
+std::sort,Random,unsigned long long,100000,3.8372
+std::stable_sort,Random,unsigned long long,100000,4.5094
+qsort,Random,unsigned long long,100000,9.9798
+DualPivotQuicksort,Random,float,1,0
+std::sort,Random,float,1,0.0002
+std::stable_sort,Random,float,1,0.0005
+qsort,Random,float,1,0.0001
+DualPivotQuicksort,Random,float,2,0.0005
+std::sort,Random,float,2,0
+std::stable_sort,Random,float,2,0.0001
+qsort,Random,float,2,0.0002
+DualPivotQuicksort,Random,float,3,0.0001
+std::sort,Random,float,3,0.0001
+std::stable_sort,Random,float,3,0.0002
+qsort,Random,float,3,0.0001
+DualPivotQuicksort,Random,float,4,0
+std::sort,Random,float,4,0.0001
+std::stable_sort,Random,float,4,0.0002
+qsort,Random,float,4,0.0001
+DualPivotQuicksort,Random,float,5,0
+std::sort,Random,float,5,0
+std::stable_sort,Random,float,5,0.0002
+qsort,Random,float,5,0.0001
+DualPivotQuicksort,Random,float,6,0.0001
+std::sort,Random,float,6,0.0001
+std::stable_sort,Random,float,6,0.0002
+qsort,Random,float,6,0.0001
+DualPivotQuicksort,Random,float,8,0.0001
+std::sort,Random,float,8,0.0001
+std::stable_sort,Random,float,8,0.0002
+qsort,Random,float,8,0.0002
+DualPivotQuicksort,Random,float,10,0.0002
+std::sort,Random,float,10,0.0001
+std::stable_sort,Random,float,10,0.0003
+qsort,Random,float,10,0.0004
+DualPivotQuicksort,Random,float,13,0.0002
+std::sort,Random,float,13,0.0002
+std::stable_sort,Random,float,13,0.0004
+qsort,Random,float,13,0.0006
+DualPivotQuicksort,Random,float,16,0.0003
+std::sort,Random,float,16,0.0002
+std::stable_sort,Random,float,16,0.0006
+qsort,Random,float,16,0.0006
+DualPivotQuicksort,Random,float,21,0.0003
+std::sort,Random,float,21,0.0003
+std::stable_sort,Random,float,21,0.0006
+qsort,Random,float,21,0.0008
+DualPivotQuicksort,Random,float,26,0.0003
+std::sort,Random,float,26,0.0005
+std::stable_sort,Random,float,26,0.0007
+qsort,Random,float,26,0.001
+DualPivotQuicksort,Random,float,33,0.0004
+std::sort,Random,float,33,0.0006
+std::stable_sort,Random,float,33,0.001
+qsort,Random,float,33,0.0014
+DualPivotQuicksort,Random,float,42,0.0005
+std::sort,Random,float,42,0.0008
+std::stable_sort,Random,float,42,0.001
+qsort,Random,float,42,0.0018
+DualPivotQuicksort,Random,float,54,0.0012
+std::sort,Random,float,54,0.001
+std::stable_sort,Random,float,54,0.0014
+qsort,Random,float,54,0.0025
+DualPivotQuicksort,Random,float,68,0.0106
+std::sort,Random,float,68,0.0012
+std::stable_sort,Random,float,68,0.0019
+qsort,Random,float,68,0.0029
+DualPivotQuicksort,Random,float,86,0.0015
+std::sort,Random,float,86,0.0017
+std::stable_sort,Random,float,86,0.0022
+qsort,Random,float,86,0.0037
+DualPivotQuicksort,Random,float,109,0.0021
+std::sort,Random,float,109,0.0021
+std::stable_sort,Random,float,109,0.0026
+qsort,Random,float,109,0.005
+DualPivotQuicksort,Random,float,138,0.0027
+std::sort,Random,float,138,0.0031
+std::stable_sort,Random,float,138,0.0036
+qsort,Random,float,138,0.0063
+DualPivotQuicksort,Random,float,175,0.0034
+std::sort,Random,float,175,0.0035
+std::stable_sort,Random,float,175,0.0043
+qsort,Random,float,175,0.0085
+DualPivotQuicksort,Random,float,222,0.0045
+std::sort,Random,float,222,0.0046
+std::stable_sort,Random,float,222,0.0053
+qsort,Random,float,222,0.0111
+DualPivotQuicksort,Random,float,281,0.0058
+std::sort,Random,float,281,0.0073
+std::stable_sort,Random,float,281,0.0072
+qsort,Random,float,281,0.0138
+DualPivotQuicksort,Random,float,355,0.0079
+std::sort,Random,float,355,0.0081
+std::stable_sort,Random,float,355,0.0093
+qsort,Random,float,355,0.0185
+DualPivotQuicksort,Random,float,449,0.0099
+std::sort,Random,float,449,0.0104
+std::stable_sort,Random,float,449,0.0121
+qsort,Random,float,449,0.0243
+DualPivotQuicksort,Random,float,568,0.0132
+std::sort,Random,float,568,0.0135
+std::stable_sort,Random,float,568,0.0158
+qsort,Random,float,568,0.032
+DualPivotQuicksort,Random,float,719,0.0174
+std::sort,Random,float,719,0.0184
+std::stable_sort,Random,float,719,0.0209
+qsort,Random,float,719,0.0424
+DualPivotQuicksort,Random,float,910,0.0226
+std::sort,Random,float,910,0.0245
+std::stable_sort,Random,float,910,0.0277
+qsort,Random,float,910,0.053
+DualPivotQuicksort,Random,float,1151,0.0284
+std::sort,Random,float,1151,0.0306
+std::stable_sort,Random,float,1151,0.0349
+qsort,Random,float,1151,0.0701
+DualPivotQuicksort,Random,float,1456,0.0382
+std::sort,Random,float,1456,0.0392
+std::stable_sort,Random,float,1456,0.0447
+qsort,Random,float,1456,0.092
+DualPivotQuicksort,Random,float,1842,0.0509
+std::sort,Random,float,1842,0.0512
+std::stable_sort,Random,float,1842,0.0582
+qsort,Random,float,1842,0.1192
+DualPivotQuicksort,Random,float,2329,0.0636
+std::sort,Random,float,2329,0.0673
+std::stable_sort,Random,float,2329,0.0763
+qsort,Random,float,2329,0.1566
+DualPivotQuicksort,Random,float,2947,0.0872
+std::sort,Random,float,2947,0.0882
+std::stable_sort,Random,float,2947,0.1038
+qsort,Random,float,2947,0.1979
+DualPivotQuicksort,Random,float,3727,0.1133
+std::sort,Random,float,3727,0.1134
+std::stable_sort,Random,float,3727,0.1325
+qsort,Random,float,3727,0.2596
+DualPivotQuicksort,Random,float,4714,0.1424
+std::sort,Random,float,4714,0.1457
+std::stable_sort,Random,float,4714,0.174
+qsort,Random,float,4714,0.3407
+DualPivotQuicksort,Random,float,5963,0.2196
+std::sort,Random,float,5963,0.1842
+std::stable_sort,Random,float,5963,0.2743
+qsort,Random,float,5963,0.4563
+DualPivotQuicksort,Random,float,7543,0.2592
+std::sort,Random,float,7543,0.2461
+std::stable_sort,Random,float,7543,0.2992
+qsort,Random,float,7543,0.5575
+DualPivotQuicksort,Random,float,9540,0.3164
+std::sort,Random,float,9540,0.3256
+std::stable_sort,Random,float,9540,0.3979
+qsort,Random,float,9540,0.7502
+DualPivotQuicksort,Random,float,12067,0.43
+std::sort,Random,float,12067,0.416
+std::stable_sort,Random,float,12067,0.4926
+qsort,Random,float,12067,0.9448
+DualPivotQuicksort,Random,float,15264,0.5559
+std::sort,Random,float,15264,0.5198
+std::stable_sort,Random,float,15264,0.6982
+qsort,Random,float,15264,1.2403
+DualPivotQuicksort,Random,float,19306,0.7138
+std::sort,Random,float,19306,0.6877
+std::stable_sort,Random,float,19306,0.8309
+qsort,Random,float,19306,1.6213
+DualPivotQuicksort,Random,float,24420,0.9073
+std::sort,Random,float,24420,0.9832
+std::stable_sort,Random,float,24420,1.217
+qsort,Random,float,24420,2.0207
+DualPivotQuicksort,Random,float,30888,1.215
+std::sort,Random,float,30888,1.1971
+std::stable_sort,Random,float,30888,1.4903
+qsort,Random,float,30888,2.8288
+DualPivotQuicksort,Random,float,39069,1.8045
+std::sort,Random,float,39069,1.81
+std::stable_sort,Random,float,39069,2.1909
+qsort,Random,float,39069,3.9178
+DualPivotQuicksort,Random,float,49417,2.316
+std::sort,Random,float,49417,2.1452
+std::stable_sort,Random,float,49417,2.6312
+qsort,Random,float,49417,5.3082
+DualPivotQuicksort,Random,float,62505,2.8814
+std::sort,Random,float,62505,2.8345
+std::stable_sort,Random,float,62505,3.3135
+qsort,Random,float,62505,6.4776
+DualPivotQuicksort,Random,float,79060,3.75
+std::sort,Random,float,79060,3.7327
+std::stable_sort,Random,float,79060,4.0755
+qsort,Random,float,79060,8.5806
+DualPivotQuicksort,Random,float,100000,4.7035
+std::sort,Random,float,100000,4.8891
+std::stable_sort,Random,float,100000,4.9385
+qsort,Random,float,100000,10.1284
+DualPivotQuicksort,Random,double,1,0
+std::sort,Random,double,1,0.0002
+std::stable_sort,Random,double,1,0.0005
+qsort,Random,double,1,0.0001
+DualPivotQuicksort,Random,double,2,0.0006
+std::sort,Random,double,2,0
+std::stable_sort,Random,double,2,0.0001
+qsort,Random,double,2,0.0002
+DualPivotQuicksort,Random,double,3,0.0001
+std::sort,Random,double,3,0
+std::stable_sort,Random,double,3,0.0002
+qsort,Random,double,3,0.0001
+DualPivotQuicksort,Random,double,4,0.0001
+std::sort,Random,double,4,0.0001
+std::stable_sort,Random,double,4,0.0002
+qsort,Random,double,4,0.0001
+DualPivotQuicksort,Random,double,5,0.0002
+std::sort,Random,double,5,0.0001
+std::stable_sort,Random,double,5,0.0002
+qsort,Random,double,5,0.0001
+DualPivotQuicksort,Random,double,6,0.0002
+std::sort,Random,double,6,0.0001
+std::stable_sort,Random,double,6,0.0002
+qsort,Random,double,6,0.0002
+DualPivotQuicksort,Random,double,8,0.0002
+std::sort,Random,double,8,0.0002
+std::stable_sort,Random,double,8,0.0004
+qsort,Random,double,8,0.0011
+DualPivotQuicksort,Random,double,10,0.0002
+std::sort,Random,double,10,0.0002
+std::stable_sort,Random,double,10,0.0003
+qsort,Random,double,10,0.0005
+DualPivotQuicksort,Random,double,13,0.0002
+std::sort,Random,double,13,0.0002
+std::stable_sort,Random,double,13,0.0004
+qsort,Random,double,13,0.0004
+DualPivotQuicksort,Random,double,16,0.0002
+std::sort,Random,double,16,0.0002
+std::stable_sort,Random,double,16,0.0006
+qsort,Random,double,16,0.0007
+DualPivotQuicksort,Random,double,21,0.0003
+std::sort,Random,double,21,0.0004
+std::stable_sort,Random,double,21,0.0006
+qsort,Random,double,21,0.0009
+DualPivotQuicksort,Random,double,26,0.0004
+std::sort,Random,double,26,0.0004
+std::stable_sort,Random,double,26,0.0007
+qsort,Random,double,26,0.001
+DualPivotQuicksort,Random,double,33,0.0004
+std::sort,Random,double,33,0.0006
+std::stable_sort,Random,double,33,0.0009
+qsort,Random,double,33,0.0013
+DualPivotQuicksort,Random,double,42,0.0005
+std::sort,Random,double,42,0.0008
+std::stable_sort,Random,double,42,0.0012
+qsort,Random,double,42,0.0018
+DualPivotQuicksort,Random,double,54,0.0012
+std::sort,Random,double,54,0.0022
+std::stable_sort,Random,double,54,0.0013
+qsort,Random,double,54,0.0023
+DualPivotQuicksort,Random,double,68,0.0013
+std::sort,Random,double,68,0.0013
+std::stable_sort,Random,double,68,0.0017
+qsort,Random,double,68,0.003
+DualPivotQuicksort,Random,double,86,0.0014
+std::sort,Random,double,86,0.0016
+std::stable_sort,Random,double,86,0.0021
+qsort,Random,double,86,0.0038
+DualPivotQuicksort,Random,double,109,0.002
+std::sort,Random,double,109,0.0022
+std::stable_sort,Random,double,109,0.0026
+qsort,Random,double,109,0.0053
+DualPivotQuicksort,Random,double,138,0.0025
+std::sort,Random,double,138,0.0028
+std::stable_sort,Random,double,138,0.0033
+qsort,Random,double,138,0.007
+DualPivotQuicksort,Random,double,175,0.0035
+std::sort,Random,double,175,0.0039
+std::stable_sort,Random,double,175,0.0043
+qsort,Random,double,175,0.0089
+DualPivotQuicksort,Random,double,222,0.0045
+std::sort,Random,double,222,0.0048
+std::stable_sort,Random,double,222,0.0057
+qsort,Random,double,222,0.0118
+DualPivotQuicksort,Random,double,281,0.0056
+std::sort,Random,double,281,0.0067
+std::stable_sort,Random,double,281,0.0075
+qsort,Random,double,281,0.0158
+DualPivotQuicksort,Random,double,355,0.0079
+std::sort,Random,double,355,0.0085
+std::stable_sort,Random,double,355,0.0096
+qsort,Random,double,355,0.0207
+DualPivotQuicksort,Random,double,449,0.0101
+std::sort,Random,double,449,0.0111
+std::stable_sort,Random,double,449,0.013
+qsort,Random,double,449,0.0264
+DualPivotQuicksort,Random,double,568,0.0134
+std::sort,Random,double,568,0.0145
+std::stable_sort,Random,double,568,0.0156
+qsort,Random,double,568,0.0347
+DualPivotQuicksort,Random,double,719,0.0175
+std::sort,Random,double,719,0.0181
+std::stable_sort,Random,double,719,0.02
+qsort,Random,double,719,0.0443
+DualPivotQuicksort,Random,double,910,0.0228
+std::sort,Random,double,910,0.0234
+std::stable_sort,Random,double,910,0.0273
+qsort,Random,double,910,0.0604
+DualPivotQuicksort,Random,double,1151,0.0289
+std::sort,Random,double,1151,0.0305
+std::stable_sort,Random,double,1151,0.0341
+qsort,Random,double,1151,0.0754
+DualPivotQuicksort,Random,double,1456,0.0383
+std::sort,Random,double,1456,0.039
+std::stable_sort,Random,double,1456,0.047
+qsort,Random,double,1456,0.0984
+DualPivotQuicksort,Random,double,1842,0.0486
+std::sort,Random,double,1842,0.0534
+std::stable_sort,Random,double,1842,0.0595
+qsort,Random,double,1842,0.1249
+DualPivotQuicksort,Random,double,2329,0.0655
+std::sort,Random,double,2329,0.0689
+std::stable_sort,Random,double,2329,0.0759
+qsort,Random,double,2329,0.1635
+DualPivotQuicksort,Random,double,2947,0.0936
+std::sort,Random,double,2947,0.0872
+std::stable_sort,Random,double,2947,0.0972
+qsort,Random,double,2947,0.2134
+DualPivotQuicksort,Random,double,3727,0.1172
+std::sort,Random,double,3727,0.1326
+std::stable_sort,Random,double,3727,0.1405
+qsort,Random,double,3727,0.3132
+DualPivotQuicksort,Random,double,4714,0.1599
+std::sort,Random,double,4714,0.1708
+std::stable_sort,Random,double,4714,0.1934
+qsort,Random,double,4714,0.3713
+DualPivotQuicksort,Random,double,5963,0.1851
+std::sort,Random,double,5963,0.1946
+std::stable_sort,Random,double,5963,0.2299
+qsort,Random,double,5963,0.4967
+DualPivotQuicksort,Random,double,7543,0.2657
+std::sort,Random,double,7543,0.2754
+std::stable_sort,Random,double,7543,0.3465
+qsort,Random,double,7543,0.7205
+DualPivotQuicksort,Random,double,9540,0.3569
+std::sort,Random,double,9540,0.3747
+std::stable_sort,Random,double,9540,0.4338
+qsort,Random,double,9540,0.8534
+DualPivotQuicksort,Random,double,12067,0.4244
+std::sort,Random,double,12067,0.4398
+std::stable_sort,Random,double,12067,0.5458
+qsort,Random,double,12067,1.034
+DualPivotQuicksort,Random,double,15264,0.601
+std::sort,Random,double,15264,0.6254
+std::stable_sort,Random,double,15264,0.6808
+qsort,Random,double,15264,1.2738
+DualPivotQuicksort,Random,double,19306,0.6759
+std::sort,Random,double,19306,0.729
+std::stable_sort,Random,double,19306,0.8912
+qsort,Random,double,19306,1.7071
+DualPivotQuicksort,Random,double,24420,0.8961
+std::sort,Random,double,24420,0.8957
+std::stable_sort,Random,double,24420,1.0679
+qsort,Random,double,24420,2.175
+DualPivotQuicksort,Random,double,30888,1.1469
+std::sort,Random,double,30888,1.1779
+std::stable_sort,Random,double,30888,1.4272
+qsort,Random,double,30888,2.773
+DualPivotQuicksort,Random,double,39069,1.4773
+std::sort,Random,double,39069,1.641
+std::stable_sort,Random,double,39069,1.8025
+qsort,Random,double,39069,3.6345
+DualPivotQuicksort,Random,double,49417,1.9406
+std::sort,Random,double,49417,2.135
+std::stable_sort,Random,double,49417,2.3027
+qsort,Random,double,49417,4.7201
+DualPivotQuicksort,Random,double,62505,2.55
+std::sort,Random,double,62505,2.5171
+std::stable_sort,Random,double,62505,3.1575
+qsort,Random,double,62505,6.2436
+DualPivotQuicksort,Random,double,79060,3.2937
+std::sort,Random,double,79060,3.2951
+std::stable_sort,Random,double,79060,3.8934
+qsort,Random,double,79060,7.9046
+DualPivotQuicksort,Random,double,100000,5.0959
+std::sort,Random,double,100000,4.9152
+std::stable_sort,Random,double,100000,5.6028
+qsort,Random,double,100000,10.8876
+DualPivotQuicksort,Random,long double,1,0
+std::sort,Random,long double,1,0.0003
+std::stable_sort,Random,long double,1,0.0005
+qsort,Random,long double,1,0.0001
+DualPivotQuicksort,Random,long double,2,0.0003
+std::sort,Random,long double,2,0.0001
+std::stable_sort,Random,long double,2,0.0002
+qsort,Random,long double,2,0.0001
+DualPivotQuicksort,Random,long double,3,0.0001
+std::sort,Random,long double,3,0
+std::stable_sort,Random,long double,3,0.0002
+qsort,Random,long double,3,0.0001
+DualPivotQuicksort,Random,long double,4,0.0001
+std::sort,Random,long double,4,0
+std::stable_sort,Random,long double,4,0.0002
+qsort,Random,long double,4,0.0001
+DualPivotQuicksort,Random,long double,5,0.0001
+std::sort,Random,long double,5,0.0001
+std::stable_sort,Random,long double,5,0.0003
+qsort,Random,long double,5,0.0002
+DualPivotQuicksort,Random,long double,6,0.0002
+std::sort,Random,long double,6,0.0002
+std::stable_sort,Random,long double,6,0.0002
+qsort,Random,long double,6,0.0002
+DualPivotQuicksort,Random,long double,8,0.0001
+std::sort,Random,long double,8,0.0002
+std::stable_sort,Random,long double,8,0.0003
+qsort,Random,long double,8,0.0002
+DualPivotQuicksort,Random,long double,10,0.0002
+std::sort,Random,long double,10,0.0002
+std::stable_sort,Random,long double,10,0.0004
+qsort,Random,long double,10,0.0005
+DualPivotQuicksort,Random,long double,13,0.0003
+std::sort,Random,long double,13,0.0003
+std::stable_sort,Random,long double,13,0.0005
+qsort,Random,long double,13,0.0007
+DualPivotQuicksort,Random,long double,16,0.0003
+std::sort,Random,long double,16,0.0003
+std::stable_sort,Random,long double,16,0.0008
+qsort,Random,long double,16,0.0007
+DualPivotQuicksort,Random,long double,21,0.0005
+std::sort,Random,long double,21,0.0007
+std::stable_sort,Random,long double,21,0.0008
+qsort,Random,long double,21,0.0012
+DualPivotQuicksort,Random,long double,26,0.0007
+std::sort,Random,long double,26,0.0007
+std::stable_sort,Random,long double,26,0.0009
+qsort,Random,long double,26,0.0015
+DualPivotQuicksort,Random,long double,33,0.0008
+std::sort,Random,long double,33,0.0008
+std::stable_sort,Random,long double,33,0.0014
+qsort,Random,long double,33,0.0016
+DualPivotQuicksort,Random,long double,42,0.0014
+std::sort,Random,long double,42,0.0011
+std::stable_sort,Random,long double,42,0.0017
+qsort,Random,long double,42,0.0022
+DualPivotQuicksort,Random,long double,54,0.002
+std::sort,Random,long double,54,0.0016
+std::stable_sort,Random,long double,54,0.0019
+qsort,Random,long double,54,0.0027
+DualPivotQuicksort,Random,long double,68,0.0025
+std::sort,Random,long double,68,0.0022
+std::stable_sort,Random,long double,68,0.0027
+qsort,Random,long double,68,0.0039
+DualPivotQuicksort,Random,long double,86,0.0032
+std::sort,Random,long double,86,0.0028
+std::stable_sort,Random,long double,86,0.0033
+qsort,Random,long double,86,0.005
+DualPivotQuicksort,Random,long double,109,0.004
+std::sort,Random,long double,109,0.0035
+std::stable_sort,Random,long double,109,0.0045
+qsort,Random,long double,109,0.0062
+DualPivotQuicksort,Random,long double,138,0.0059
+std::sort,Random,long double,138,0.0051
+std::stable_sort,Random,long double,138,0.0057
+qsort,Random,long double,138,0.009
+DualPivotQuicksort,Random,long double,175,0.0072
+std::sort,Random,long double,175,0.0065
+std::stable_sort,Random,long double,175,0.0073
+qsort,Random,long double,175,0.0111
+DualPivotQuicksort,Random,long double,222,0.0105
+std::sort,Random,long double,222,0.0082
+std::stable_sort,Random,long double,222,0.0096
+qsort,Random,long double,222,0.0143
+DualPivotQuicksort,Random,long double,281,0.0119
+std::sort,Random,long double,281,0.0102
+std::stable_sort,Random,long double,281,0.0118
+qsort,Random,long double,281,0.0186
+DualPivotQuicksort,Random,long double,355,0.0167
+std::sort,Random,long double,355,0.0142
+std::stable_sort,Random,long double,355,0.0162
+qsort,Random,long double,355,0.0252
+DualPivotQuicksort,Random,long double,449,0.0225
+std::sort,Random,long double,449,0.0187
+std::stable_sort,Random,long double,449,0.0212
+qsort,Random,long double,449,0.0325
+DualPivotQuicksort,Random,long double,568,0.0285
+std::sort,Random,long double,568,0.0246
+std::stable_sort,Random,long double,568,0.0272
+qsort,Random,long double,568,0.0428
+DualPivotQuicksort,Random,long double,719,0.0408
+std::sort,Random,long double,719,0.031
+std::stable_sort,Random,long double,719,0.0361
+qsort,Random,long double,719,0.0558
+DualPivotQuicksort,Random,long double,910,0.0507
+std::sort,Random,long double,910,0.0414
+std::stable_sort,Random,long double,910,0.048
+qsort,Random,long double,910,0.074
+DualPivotQuicksort,Random,long double,1151,0.0647
+std::sort,Random,long double,1151,0.0519
+std::stable_sort,Random,long double,1151,0.0644
+qsort,Random,long double,1151,0.0942
+DualPivotQuicksort,Random,long double,1456,0.0836
+std::sort,Random,long double,1456,0.0667
+std::stable_sort,Random,long double,1456,0.0769
+qsort,Random,long double,1456,0.1181
+DualPivotQuicksort,Random,long double,1842,0.1081
+std::sort,Random,long double,1842,0.0877
+std::stable_sort,Random,long double,1842,0.1018
+qsort,Random,long double,1842,0.1537
+DualPivotQuicksort,Random,long double,2329,0.1445
+std::sort,Random,long double,2329,0.1152
+std::stable_sort,Random,long double,2329,0.1312
+qsort,Random,long double,2329,0.2045
+DualPivotQuicksort,Random,long double,2947,0.2078
+std::sort,Random,long double,2947,0.1578
+std::stable_sort,Random,long double,2947,0.1774
+qsort,Random,long double,2947,0.2718
+DualPivotQuicksort,Random,long double,3727,0.2509
+std::sort,Random,long double,3727,0.1914
+std::stable_sort,Random,long double,3727,0.2306
+qsort,Random,long double,3727,0.3388
+DualPivotQuicksort,Random,long double,4714,0.3824
+std::sort,Random,long double,4714,0.2841
+std::stable_sort,Random,long double,4714,0.3259
+qsort,Random,long double,4714,0.4846
+DualPivotQuicksort,Random,long double,5963,0.4421
+std::sort,Random,long double,5963,0.3608
+std::stable_sort,Random,long double,5963,0.4117
+qsort,Random,long double,5963,0.571
+DualPivotQuicksort,Random,long double,7543,0.5643
+std::sort,Random,long double,7543,0.4273
+std::stable_sort,Random,long double,7543,0.5023
+qsort,Random,long double,7543,0.7481
+DualPivotQuicksort,Random,long double,9540,0.7093
+std::sort,Random,long double,9540,0.5981
+std::stable_sort,Random,long double,9540,0.6331
+qsort,Random,long double,9540,0.9638
+DualPivotQuicksort,Random,long double,12067,0.8843
+std::sort,Random,long double,12067,0.7151
+std::stable_sort,Random,long double,12067,0.8318
+qsort,Random,long double,12067,1.2514
+DualPivotQuicksort,Random,long double,15264,1.1665
+std::sort,Random,long double,15264,0.9575
+std::stable_sort,Random,long double,15264,1.2887
+qsort,Random,long double,15264,1.9074
+DualPivotQuicksort,Random,long double,19306,1.6871
+std::sort,Random,long double,19306,1.2979
+std::stable_sort,Random,long double,19306,1.5654
+qsort,Random,long double,19306,2.1878
+DualPivotQuicksort,Random,long double,24420,2.1159
+std::sort,Random,long double,24420,1.541
+std::stable_sort,Random,long double,24420,2.0273
+qsort,Random,long double,24420,2.6918
+DualPivotQuicksort,Random,long double,30888,2.5785
+std::sort,Random,long double,30888,2.25
+std::stable_sort,Random,long double,30888,2.5629
+qsort,Random,long double,30888,3.8063
+DualPivotQuicksort,Random,long double,39069,3.5817
+std::sort,Random,long double,39069,2.5617
+std::stable_sort,Random,long double,39069,3.0313
+qsort,Random,long double,39069,4.5495
+DualPivotQuicksort,Random,long double,49417,4.599
+std::sort,Random,long double,49417,3.376
+std::stable_sort,Random,long double,49417,4.2538
+qsort,Random,long double,49417,6.3272
+DualPivotQuicksort,Random,long double,62505,5.9383
+std::sort,Random,long double,62505,4.4569
+std::stable_sort,Random,long double,62505,5.2147
+qsort,Random,long double,62505,7.9946
+DualPivotQuicksort,Random,long double,79060,7.6374
+std::sort,Random,long double,79060,5.4842
+std::stable_sort,Random,long double,79060,6.6186
+qsort,Random,long double,79060,10.2125
+DualPivotQuicksort,Random,long double,100000,10.203
+std::sort,Random,long double,100000,7.3332
+std::stable_sort,Random,long double,100000,8.3017
+qsort,Random,long double,100000,12.5961
+DualPivotQuicksort,Random,char,1,0
+std::sort,Random,char,1,0.0002
+std::stable_sort,Random,char,1,0.0004
+qsort,Random,char,1,0.0002
+DualPivotQuicksort,Random,char,2,0.0001
+std::sort,Random,char,2,0.0001
+std::stable_sort,Random,char,2,0.0001
+qsort,Random,char,2,0.0002
+DualPivotQuicksort,Random,char,3,0.0001
+std::sort,Random,char,3,0.0001
+std::stable_sort,Random,char,3,0.0001
+qsort,Random,char,3,0.0001
+DualPivotQuicksort,Random,char,4,0.0001
+std::sort,Random,char,4,0.0001
+std::stable_sort,Random,char,4,0.0002
+qsort,Random,char,4,0.0001
+DualPivotQuicksort,Random,char,5,0.0001
+std::sort,Random,char,5,0.0001
+std::stable_sort,Random,char,5,0.0002
+qsort,Random,char,5,0.0001
+DualPivotQuicksort,Random,char,6,0.0001
+std::sort,Random,char,6,0.0001
+std::stable_sort,Random,char,6,0.0002
+qsort,Random,char,6,0.0001
+DualPivotQuicksort,Random,char,8,0.0001
+std::sort,Random,char,8,0.0001
+std::stable_sort,Random,char,8,0.0002
+qsort,Random,char,8,0.0002
+DualPivotQuicksort,Random,char,10,0.0002
+std::sort,Random,char,10,0.0002
+std::stable_sort,Random,char,10,0.0002
+qsort,Random,char,10,0.0005
+DualPivotQuicksort,Random,char,13,0.0003
+std::sort,Random,char,13,0.0003
+std::stable_sort,Random,char,13,0.0003
+qsort,Random,char,13,0.0003
+DualPivotQuicksort,Random,char,16,0.0002
+std::sort,Random,char,16,0.0002
+std::stable_sort,Random,char,16,0.0007
+qsort,Random,char,16,0.0004
+DualPivotQuicksort,Random,char,21,0.0002
+std::sort,Random,char,21,0.0004
+std::stable_sort,Random,char,21,0.0006
+qsort,Random,char,21,0.0005
+DualPivotQuicksort,Random,char,26,0.0003
+std::sort,Random,char,26,0.0004
+std::stable_sort,Random,char,26,0.0005
+qsort,Random,char,26,0.0007
+DualPivotQuicksort,Random,char,33,0.0004
+std::sort,Random,char,33,0.0006
+std::stable_sort,Random,char,33,0.0008
+qsort,Random,char,33,0.0011
+DualPivotQuicksort,Random,char,42,0.0006
+std::sort,Random,char,42,0.0006
+std::stable_sort,Random,char,42,0.001
+qsort,Random,char,42,0.0013
+DualPivotQuicksort,Random,char,54,0.0007
+std::sort,Random,char,54,0.001
+std::stable_sort,Random,char,54,0.0013
+qsort,Random,char,54,0.0016

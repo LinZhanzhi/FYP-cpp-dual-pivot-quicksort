@@ -7,6 +7,9 @@
 #include <chrono>
 #include <cstdlib>
 #include <random>
+#include <numeric>
+#include <cmath>
+#include <tuple>
 
 // Create a minimal dual-pivot quicksort implementation just for benchmarking
 namespace minimal_dual_pivot {
@@ -197,29 +200,69 @@ public:
         std::cout << "==============================================\n\n";
         
         std::ofstream results("benchmark_results.csv");
-        results << "Size,Algorithm,Time_ms\n";
+        results << "Size,Algorithm,Pattern,Mean_ms,Median_ms,StdDev_ms\n";
         
-        std::vector<size_t> test_sizes = {100, 1000, 10000, 50000};
+        std::vector<size_t> test_sizes = {100, 1000, 10000, 50000, 100000};
         
         for (size_t size : test_sizes) {
             std::cout << "Testing size: " << size << std::endl;
             
             auto data = generateRandomData(size);
             
-            double std_sort_time = timeSort(data, [](std::vector<int>& arr) {
-                std::sort(arr.begin(), arr.end());
-            });
+            // Run multiple iterations for statistical accuracy
+            const int iterations = 5;
+            std::vector<double> std_times, dual_pivot_times;
             
-            double dual_pivot_time = timeSort(data, [](std::vector<int>& arr) {
-                minimal_dual_pivot::dual_pivot_quicksort(arr.begin(), arr.end());
-            });
+            for (int i = 0; i < iterations; ++i) {
+                double std_sort_time = timeSort(data, [](std::vector<int>& arr) {
+                    std::sort(arr.begin(), arr.end());
+                });
+                
+                double dual_pivot_time = timeSort(data, [](std::vector<int>& arr) {
+                    minimal_dual_pivot::dual_pivot_quicksort(arr.begin(), arr.end());
+                });
+                
+                std_times.push_back(std_sort_time);
+                dual_pivot_times.push_back(dual_pivot_time);
+            }
             
-            results << size << ",std::sort," << std::fixed << std::setprecision(3) << std_sort_time << "\n";
-            results << size << ",dual_pivot_quicksort," << std::fixed << std::setprecision(3) << dual_pivot_time << "\n";
+            // Calculate statistics
+            auto calc_stats = [](const std::vector<double>& times) -> std::tuple<double, double, double> {
+                double sum = std::accumulate(times.begin(), times.end(), 0.0);
+                double mean = sum / times.size();
+                
+                std::vector<double> sorted_times = times;
+                std::sort(sorted_times.begin(), sorted_times.end());
+                double median = sorted_times[sorted_times.size() / 2];
+                
+                double variance = 0.0;
+                for (double time : times) {
+                    variance += (time - mean) * (time - mean);
+                }
+                double stddev = std::sqrt(variance / times.size());
+                
+                return std::make_tuple(mean, median, stddev);
+            };
             
-            std::cout << "  std::sort: " << std_sort_time << " ms\n";
-            std::cout << "  dual_pivot: " << dual_pivot_time << " ms\n";
-            std::cout << "  Speedup: " << (std_sort_time / dual_pivot_time) << "x\n\n";
+            auto std_stats = calc_stats(std_times);
+            auto dp_stats = calc_stats(dual_pivot_times);
+            
+            double std_mean = std::get<0>(std_stats);
+            double std_median = std::get<1>(std_stats);
+            double std_stddev = std::get<2>(std_stats);
+            
+            double dp_mean = std::get<0>(dp_stats);
+            double dp_median = std::get<1>(dp_stats);
+            double dp_stddev = std::get<2>(dp_stats);
+            
+            results << size << ",std::sort,Random," << std::fixed << std::setprecision(3) 
+                   << std_mean << "," << std_median << "," << std_stddev << "\n";
+            results << size << ",dual_pivot_quicksort,Random," << std::fixed << std::setprecision(3) 
+                   << dp_mean << "," << dp_median << "," << dp_stddev << "\n";
+            
+            std::cout << "  std::sort: " << std_mean << " ± " << std_stddev << " ms\n";
+            std::cout << "  dual_pivot: " << dp_mean << " ± " << dp_stddev << " ms\n";
+            std::cout << "  Speedup: " << (std_mean / dp_mean) << "x\n\n";
         }
         
         results.close();
