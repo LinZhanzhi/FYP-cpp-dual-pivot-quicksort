@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <type_traits>
+#include <limits>
 
 namespace benchmark_data {
 
@@ -28,8 +29,9 @@ struct TypeTraits {
     
     // Get appropriate range for the type
     static constexpr T min_value() {
-        if constexpr (std::is_same_v<T, char>) return 0;
-        else if constexpr (std::is_same_v<T, unsigned char>) return 0;
+        if constexpr (std::is_same_v<T, char> || std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>) {
+            return std::numeric_limits<T>::min();
+        }
         else if constexpr (std::is_integral_v<T> && std::is_signed_v<T>) return 1;
         else if constexpr (std::is_integral_v<T> && !std::is_signed_v<T>) return 0;
         else if constexpr (std::is_floating_point_v<T>) return T(0.0);
@@ -37,8 +39,9 @@ struct TypeTraits {
     }
     
     static T max_value(size_t size) {
-        if constexpr (std::is_same_v<T, char>) return static_cast<T>(std::min(size, 127ULL));
-        else if constexpr (std::is_same_v<T, unsigned char>) return static_cast<T>(std::min(size, 255ULL));
+        if constexpr (std::is_same_v<T, char> || std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>) {
+            return std::numeric_limits<T>::max();
+        }
         else if constexpr (std::is_same_v<T, short>) return static_cast<T>(std::min(size, 32767ULL));
         else if constexpr (std::is_same_v<T, unsigned short>) return static_cast<T>(std::min(size, 65535ULL));
         else if constexpr (std::is_integral_v<T>) return static_cast<T>(size);
@@ -50,7 +53,7 @@ struct TypeTraits {
 // Helper function to generate random values based on type
 template<typename T>
 T generate_random_value(std::mt19937& gen, T min_val, T max_val) {
-    if constexpr (std::is_same_v<T, char> || std::is_same_v<T, unsigned char>) {
+    if constexpr (std::is_same_v<T, char> || std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>) {
         std::uniform_int_distribution<int> dis(static_cast<int>(min_val), static_cast<int>(max_val));
         return static_cast<T>(dis(gen));
     } else if constexpr (std::is_integral_v<T>) {
@@ -85,8 +88,16 @@ std::vector<T> generate_data(size_t size, DataPattern pattern, unsigned seed = 4
         
         case DataPattern::NEARLY_SORTED: {
             // Generate sorted array, then randomly swap 10% of elements
-            for (size_t i = 0; i < size; ++i) {
-                data.push_back(static_cast<T>(i));
+            if constexpr (std::is_same_v<T, char> || std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>) {
+                // For char types, use modulo arithmetic to cycle through valid range
+                const T range = std::numeric_limits<T>::max() - std::numeric_limits<T>::min() + 1;
+                for (size_t i = 0; i < size; ++i) {
+                    data.push_back(static_cast<T>((i % range) + std::numeric_limits<T>::min()));
+                }
+            } else {
+                for (size_t i = 0; i < size; ++i) {
+                    data.push_back(static_cast<T>(i));
+                }
             }
             
             std::uniform_int_distribution<size_t> dis(0, size - 1);
@@ -101,8 +112,16 @@ std::vector<T> generate_data(size_t size, DataPattern pattern, unsigned seed = 4
         }
         
         case DataPattern::REVERSE_SORTED: {
-            for (size_t i = 0; i < size; ++i) {
-                data.push_back(static_cast<T>(size - i));
+            if constexpr (std::is_same_v<T, char> || std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>) {
+                // For char types, use modulo arithmetic to cycle through valid range
+                const T range = std::numeric_limits<T>::max() - std::numeric_limits<T>::min() + 1;
+                for (size_t i = 0; i < size; ++i) {
+                    data.push_back(static_cast<T>(std::numeric_limits<T>::max() - (i % range)));
+                }
+            } else {
+                for (size_t i = 0; i < size; ++i) {
+                    data.push_back(static_cast<T>(size - i));
+                }
             }
             break;
         }
@@ -140,22 +159,42 @@ std::vector<T> generate_data(size_t size, DataPattern pattern, unsigned seed = 4
         case DataPattern::ORGAN_PIPE: {
             // Ascending then descending
             size_t mid = size / 2;
-            for (size_t i = 0; i < mid; ++i) {
-                data.push_back(static_cast<T>(i));
-            }
-            for (size_t i = mid; i < size; ++i) {
-                data.push_back(static_cast<T>(size - i));
+            if constexpr (std::is_same_v<T, char> || std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>) {
+                const T range = std::numeric_limits<T>::max() - std::numeric_limits<T>::min() + 1;
+                for (size_t i = 0; i < mid; ++i) {
+                    data.push_back(static_cast<T>((i % range) + std::numeric_limits<T>::min()));
+                }
+                for (size_t i = mid; i < size; ++i) {
+                    data.push_back(static_cast<T>(std::numeric_limits<T>::max() - ((i - mid) % range)));
+                }
+            } else {
+                for (size_t i = 0; i < mid; ++i) {
+                    data.push_back(static_cast<T>(i));
+                }
+                for (size_t i = mid; i < size; ++i) {
+                    data.push_back(static_cast<T>(size - i));
+                }
             }
             break;
         }
         
         case DataPattern::SAWTOOTH: {
             // Repeating ascending patterns
-            size_t pattern_length = size / 10;  // 10 teeth
-            if (pattern_length == 0) pattern_length = 1;
-            
-            for (size_t i = 0; i < size; ++i) {
-                data.push_back(static_cast<T>(i % pattern_length));
+            if constexpr (std::is_same_v<T, char> || std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>) {
+                const T range = std::numeric_limits<T>::max() - std::numeric_limits<T>::min() + 1;
+                size_t pattern_length = std::min(static_cast<size_t>(range), size / 10);
+                if (pattern_length == 0) pattern_length = 1;
+                
+                for (size_t i = 0; i < size; ++i) {
+                    data.push_back(static_cast<T>((i % pattern_length) + std::numeric_limits<T>::min()));
+                }
+            } else {
+                size_t pattern_length = size / 10;  // 10 teeth
+                if (pattern_length == 0) pattern_length = 1;
+                
+                for (size_t i = 0; i < size; ++i) {
+                    data.push_back(static_cast<T>(i % pattern_length));
+                }
             }
             break;
         }

@@ -53,12 +53,11 @@ run_multi_type_benchmark: multi_type_benchmark
 
 # Run full comprehensive benchmark
 run_full_benchmark: full_benchmark
-	@echo "Starting comprehensive benchmark (43,200 tests)..."
-	@echo "This will test all 12 patterns × 18 data types × 50 array sizes × 4 algorithms"
-	@echo "Expected runtime: 30-60 minutes depending on hardware"
+	@echo "Starting comprehensive benchmark (31,584 tests)..."
+	@echo "This will test all 12 patterns × 14 data types × 47 array sizes × 4 algorithms"
+	@echo "Expected runtime: 10-30 seconds depending on hardware"
 	cd $(RESULTS_DIR) && full_benchmark.exe
 	@echo "Full benchmark completed! Results saved in $(RESULTS_DIR)\\benchmark_results.csv"
-	@echo "Total test combinations: 10,800 (43,200 algorithm runs)"
 
 # Run benchmark with CSV output and plots
 run_benchmark: minimal_working_benchmark

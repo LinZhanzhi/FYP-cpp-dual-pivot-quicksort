@@ -100,7 +100,7 @@ The benchmark evaluates performance across all C++ primitive types to assess typ
 - `char32_t` (32-bit Unicode character, C++11 and later)
 - `bool` (boolean type)
 
-### 3. Array Lengths (50 Total)
+### 3. Array Lengths (47 Total)
 
 Array sizes are logarithmically spaced to provide comprehensive performance analysis across different scales:
 

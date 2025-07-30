@@ -2,6 +2,7 @@
 #include <vector>
 #include <random>
 #include <algorithm>
+#include <limits>
 
 template<typename T>
 std::vector<T> generate_nearly_sorted_pattern(size_t length) {
@@ -9,8 +10,16 @@ std::vector<T> generate_nearly_sorted_pattern(size_t length) {
     
     // Generate sorted array first
     if constexpr (std::is_integral_v<T>) {
-        for (size_t i = 0; i < length; ++i) {
-            arr[i] = static_cast<T>(i + 1);
+        if constexpr (std::is_same_v<T, char> || std::is_same_v<T, signed char> || std::is_same_v<T, unsigned char>) {
+            // For char types, use modulo arithmetic to cycle through valid range
+            const int range = static_cast<int>(std::numeric_limits<T>::max()) - static_cast<int>(std::numeric_limits<T>::min()) + 1;
+            for (size_t i = 0; i < length; ++i) {
+                arr[i] = static_cast<T>((i % range) + std::numeric_limits<T>::min());
+            }
+        } else {
+            for (size_t i = 0; i < length; ++i) {
+                arr[i] = static_cast<T>(i + 1);
+            }
         }
     } else if constexpr (std::is_floating_point_v<T>) {
         for (size_t i = 0; i < length; ++i) {

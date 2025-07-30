@@ -109,7 +109,7 @@ make run_quick_benchmark
 make run_multi_type_benchmark
 
 # COMPREHENSIVE BENCHMARK SYSTEM (NEW!)
-# Build the comprehensive benchmark (all 12 patterns × 17 types × 47 sizes × 4 algorithms = 38,352 tests)
+# Build the comprehensive benchmark (all 12 patterns × 14 types × 47 sizes × 4 algorithms = 31,584 tests)
 make full_benchmark
 
 # Compile and run the comprehensive benchmark system
