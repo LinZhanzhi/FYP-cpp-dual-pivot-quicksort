@@ -108,6 +108,13 @@ make run_quick_benchmark
 # Run multi-type data analysis benchmarks (NEW!)
 make run_multi_type_benchmark
 
+# COMPREHENSIVE BENCHMARK SYSTEM (NEW!)
+# Build the comprehensive benchmark (all 12 patterns × 17 types × 47 sizes × 4 algorithms = 38,352 tests)
+make full_benchmark
+
+# Compile and run the comprehensive benchmark system
+make run_full_benchmark
+
 # Run tests with different optimization levels
 make run_all_optimizations
 
