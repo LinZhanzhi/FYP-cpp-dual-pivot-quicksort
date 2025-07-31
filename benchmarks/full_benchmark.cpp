@@ -110,20 +110,65 @@ std::vector<T> generatePattern(const std::string &pattern_name, size_t length) {
   return generate_random_pattern<T>(length);
 }
 
-// Sorting algorithm implementations
+// Sorting algorithm implementations with robust statistical measurement
 template <typename T> double runDualPivotQuicksort(std::vector<T> data) {
-  return BenchmarkTimer::measureTime(
-      [&]() { dual_pivot::dual_pivot_quicksort(data.begin(), data.end()); });
+  std::vector<double> times;
+  times.reserve(30);
+  
+  for (int i = 0; i < 30; ++i) {
+    std::vector<T> test_data = data; // Fresh copy for each run
+    double time = BenchmarkTimer::measureTime(
+        [&]() { dual_pivot::dual_pivot_quicksort(test_data.begin(), test_data.end()); });
+    times.push_back(time);
+  }
+  
+  // Sort times and remove top 3 and bottom 3
+  std::sort(times.begin(), times.end());
+  times.erase(times.begin(), times.begin() + 3); // Remove bottom 3
+  times.erase(times.end() - 3, times.end());     // Remove top 3
+  
+  // Return median of remaining 24 values
+  return times[11]; // 0-indexed, so element 11 is median of 24 elements
 }
 
 template <typename T> double runStdSort(std::vector<T> data) {
-  return BenchmarkTimer::measureTime(
-      [&]() { std::sort(data.begin(), data.end()); });
+  std::vector<double> times;
+  times.reserve(30);
+  
+  for (int i = 0; i < 30; ++i) {
+    std::vector<T> test_data = data; // Fresh copy for each run
+    double time = BenchmarkTimer::measureTime(
+        [&]() { std::sort(test_data.begin(), test_data.end()); });
+    times.push_back(time);
+  }
+  
+  // Sort times and remove top 3 and bottom 3
+  std::sort(times.begin(), times.end());
+  times.erase(times.begin(), times.begin() + 3); // Remove bottom 3
+  times.erase(times.end() - 3, times.end());     // Remove top 3
+  
+  // Return median of remaining 24 values
+  return times[11]; // 0-indexed, so element 11 is median of 24 elements
 }
 
 template <typename T> double runStdStableSort(std::vector<T> data) {
-  return BenchmarkTimer::measureTime(
-      [&]() { std::stable_sort(data.begin(), data.end()); });
+  std::vector<double> times;
+  times.reserve(30);
+  
+  for (int i = 0; i < 30; ++i) {
+    std::vector<T> test_data = data; // Fresh copy for each run
+    double time = BenchmarkTimer::measureTime(
+        [&]() { std::stable_sort(test_data.begin(), test_data.end()); });
+    times.push_back(time);
+  }
+  
+  // Sort times and remove top 3 and bottom 3
+  std::sort(times.begin(), times.end());
+  times.erase(times.begin(), times.begin() + 3); // Remove bottom 3
+  times.erase(times.end() - 3, times.end());     // Remove top 3
+  
+  // Return median of remaining 24 values
+  return times[11]; // 0-indexed, so element 11 is median of 24 elements
 }
 
 // C qsort wrapper for different types
@@ -139,9 +184,24 @@ template <typename T> int compareFunction(const void *a, const void *b) {
 }
 
 template <typename T> double runQsort(std::vector<T> data) {
-  return BenchmarkTimer::measureTime([&]() {
-    std::qsort(data.data(), data.size(), sizeof(T), compareFunction<T>);
-  });
+  std::vector<double> times;
+  times.reserve(30);
+  
+  for (int i = 0; i < 30; ++i) {
+    std::vector<T> test_data = data; // Fresh copy for each run
+    double time = BenchmarkTimer::measureTime([&]() {
+      std::qsort(test_data.data(), test_data.size(), sizeof(T), compareFunction<T>);
+    });
+    times.push_back(time);
+  }
+  
+  // Sort times and remove top 3 and bottom 3
+  std::sort(times.begin(), times.end());
+  times.erase(times.begin(), times.begin() + 3); // Remove bottom 3
+  times.erase(times.end() - 3, times.end());     // Remove top 3
+  
+  // Return median of remaining 24 values
+  return times[11]; // 0-indexed, so element 11 is median of 24 elements
 }
 
 // Run single benchmark test
@@ -226,6 +286,8 @@ int main() {
             << std::endl;
   std::cout << "======================================================"
             << std::endl;
+  std::cout << "Statistical measurement: 30 runs per test, median of middle 24"
+            << std::endl;
   std::cout << "Total test combinations: " << ALGORITHM_NAMES.size()
             << " algorithms × " << PATTERN_NAMES.size() << " patterns × "
             << TYPE_NAMES.size() << " types × " << ARRAY_SIZES.size()
@@ -233,6 +295,10 @@ int main() {
             << (ALGORITHM_NAMES.size() * PATTERN_NAMES.size() *
                 TYPE_NAMES.size() * ARRAY_SIZES.size())
             << " tests" << std::endl;
+  std::cout << "Total algorithm executions: " 
+            << (ALGORITHM_NAMES.size() * PATTERN_NAMES.size() *
+                TYPE_NAMES.size() * ARRAY_SIZES.size() * 30)
+            << " (30 runs per test)" << std::endl;
   std::cout << std::endl;
 
   // Open CSV output file
