@@ -100,7 +100,7 @@ The benchmark evaluates performance across all C++ primitive types to assess typ
 - `char32_t` (32-bit Unicode character, C++11 and later)
 - `bool` (boolean type)
 
-### 3. Array Lengths (47 Total)
+### 3. Array Lengths (61 Total)
 
 Array sizes are logarithmically spaced to provide comprehensive performance analysis across different scales:
 
@@ -108,7 +108,8 @@ Array sizes are logarithmically spaced to provide comprehensive performance anal
 1, 2, 3, 4, 5, 6, 8, 10, 13, 16, 21, 26, 33, 42, 54, 68, 86, 109, 138, 175, 222,
 281, 355, 449, 568, 719, 910, 1,151, 1,456, 1,842, 2,329, 2,947, 3,727, 4,714,
 5,963, 7,543, 9,540, 12,067, 15,264, 19,306, 24,420, 30,888, 39,069, 49,417,
-62,505, 79,060, 100,000
+62,505, 79,060, 100,000, 138949, 193069, 268269, 372759, 517947, 719685, 1000000, 1389495, 1930697, 2682695, 
+3727593, 5179474, 7196856, 10000000
 ```
 
 **Rationale**: Logarithmic spacing provides:
