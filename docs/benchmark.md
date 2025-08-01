@@ -4,27 +4,6 @@
 
 This document describes the comprehensive benchmarking system for evaluating the dual-pivot quicksort implementation against standard sorting algorithms. The benchmark evaluates performance across three critical variables: array patterns, data types, and array lengths.
 
-## Statistical Measurement Methodology
-
-### Runtime Measurement Protocol
-
-For each combination of algorithm, array type, pattern, and length, the following statistical approach is used to ensure robust and reliable timing measurements:
-
-1. **Multiple Runs**: Each algorithm is executed **30 times** on identical input data
-2. **Outlier Removal**: The **top 3** (highest) and **bottom 3** (lowest) execution times are discarded to eliminate measurement anomalies caused by:
-   - System interrupts and context switches
-   - CPU thermal throttling or boost states
-   - Memory allocation variations
-   - Cache warming effects
-3. **Statistical Aggregation**: The **median** of the remaining **24 measurements** is calculated and used as the representative runtime
-4. **Precision**: All measurements are recorded in milliseconds with nanosecond precision
-
-This methodology provides several advantages:
-- **Robust against outliers**: Eliminates timing anomalies from system interference
-- **Statistically sound**: Median is less sensitive to extreme values than mean
-- **Consistent**: Reduces variance between benchmark runs
-- **Reliable**: 24 samples provide sufficient statistical power for meaningful comparison
-
 ## Benchmark Variables
 
 ### 1. Array Patterns (12 Total)
@@ -167,8 +146,8 @@ The benchmark compares four sorting implementations:
 ### Total Test Combinations
 - **Array Patterns**: 12
 - **Data Types**: 18
-- **Array Lengths**: 50
-- **Total Combinations**: 12 × 18 × 50 = **10,800 test cases**
+- **Array Lengths**: 61
+- **Total Combinations**: 12 × 18 × 61 = **10,800 test cases**
 
 ### Execution Parameters
 - **Iterations per test**: Multiple runs for statistical significance
