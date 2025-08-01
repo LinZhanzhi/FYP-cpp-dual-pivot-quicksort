@@ -77,6 +77,24 @@ public:
   }
 };
 
+// Statistical measurement helper function
+double calculateRobustMedian(std::vector<double> times) {
+  // Sort times and remove top 3 and bottom 3
+  std::sort(times.begin(), times.end());
+  times.erase(times.begin(), times.begin() + 3); // Remove bottom 3
+  times.erase(times.end() - 3, times.end());     // Remove top 3
+  
+  // Calculate median of remaining elements (should be 24)
+  size_t n = times.size();
+  if (n % 2 == 0) {
+    // Even number of elements: average of middle two
+    return (times[n/2 - 1] + times[n/2]) / 2.0;
+  } else {
+    // Odd number of elements: middle element
+    return times[n/2];
+  }
+}
+
 // Pattern generator dispatcher
 template <typename T>
 std::vector<T> generatePattern(const std::string &pattern_name, size_t length) {
@@ -122,13 +140,7 @@ template <typename T> double runDualPivotQuicksort(std::vector<T> data) {
     times.push_back(time);
   }
   
-  // Sort times and remove top 3 and bottom 3
-  std::sort(times.begin(), times.end());
-  times.erase(times.begin(), times.begin() + 3); // Remove bottom 3
-  times.erase(times.end() - 3, times.end());     // Remove top 3
-  
-  // Return median of remaining 24 values
-  return times[11]; // 0-indexed, so element 11 is median of 24 elements
+  return calculateRobustMedian(times);
 }
 
 template <typename T> double runStdSort(std::vector<T> data) {
@@ -142,13 +154,7 @@ template <typename T> double runStdSort(std::vector<T> data) {
     times.push_back(time);
   }
   
-  // Sort times and remove top 3 and bottom 3
-  std::sort(times.begin(), times.end());
-  times.erase(times.begin(), times.begin() + 3); // Remove bottom 3
-  times.erase(times.end() - 3, times.end());     // Remove top 3
-  
-  // Return median of remaining 24 values
-  return times[11]; // 0-indexed, so element 11 is median of 24 elements
+  return calculateRobustMedian(times);
 }
 
 template <typename T> double runStdStableSort(std::vector<T> data) {
@@ -162,13 +168,7 @@ template <typename T> double runStdStableSort(std::vector<T> data) {
     times.push_back(time);
   }
   
-  // Sort times and remove top 3 and bottom 3
-  std::sort(times.begin(), times.end());
-  times.erase(times.begin(), times.begin() + 3); // Remove bottom 3
-  times.erase(times.end() - 3, times.end());     // Remove top 3
-  
-  // Return median of remaining 24 values
-  return times[11]; // 0-indexed, so element 11 is median of 24 elements
+  return calculateRobustMedian(times);
 }
 
 // C qsort wrapper for different types
@@ -195,13 +195,7 @@ template <typename T> double runQsort(std::vector<T> data) {
     times.push_back(time);
   }
   
-  // Sort times and remove top 3 and bottom 3
-  std::sort(times.begin(), times.end());
-  times.erase(times.begin(), times.begin() + 3); // Remove bottom 3
-  times.erase(times.end() - 3, times.end());     // Remove top 3
-  
-  // Return median of remaining 24 values
-  return times[11]; // 0-indexed, so element 11 is median of 24 elements
+  return calculateRobustMedian(times);
 }
 
 // Run single benchmark test
