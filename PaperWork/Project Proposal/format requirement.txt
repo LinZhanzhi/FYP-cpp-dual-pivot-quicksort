@@ -1,0 +1,9 @@
+10.1.2 Formatting Requirements of the Proposal
+All sections of the proposal, including references, must conform to the following guidelines:
+ Font Style: Use one of these typefaces: Arial or Times New Roman at a font size of 12 point.
+NOTE: Font sizes down to 10 point may be used for mathematical formulas or equations, figure, table, scheme or diagram captions and when using a Symbol font to insert Greek letters or special characters.
+ Line Spacing: The text of the document should be at least 1.5 spacing and no more than double line-spaced.
+ Margin: Left margin 25mm. Top, bottom and right margins 20mm.
+ Layout: One column, single-sided or double-sided A4.
+ Pagination: The report must carry sequential pagination throughout, including appendices. The page number should be on the top right margin of each page. The title page is counted in the numbering, but bears no page number.
+ Length: The length of the proposal should normally be 5 to 10 pages including everything. Remember, quantity is no substitute for quality.

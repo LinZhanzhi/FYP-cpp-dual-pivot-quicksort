@@ -1,0 +1,9 @@
+Since 2007, Java has been using dual-pivot quicksort for nonstable sorting (https://web.archive.org/web/20151002230717/
+http://iaroslavski.narod.ru/quicksort/DualPivotQuicksort.pdf),
+which has been shown to outperform the previous algorithm
+primarily due to better cache utilization
+(https://arxiv.org/abs/1511.01138). Despite its success, no
+other major languages have adopted this approach yet.
+Consider adapting dual-pivot quicksort to other languages
+and compare its performance with the existing sorting
+libraries in those languages

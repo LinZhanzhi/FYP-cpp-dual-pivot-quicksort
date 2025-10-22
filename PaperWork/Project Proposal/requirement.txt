@@ -1,0 +1,31 @@
+General Requirements
+The project proposal should outline the project topic to be investigated. To write a good proposal, a thorough and systematic review of the related work must be conducted. You should clearly define the problem(s) to be solved, indicate the significance of the potential solution(s), understand the methodologies and techniques to be used, and propose a work plan. Consequently, the proposal should include sections on its background, problems, objectives, methods to be used, expected deliverables/outcomes, and an estimated schedule.
+
+Part 10: Structure and Format Requirements of Proposal and Reports
+10.1 Proposal
+10.1.1 Sample Structure of the Proposal
+The following is a sample structure of a Capstone Project proposal. Please consult your supervisor when preparing your proposal.
+Cover Page
+The cover page normally includes:
+1. Title of the project;
+2. Student ID no. of the student;
+3. Programme-stream;
+4. Name of project supervisor;
+5. Date, etc.
+Table of Content
+This page lists the content of the proposal. It is in the form of section headings followed by the corresponding page numbers.
+Background and Problem Statement
+Before you start your project, you must understand the background and identify the problem to be solved. You are expected to define the problem clearly and accurately, and describe explicitly the context, motivation, characteristics, and significance of the problem to be solved.
+Objectives and Outcome
+An objective is a specific, measurable outcome of your project. This section therefore describes what your project is going to achieve and the expected outcome. Try to define the scope of your project accurately. The objective could also be devising and evaluating new approaches to solve a problem. Given the specified objectives, you may want to highlight the contribution to be made by your project in the related area.
+Project Methodology
+This section estimates the possibility of being able to achieve your objectives within the limited period of time, by outlining the approach and techniques to be employed. To do so, you may need to divide the problem into several smaller problems, or divide your project into several stages. You should describe your planned tasks for solving the problem and the methods to be used in each of the tasks. In writing this section, you may need to review and compare existing work in related areas. Therefore, you may include a subsection of literature review.
+Project Schedule
+You need to propose a plan and a timetable to carry out the project. A good schedule will set out precisely what you are going to do, and when you are going to do it. In the plan,
+16
+you should write the milestones you expect to achieve and the conclusions you expect to reach along the way. Define the milestones with respect to your schedule.
+Resources Estimation
+Estimate hardware and software resources required for carrying out your project.
+References/Bibliography
+List papers, articles, and perhaps online materials related to your project that you find in literature review or tool demonstrations. Please use a uniform format for all the references, e.g., Author’s last name, first name, followed by paper title, publication source, date, page numbers, etc. Also please make sure you have cited these references in your proposal. You may refer to the style of citation at the reference section of research papers that you are reading for examples.
+
