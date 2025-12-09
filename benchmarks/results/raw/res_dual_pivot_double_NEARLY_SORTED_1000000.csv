@@ -1,0 +1,2 @@
+Algorithm,Type,Pattern,Size,Time(ms)
+dual_pivot,double,Nearly Sorted,1000000,20.9872

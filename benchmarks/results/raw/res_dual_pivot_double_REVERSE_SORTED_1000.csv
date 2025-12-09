@@ -1,0 +1,2 @@
+Algorithm,Type,Pattern,Size,Time(ms)
+dual_pivot,double,Reverse Sorted,1000,0.001664

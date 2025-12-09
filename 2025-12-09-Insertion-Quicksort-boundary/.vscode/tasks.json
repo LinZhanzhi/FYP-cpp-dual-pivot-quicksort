@@ -1,0 +1,37 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Benchmark",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "scripts/benchmark.py"
+            ],
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Compile C++",
+            "type": "shell",
+            "command": "g++",
+            "args": [
+                "-O3",
+                "-march=native",
+                "-std=c++17",
+                "-I",
+                "src",
+                "src/main.cpp",
+                "-o",
+                "build/benchmark"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}

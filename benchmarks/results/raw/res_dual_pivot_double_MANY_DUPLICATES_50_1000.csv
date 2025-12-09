@@ -1,0 +1,2 @@
+Algorithm,Type,Pattern,Size,Time(ms)
+dual_pivot,double,50% Unique,1000,0.021012

@@ -1,0 +1,2 @@
+Algorithm,Type,Pattern,Size,Time(ms)
+qsort,int,Nearly Sorted,1000,0.007408

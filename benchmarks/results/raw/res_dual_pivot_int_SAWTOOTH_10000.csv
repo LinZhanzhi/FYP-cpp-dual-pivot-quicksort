@@ -1,0 +1,2 @@
+Algorithm,Type,Pattern,Size,Time(ms)
+dual_pivot,int,Sawtooth,10000,0.008448

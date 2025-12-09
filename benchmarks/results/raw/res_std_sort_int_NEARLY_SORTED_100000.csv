@@ -1,0 +1,2 @@
+Algorithm,Type,Pattern,Size,Time(ms)
+std_sort,int,1,100000,1.49292

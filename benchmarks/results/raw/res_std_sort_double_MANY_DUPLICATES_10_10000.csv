@@ -1,0 +1,2 @@
+Algorithm,Type,Pattern,Size,Time(ms)
+std_sort,double,3,10000,0.334851

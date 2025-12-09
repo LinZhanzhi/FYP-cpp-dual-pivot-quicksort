@@ -1,18 +1,18 @@
 /**
  * @file dual_pivot_quicksort.hpp
  * @brief Comprehensive C++ implementation of Vladimir Yaroslavskiy's dual-pivot quicksort algorithm
- * 
+ *
  * This implementation is based on the dual-pivot quicksort algorithm that was adopted in Java 7
  * and significantly outperforms traditional single-pivot quicksort variants. The algorithm uses
  * two pivot elements to create three-way partitioning, reducing the average number of element
  * swaps from 1.0×n×ln(n) to 0.8×n×ln(n) compared to classic quicksort.
- * 
+ *
  * Key Performance Benefits (from Sebastian Wild's research):
  * - 20% fewer swaps than traditional quicksort
  * - 12% fewer "scanned elements" (memory accesses), crucial for modern CPU-memory performance gaps
  * - Better cache locality due to optimized memory access patterns
  * - Superior performance on arrays with many duplicate elements
- * 
+ *
  * The implementation includes:
  * - STL-compatible iterator interface
  * - Advanced optimizations: introsort-style depth limiting, run detection and merging
@@ -20,7 +20,7 @@
  * - Type-specific optimizations for primitive types (int, long, float, double, byte, char, short)
  * - Special handling for floating-point edge cases (NaN, negative zero)
  * - Comprehensive error handling and validation
- * 
+ *
  * @author Implementation based on Vladimir Yaroslavskiy's dual-pivot quicksort
  * @version C++ port with advanced optimizations and parallel support
  */
@@ -46,9 +46,13 @@
 #include <variant>
 #include <bit>  // For std::bit_cast in C++20, fallback for older standards
 
+#if __cplusplus >= 202002L
+#include <concepts>
+#endif
+
 /**
  * @brief Performance optimization includes for SIMD operations
- * 
+ *
  * On x86_64 architectures, we include SIMD intrinsics to potentially optimize
  * specific operations in the sorting algorithm, particularly for large data sets.
  */
@@ -58,12 +62,12 @@
 
 /**
  * @brief Compiler-specific optimization hints for branch prediction and memory prefetching
- * 
+ *
  * These macros provide performance hints to the compiler for better code generation:
  * - LIKELY/UNLIKELY: Help branch predictor reduce pipeline stalls in critical loops
  * - FORCE_INLINE: Ensures critical functions are inlined for performance
  * - PREFETCH_*: Preload data into cache before it's needed, crucial for memory-bound algorithms
- * 
+ *
  * Modern CPUs have grown much faster than memory bandwidth (the "memory wall" phenomenon),
  * making memory access patterns increasingly important for algorithm performance.
  */
@@ -89,7 +93,7 @@
 
 /**
  * @brief Main namespace containing the dual-pivot quicksort implementation
- * 
+ *
  * This namespace encapsulates all components of the dual-pivot quicksort algorithm,
  * including the core sorting functions, helper utilities, and optimization classes.
  * The design closely follows the Java implementation while adding C++-specific
@@ -97,17 +101,28 @@
  */
 namespace dual_pivot {
 
+#if __cplusplus >= 202002L
+    template<typename T>
+    concept Integral = std::is_integral_v<T>;
+
+    template<typename T>
+    concept FloatingPoint = std::is_floating_point_v<T>;
+
+    template<typename T>
+    concept Primitive = Integral<T> || FloatingPoint<T>;
+#endif
+
 // =============================================================================
 // OBJECT-BASED GENERIC ARRAY HANDLING (matching Java's Object a, b pattern)
 // =============================================================================
 
 /**
  * @brief Type-erased array variant for generic array operations
- * 
+ *
  * This variant type allows the algorithm to work with different primitive types
  * in a type-safe manner, similar to Java's Object[] arrays. It supports all
  * primitive types that benefit from dual-pivot quicksort optimizations.
- * 
+ *
  * The variant approach provides better type safety than void* while maintaining
  * the flexibility needed for generic array operations in the sorting implementation.
  */
@@ -119,11 +134,11 @@ using ArrayVariant = std::variant<
 
 /**
  * @brief Array pointer wrapper for type-safe array operations
- * 
+ *
  * This wrapper class provides a type-safe interface for working with arrays of different
  * primitive types, similar to Java's Object array handling but with compile-time type safety.
  * It encapsulates the array pointer along with size and element size information.
- * 
+ *
  * The class provides type checking methods (equivalent to Java's instanceof) and
  * type extraction methods (equivalent to Java's casting) to enable generic algorithms
  * while maintaining type safety.
@@ -132,12 +147,12 @@ struct ArrayPointer {
     ArrayVariant data;      ///< The actual array pointer stored as a variant
     int size;              ///< Number of elements in the array
     int element_size;      ///< Size of each element in bytes
-    
+
     /**
      * @brief Default constructor creating an empty ArrayPointer
      */
     ArrayPointer() : data(static_cast<int*>(nullptr)), size(0), element_size(0) {}
-    
+
     /**
      * @brief Template constructor for creating ArrayPointer from typed array
      * @tparam T The element type of the array
@@ -146,135 +161,135 @@ struct ArrayPointer {
      */
     template<typename T>
     ArrayPointer(T* ptr, int sz = 0) : data(ptr), size(sz), element_size(sizeof(T)) {}
-    
+
     // Type checking methods (equivalent to Java's instanceof operator)
-    
+
     /**
      * @brief Check if the array contains int elements
      * @return true if the array is of type int*
      */
     bool isIntArray() const { return std::holds_alternative<int*>(data); }
-    
+
     /**
      * @brief Check if the array contains long elements
      * @return true if the array is of type long*
      */
     bool isLongArray() const { return std::holds_alternative<long*>(data); }
-    
+
     /**
      * @brief Check if the array contains float elements
      * @return true if the array is of type float*
      */
     bool isFloatArray() const { return std::holds_alternative<float*>(data); }
-    
+
     /**
      * @brief Check if the array contains double elements
      * @return true if the array is of type double*
      */
     bool isDoubleArray() const { return std::holds_alternative<double*>(data); }
-    
+
     /**
      * @brief Check if the array contains signed char elements
      * @return true if the array is of type signed char*
      */
     bool isByteArray() const { return std::holds_alternative<signed char*>(data); }
-    
+
     /**
      * @brief Check if the array contains char elements
      * @return true if the array is of type char*
      */
     bool isCharArray() const { return std::holds_alternative<char*>(data); }
-    
+
     /**
      * @brief Check if the array contains short elements
      * @return true if the array is of type short*
      */
     bool isShortArray() const { return std::holds_alternative<short*>(data); }
-    
+
     /**
      * @brief Check if the array contains unsigned char elements
      * @return true if the array is of type unsigned char*
      */
     bool isUnsignedByteArray() const { return std::holds_alternative<unsigned char*>(data); }
-    
+
     /**
      * @brief Check if the array contains unsigned short elements
      * @return true if the array is of type unsigned short*
      */
     bool isUnsignedShortArray() const { return std::holds_alternative<unsigned short*>(data); }
-    
+
     // Type extraction methods (equivalent to Java's casting operations)
-    
+
     /**
      * @brief Extract int array pointer
      * @return Pointer to int array
      * @throws std::bad_variant_access if the array is not of type int*
      */
     int* asIntArray() const { return std::get<int*>(data); }
-    
+
     /**
      * @brief Extract long array pointer
      * @return Pointer to long array
      * @throws std::bad_variant_access if the array is not of type long*
      */
     long* asLongArray() const { return std::get<long*>(data); }
-    
+
     /**
      * @brief Extract float array pointer
      * @return Pointer to float array
      * @throws std::bad_variant_access if the array is not of type float*
      */
     float* asFloatArray() const { return std::get<float*>(data); }
-    
+
     /**
      * @brief Extract double array pointer
      * @return Pointer to double array
      * @throws std::bad_variant_access if the array is not of type double*
      */
     double* asDoubleArray() const { return std::get<double*>(data); }
-    
+
     /**
      * @brief Extract signed char array pointer
      * @return Pointer to signed char array
      * @throws std::bad_variant_access if the array is not of type signed char*
      */
     signed char* asByteArray() const { return std::get<signed char*>(data); }
-    
+
     /**
      * @brief Extract char array pointer
      * @return Pointer to char array
      * @throws std::bad_variant_access if the array is not of type char*
      */
     char* asCharArray() const { return std::get<char*>(data); }
-    
+
     /**
      * @brief Extract short array pointer
      * @return Pointer to short array
      * @throws std::bad_variant_access if the array is not of type short*
      */
     short* asShortArray() const { return std::get<short*>(data); }
-    
+
     /**
      * @brief Extract unsigned char array pointer
      * @return Pointer to unsigned char array
      * @throws std::bad_variant_access if the array is not of type unsigned char*
      */
     unsigned char* asUnsignedByteArray() const { return std::get<unsigned char*>(data); }
-    
+
     /**
      * @brief Extract unsigned short array pointer
      * @return Pointer to unsigned short array
      * @throws std::bad_variant_access if the array is not of type unsigned short*
      */
     unsigned short* asUnsignedShortArray() const { return std::get<unsigned short*>(data); }
-    
+
     /**
      * @brief Generic visitor pattern for type dispatch
-     * 
+     *
      * This method allows applying operations to the stored array regardless of its type
      * by using the visitor pattern. The visitor function will be called with the actual
      * typed pointer.
-     * 
+     *
      * @tparam Visitor A callable that can handle all possible array types
      * @param visitor The visitor function to apply
      * @return The result of the visitor function
@@ -287,9 +302,9 @@ struct ArrayPointer {
 
 /**
  * @brief Factory function for creating ArrayPointer instances
- * 
+ *
  * Convenience function to create ArrayPointer objects with proper type deduction.
- * 
+ *
  * @tparam T The element type of the array
  * @param ptr Pointer to the array
  * @param size Size of the array (default: 0)
@@ -303,14 +318,14 @@ ArrayPointer makeArrayPointer(T* ptr, int size = 0) {
 
 /**
  * @brief C++ equivalent of Java's Float.floatToRawIntBits()
- * 
+ *
  * Converts a float value to its raw IEEE 754 bit representation without
  * any modifications. This is essential for handling special floating-point
  * values like NaN and negative zero in sorting algorithms.
- * 
+ *
  * Uses std::bit_cast in C++20 for optimal performance, falls back to
  * memcpy for older standards while maintaining strict aliasing compliance.
- * 
+ *
  * @param value The float value to convert
  * @return The raw bit representation as uint32_t
  */
@@ -328,11 +343,11 @@ inline std::uint32_t floatToRawIntBits(float value) {
 
 /**
  * @brief C++ equivalent of Java's Double.doubleToRawLongBits()
- * 
+ *
  * Converts a double value to its raw IEEE 754 bit representation without
  * any modifications. Critical for proper handling of special floating-point
  * values in sorting operations.
- * 
+ *
  * @param value The double value to convert
  * @return The raw bit representation as uint64_t
  */
@@ -350,11 +365,11 @@ inline std::uint64_t doubleToRawLongBits(double value) {
 
 /**
  * @brief C++ equivalent of Java's Float.intBitsToFloat()
- * 
+ *
  * Converts a raw bit pattern back to a float value. Used to reconstruct
  * floating-point values from their bit representations, particularly for
  * restoring special values after sorting operations.
- * 
+ *
  * @param bits The bit pattern to convert
  * @return The float value represented by the bits
  */
@@ -370,10 +385,10 @@ inline float intBitsToFloat(std::uint32_t bits) {
 
 /**
  * @brief C++ equivalent of Java's Double.longBitsToDouble()
- * 
+ *
  * Converts a raw bit pattern back to a double value. Essential for
  * reconstructing double values from their bit representations.
- * 
+ *
  * @param bits The bit pattern to convert
  * @return The double value represented by the bits
  */
@@ -389,11 +404,11 @@ inline double longBitsToDouble(std::uint64_t bits) {
 
 /**
  * @brief Enhanced negative zero detection using precise bit manipulation
- * 
+ *
  * Detects negative zero (-0.0f) by examining the sign bit directly.
  * This is crucial for maintaining IEEE 754 compliance in sorting algorithms
  * where -0.0 should be treated differently from +0.0.
- * 
+ *
  * @param value The float value to check
  * @return true if the value is negative zero
  */
@@ -403,9 +418,9 @@ inline bool isNegativeZero(float value) {
 
 /**
  * @brief Enhanced negative zero detection for double precision
- * 
+ *
  * Detects negative zero (-0.0) in double precision floating-point values.
- * 
+ *
  * @param value The double value to check
  * @return true if the value is negative zero
  */
@@ -415,13 +430,13 @@ inline bool isNegativeZero(double value) {
 
 /**
  * @brief Optimized NaN detection using bit patterns
- * 
+ *
  * Detects NaN (Not a Number) values by examining the IEEE 754 bit pattern
  * directly. This is more reliable than using comparison operations, which
  * may be optimized away by compilers.
- * 
+ *
  * NaN bit pattern for float: exponent = 0x7F800000, mantissa != 0
- * 
+ *
  * @param value The float value to check
  * @return true if the value is NaN
  */
@@ -432,12 +447,12 @@ inline bool isNaN(float value) {
 
 /**
  * @brief Optimized NaN detection for double precision
- * 
+ *
  * Detects NaN values in double precision floating-point numbers using
  * direct bit pattern examination.
- * 
+ *
  * NaN bit pattern for double: exponent = 0x7FF0000000000000, mantissa != 0
- * 
+ *
  * @param value The double value to check
  * @return true if the value is NaN
  */
@@ -448,11 +463,11 @@ inline bool isNaN(double value) {
 
 /**
  * @brief Precise positive zero detection using bit patterns
- * 
+ *
  * Detects positive zero (+0.0f) by examining the bit representation directly.
  * This distinguishes between +0.0 and -0.0, which is important for IEEE 754
  * compliant sorting.
- * 
+ *
  * @param value The float value to check
  * @return true if the value is positive zero
  */
@@ -462,9 +477,9 @@ inline bool isPositiveZero(float value) {
 
 /**
  * @brief Precise positive zero detection for double precision
- * 
+ *
  * Detects positive zero (+0.0) in double precision values.
- * 
+ *
  * @param value The double value to check
  * @return true if the value is positive zero
  */
@@ -474,14 +489,14 @@ inline bool isPositiveZero(double value) {
 
 /**
  * @brief Advanced binary search for zero position restoration
- * 
+ *
  * This function performs a binary search to find the position where zeros should
  * be inserted in a sorted array. It uses unsigned right shift operations to match
  * Java's >>> operator semantics, ensuring identical behavior across platforms.
- * 
+ *
  * This is used during floating-point sorting to restore the proper positions of
  * negative zeros after the main sorting phase, maintaining IEEE 754 compliance.
- * 
+ *
  * @tparam T The element type (typically float or double)
  * @param a Pointer to the sorted array
  * @param low Starting index for the search
@@ -508,12 +523,12 @@ FORCE_INLINE int findZeroPosition(T* a, int low, int high) {
 
 /**
  * @brief Functional interface architecture for flexible algorithm dispatch
- * 
+ *
  * This section implements a functional interface system similar to Java's method
  * references and lambda expressions. It allows the dual-pivot quicksort algorithm
  * to be parameterized with different sorting strategies, partitioning methods,
  * and optimization techniques while maintaining type safety and performance.
- * 
+ *
  * The approach enables:
  * - Runtime algorithm selection based on data characteristics
  * - Easy testing of different optimization strategies
@@ -526,10 +541,10 @@ template<typename T> class Sorter;
 
 /**
  * @brief Function pointer type for sorting operations
- * 
+ *
  * Defines the signature for sorting functions that operate on array segments.
  * This enables pluggable sorting strategies within the dual-pivot framework.
- * 
+ *
  * @tparam T The element type being sorted
  * @param a Pointer to the array to sort
  * @param low Starting index (inclusive)
@@ -540,10 +555,10 @@ using SortOperation = void(*)(T* a, int low, int high);
 
 /**
  * @brief Advanced sorting operation with Sorter integration
- * 
+ *
  * Extended function signature that includes a Sorter object for advanced
  * coordination and state management in parallel sorting scenarios.
- * 
+ *
  * @tparam T The element type being sorted
  * @param sorter Pointer to the Sorter object managing the operation
  * @param a Pointer to the array to sort
@@ -556,10 +571,10 @@ using SorterSortOperation = void(*)(Sorter<T>* sorter, T* a, int bits, int low, 
 
 /**
  * @brief Function pointer type for partitioning operations
- * 
+ *
  * Defines the signature for partitioning functions that divide arrays around
  * one or more pivot elements. Returns the boundaries of the partitioned regions.
- * 
+ *
  * @tparam T The element type being partitioned
  * @param a Pointer to the array to partition
  * @param low Starting index of the region to partition
@@ -573,11 +588,11 @@ using PartitionOperation = std::pair<int, int>(*)(T* a, int low, int high, int p
 
 /**
  * @brief Optimized function dispatch for sorting operations
- * 
+ *
  * This intrinsic candidate function provides optimized dispatch to sorting
  * operations. It's designed to be inlined by the compiler for maximum performance
  * while maintaining the flexibility of function pointer dispatch.
- * 
+ *
  * @tparam T The element type being sorted
  * @param array Pointer to the array to sort
  * @param low Starting index
@@ -591,10 +606,10 @@ FORCE_INLINE void sort_intrinsic(T* array, int low, int high, SortOperation<T> s
 
 /**
  * @brief Optimized function dispatch for partitioning operations
- * 
+ *
  * Intrinsic candidate for partitioning operations, providing efficient dispatch
  * while maintaining the benefits of parameterized algorithm selection.
- * 
+ *
  * @tparam T The element type being partitioned
  * @param array Pointer to the array to partition
  * @param low Starting index
@@ -605,15 +620,15 @@ FORCE_INLINE void sort_intrinsic(T* array, int low, int high, SortOperation<T> s
  * @return Partition boundaries as returned by the operation
  */
 template<typename T>
-FORCE_INLINE std::pair<int, int> partition_intrinsic(T* array, int low, int high, 
-                                                     int pivotIndex1, int pivotIndex2, 
+FORCE_INLINE std::pair<int, int> partition_intrinsic(T* array, int low, int high,
+                                                     int pivotIndex1, int pivotIndex2,
                                                      PartitionOperation<T> po) {
     return po(array, low, high, pivotIndex1, pivotIndex2);
 }
 
 /**
  * @brief Forward declarations for algorithm method references
- * 
+ *
  * These forward declarations define the available sorting and partitioning
  * algorithms that can be used as method references in the functional interface.
  * Each corresponds to a specific optimization strategy or algorithm variant.
@@ -626,10 +641,10 @@ template<typename T> std::pair<int, int> partitionSinglePivot_ref(T* a, int low,
 
 /**
  * @brief Algorithm constants from Java DualPivotQuicksort implementation
- * 
+ *
  * These constants control the behavior of the dual-pivot quicksort algorithm
  * and have been carefully tuned based on extensive empirical testing:
- * 
+ *
  * - MAX_MIXED_INSERTION_SORT_SIZE: Arrays smaller than this use mixed insertion sort
  * - MAX_INSERTION_SORT_SIZE: Threshold for switching to simple insertion sort
  * - DELTA: Increment for recursion depth tracking to prevent infinite recursion
@@ -642,10 +657,10 @@ static constexpr int MAX_RECURSION_DEPTH = 64 * DELTA;   ///< Maximum recursion 
 
 /**
  * @brief Run detection and merging constants
- * 
+ *
  * These constants control the advanced run detection and merging optimization
  * that identifies and efficiently handles already-sorted subsequences:
- * 
+ *
  * - MIN_TRY_MERGE_SIZE: Minimum size to attempt run detection and merging
  * - MIN_FIRST_RUN_SIZE: Minimum size for the first detected run
  * - MIN_FIRST_RUNS_FACTOR: Factor for validating run structure quality
@@ -658,9 +673,9 @@ static constexpr int MAX_RUN_CAPACITY = 5 << 10;       ///< Maximum run capacity
 
 /**
  * @brief Parallel processing constants
- * 
+ *
  * These constants determine when and how parallel processing is applied:
- * 
+ *
  * - MIN_PARALLEL_SORT_SIZE: Minimum array size to consider parallel sorting
  * - MIN_PARALLEL_MERGE_PARTS_SIZE: Minimum size for parallel merge operations
  * - MIN_RUN_COUNT: Minimum number of runs required for parallel run merging
@@ -671,10 +686,10 @@ static constexpr int MIN_RUN_COUNT = 4;                     ///< Minimum runs fo
 
 /**
  * @brief Type-specific counting sort thresholds
- * 
+ *
  * These constants determine when to use counting sort optimizations for
  * small primitive types where the value range is limited:
- * 
+ *
  * - MIN_BYTE_COUNTING_SORT_SIZE: Threshold for byte array counting sort
  * - MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE: Threshold for short/char counting sort
  */
@@ -683,15 +698,15 @@ static constexpr int MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE = 1750;   ///< Short/c
 
 /**
  * @brief Thread pool for parallel sorting operations
- * 
+ *
  * This thread pool implementation provides work distribution for parallel
  * sorting algorithms. It uses a producer-consumer pattern with condition
  * variables for efficient thread coordination and work stealing.
- * 
+ *
  * The design follows modern C++ best practices for thread management and
  * provides RAII-style automatic cleanup. Tasks are executed asynchronously
  * with future-based result handling.
- * 
+ *
  * Key features:
  * - Automatic thread count detection based on hardware capabilities
  * - Efficient task queuing with condition variable synchronization
@@ -705,14 +720,14 @@ private:
     std::mutex queue_mutex;                     ///< Mutex for thread-safe queue access
     std::condition_variable condition;          ///< Condition variable for worker synchronization
     std::atomic<bool> stop;                     ///< Atomic flag for clean shutdown
-    
+
 public:
     /**
      * @brief Construct a thread pool with specified number of threads
-     * 
+     *
      * Creates a thread pool with the given number of worker threads. Each worker
      * runs in a loop, waiting for tasks to be enqueued and executing them.
-     * 
+     *
      * @param num_threads Number of worker threads (default: hardware concurrency)
      */
     ThreadPool(size_t num_threads = std::thread::hardware_concurrency()) : stop(false) {
@@ -732,14 +747,14 @@ public:
             });
         }
     }
-    
+
     /**
      * @brief Enqueue a task for asynchronous execution
-     * 
+     *
      * Adds a callable task to the thread pool's work queue. The task will be
      * executed by one of the worker threads when available. Returns a future
      * that can be used to retrieve the result.
-     * 
+     *
      * @tparam F Function type
      * @tparam Args Argument types
      * @param f Function to execute
@@ -750,11 +765,11 @@ public:
     template<class F, class... Args>
     auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type> {
         using return_type = typename std::result_of<F(Args...)>::type;
-        
+
         auto task = std::make_shared<std::packaged_task<return_type()>>(
             std::bind(std::forward<F>(f), std::forward<Args>(args)...)
         );
-        
+
         std::future<return_type> res = task->get_future();
         {
             std::unique_lock<std::mutex> lock(queue_mutex);
@@ -764,10 +779,10 @@ public:
         condition.notify_one();
         return res;
     }
-    
+
     /**
      * @brief Destructor - ensures clean shutdown of all threads
-     * 
+     *
      * Signals all worker threads to stop, wakes them up, and waits for
      * them to complete their current tasks before destruction.
      */
@@ -785,14 +800,14 @@ public:
 
 /**
  * @brief Singleton thread pool accessor for parallel sorting
- * 
+ *
  * Provides a global thread pool instance for use in parallel sorting operations.
  * The singleton pattern ensures that only one thread pool exists per process,
  * avoiding resource waste and thread proliferation.
- * 
+ *
  * The thread pool is created with the default hardware concurrency and remains
  * active for the lifetime of the program.
- * 
+ *
  * @return Reference to the global ThreadPool instance
  */
 static ThreadPool& getThreadPool() {
@@ -807,25 +822,25 @@ static ThreadPool& getThreadPool() {
 
 /**
  * @brief Sequential merge operation for combining two sorted array segments
- * 
+ *
  * This function merges two sorted array segments into a destination array.
  * It uses the standard two-pointer merge technique optimized for cache performance.
  * The implementation includes buffer management optimizations to handle cases
  * where the destination overlaps with source arrays.
- * 
+ *
  * Algorithm: Standard merge with three phases:
  * 1. Merge while both arrays have elements (main merge loop)
  * 2. Copy remaining elements from first array if any
  * 3. Copy remaining elements from second array if any
- * 
+ *
  * Buffer Management:
  * - Handles overlapping destination and source arrays safely
  * - Optimizes for cases where destination is the same as source
  * - Prevents unnecessary copying when arrays don't overlap
- * 
+ *
  * Time Complexity: O(n + m) where n and m are the sizes of the two segments
  * Space Complexity: O(1) additional space
- * 
+ *
  * @tparam T Element type (must support comparison and assignment)
  * @param dst Destination array for merged result
  * @param k Starting index in destination array
@@ -843,7 +858,7 @@ void mergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2)
     while (lo1 < hi1 && lo2 < hi2) {
         dst[k++] = (a1[lo1] < a2[lo2]) ? a1[lo1++] : a2[lo2++];
     }
-    
+
     // Phase 2: Copy remaining elements from first array
     // Buffer overlap check prevents unnecessary copying when dst == a1
     if (dst != a1 || k < lo1) {
@@ -851,7 +866,7 @@ void mergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2)
             dst[k++] = a1[lo1++];
         }
     }
-    
+
     // Phase 3: Copy remaining elements from second array
     // Buffer overlap check prevents unnecessary copying when dst == a2
     if (dst != a2 || k < lo2) {
@@ -863,31 +878,31 @@ void mergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2)
 
 /**
  * @brief Parallel merge operation using divide-and-conquer with binary search
- * 
+ *
  * This function implements a parallel merge algorithm that recursively divides
  * large merge operations into smaller subproblems that can be processed concurrently.
  * It uses binary search to find optimal split points that balance workload.
- * 
+ *
  * Algorithm Strategy:
  * 1. Check if both segments are large enough for parallel processing
  * 2. Ensure the first array is the larger one (swap if necessary)
  * 3. Find median element of larger array and binary search position in smaller array
  * 4. Launch parallel tasks for the two resulting merge operations
  * 5. Fall back to sequential merge for small segments
- * 
+ *
  * Parallel Subdivision:
  * - Uses binary search (std::lower_bound) to find split points
  * - Ensures balanced workload distribution between threads
  * - Maintains cache locality by processing related data together
- * 
+ *
  * Load Balancing:
  * - Always makes the larger array the primary partitioning source
  * - Uses median split to ensure roughly equal work distribution
  * - Recursive subdivision continues until segments are too small for parallelism
- * 
+ *
  * Time Complexity: O(log(n+m)) depth with O(n+m) total work
  * Space Complexity: O(log(n+m)) recursion stack space
- * 
+ *
  * @tparam T Element type (must support comparison and assignment)
  * @param dst Destination array for merged result
  * @param k Starting index in destination array
@@ -909,27 +924,27 @@ void parallelMergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, 
             std::swap(hi1, hi2);
             std::swap(a1, a2);
         }
-        
+
         // Find median of larger array for balanced workload distribution
         int mi1 = (lo1 + hi1) >> 1;
         T key = a1[mi1];
-        
+
         // Binary search to find split point in smaller array
         // This ensures elements < key go to left merge, elements >= key go to right merge
         int mi2 = std::lower_bound(a2 + lo2, a2 + hi2, key) - a2;
-        
+
         // Calculate destination offset for right merge operation
         int d = mi2 - lo2 + mi1 - lo1;
-        
+
         // Launch parallel task for right partition
         auto& pool = getThreadPool();
-        auto future = pool.enqueue([=] { 
-            parallelMergeParts(dst, k + d, a1, mi1, hi1, a2, mi2, hi2); 
+        auto future = pool.enqueue([=] {
+            parallelMergeParts(dst, k + d, a1, mi1, hi1, a2, mi2, hi2);
         });
-        
+
         // Process left partition in current thread
         parallelMergeParts(dst, k, a1, lo1, mi1, a2, lo2, mi2);
-        
+
         // Wait for right partition to complete
         future.get();
     } else {
@@ -943,7 +958,7 @@ void parallelMergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, 
 // ADVANCED RUN MERGER WITH SOPHISTICATED FORK/JOIN PATTERNS (matching Java's RecursiveTask)
 // =============================================================================
 
-// RunMerger class for parallel run merging (matching Java's RunMerger extends RecursiveTask) 
+// RunMerger class for parallel run merging (matching Java's RunMerger extends RecursiveTask)
 template<typename T>
 class RunMerger {
 private:
@@ -953,18 +968,18 @@ private:
     int aim;
     std::vector<int> run;
     int lo, hi;
-    
+
     // Advanced parallel coordination state
     std::future<T*> future_result;
     bool is_forked = false;
     T* result = nullptr;
     std::atomic<bool> completed{false};
     std::mutex result_mutex;
-    
+
 public:
     RunMerger(T* a, T* b, int offset, int aim, const std::vector<int>& run, int lo, int hi)
         : a(a), b(b), offset(offset), aim(aim), run(run), lo(lo), hi(hi) {}
-    
+
     // Enhanced compute method with sophisticated parallel subdivision
     T* compute() {
         if (hi - lo == 1) {
@@ -978,63 +993,63 @@ public:
             }
             return b;
         }
-        
+
         // Advanced parallel subdivision (matching Java's sophisticated approach)
         int mi = lo;
         int rmi = (run[lo] + run[hi]) >> 1; // Unsigned right shift equivalent
         while (run[++mi + 1] <= rmi);
-        
+
         // Create parallel tasks for left and right parts with advanced coordination
         auto& pool = getThreadPool();
-        
+
         // Left subtask with negative aim (Java pattern)
         auto future1 = pool.enqueue([=]() {
             RunMerger<T> left(a, b, offset, -aim, run, lo, mi);
             return left.compute();
         });
-        
+
         // Right subtask with zero aim (Java pattern)
         auto future2 = pool.enqueue([=]() {
             RunMerger<T> right(a, b, offset, 0, run, mi, hi);
             return right.compute();
         });
-        
+
         // Get results from parallel tasks with proper synchronization
         T* a1 = future1.get();
         T* a2 = future2.get();
-        
+
         // Advanced destination calculation (matching Java's sophisticated logic)
         T* dst = (a1 == a) ? b : a;
-        
+
         // Complex offset calculations (matching Java's approach)
         int k   = (a1 == a) ? run[lo] - offset : run[lo];
         int lo1 = (a1 == b) ? run[lo] - offset : run[lo];
         int hi1 = (a1 == b) ? run[mi] - offset : run[mi];
         int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
         int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
-        
+
         // Advanced merge with parallel coordination
         mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
         return dst;
     }
-    
+
     // Java-style forkMe() method - sophisticated fork and return self pattern
     RunMerger& forkMe() {
         std::lock_guard<std::mutex> lock(result_mutex);
-        
+
         if (!is_forked) {
             auto& pool = getThreadPool();
-            
+
             // Advanced future-based forking with exception handling
             future_result = pool.enqueue([this]() -> T* {
                 try {
                     T* computed_result = this->compute();
-                    
+
                     // Mark completion with thread-safe state management
                     std::lock_guard<std::mutex> result_lock(this->result_mutex);
                     this->result = computed_result;
                     this->completed.store(true);
-                    
+
                     return computed_result;
                 } catch (...) {
                     // Enhanced exception handling (matching Java's approach)
@@ -1043,16 +1058,16 @@ public:
                     throw;
                 }
             });
-            
+
             is_forked = true;
         }
         return *this;
     }
-    
+
     // Java-style getDestination() method - sophisticated join and get result
     T* getDestination() {
         std::lock_guard<std::mutex> lock(result_mutex);
-        
+
         if (is_forked) {
             if (!completed.load()) {
                 // Advanced synchronization with timeout handling
@@ -1076,29 +1091,29 @@ public:
             return result;
         }
     }
-    
+
     // Alternative join method for consistency with Java RecursiveTask
     T* join() {
         return getDestination();
     }
-    
+
     // Get raw result (matching Java RecursiveTask API)
     T* getRawResult() {
         std::lock_guard<std::mutex> lock(result_mutex);
         return result;
     }
-    
+
     // Advanced completion checking
     bool isDone() const {
         return completed.load();
     }
-    
-    // Force completion (matching Java's cancel pattern)  
+
+    // Force completion (matching Java's cancel pattern)
     void cancel() {
         std::lock_guard<std::mutex> lock(result_mutex);
         completed.store(true);
     }
-    
+
     // Enhanced status reporting
     bool isForkJoinTask() const {
         return is_forked;
@@ -1111,17 +1126,17 @@ public:
 
 /**
  * @brief Advanced parallel processing framework (matching Java's CountedCompleter)
- * 
+ *
  * This section implements a sophisticated parallel coordination system based on
  * Java's CountedCompleter framework. The design enables fine-grained parallel
  * task decomposition with automatic load balancing and completion propagation.
- * 
+ *
  * Key Components:
  * - CountedCompleter: Base class for fork-join style parallel tasks
  * - Pending count management: Tracks outstanding child tasks
  * - Exception propagation: Handles errors across task boundaries
  * - Completion callbacks: Enables complex coordination patterns
- * 
+ *
  * Design Patterns:
  * - Fork-join parallelism: Recursive task subdivision
  * - Work stealing: Dynamic load balancing across threads
@@ -1131,27 +1146,27 @@ public:
 
 // Forward declarations for advanced parallel classes
 template<typename T> class Sorter;
-template<typename T> class Merger; 
+template<typename T> class Merger;
 template<typename T> class RunMerger;
 
 /**
  * @brief Base class for counted completion parallel tasks
- * 
+ *
  * Implements the core CountedCompleter pattern from Java's ForkJoin framework.
  * This class provides the foundation for building complex parallel algorithms
  * with automatic completion tracking and exception handling.
- * 
+ *
  * Completion Semantics:
  * - Each task maintains a pending count of outstanding child tasks
  * - Completion propagates up the parent chain when pending count reaches zero
  * - Exception handling ensures proper cleanup and error propagation
  * - onCompletion callbacks enable complex coordination patterns
- * 
+ *
  * Thread Safety:
  * - All operations are thread-safe using atomic operations
  * - Completion propagation is lock-free for performance
  * - Exception handling is synchronized to prevent races
- * 
+ *
  * @tparam T Result type for the computation (often void for sorting tasks)
  */
 template<typename T>
@@ -1161,20 +1176,20 @@ protected:
     CountedCompleter* parent{nullptr};
     bool completed{false};
     std::mutex completion_mutex;  // Enhanced thread safety
-    
+
 public:
     CountedCompleter(CountedCompleter* parent = nullptr) : parent(parent) {
         if (parent) {
             parent->pending.fetch_add(1);
         }
     }
-    
+
     virtual ~CountedCompleter() = default;
-    
+
     virtual void compute() = 0;
     virtual void onCompletion(CountedCompleter* caller) {}
     virtual void onExceptionalCompletion(std::exception_ptr ex, CountedCompleter* caller) {}
-    
+
     void invoke() {
         try {
             compute();
@@ -1183,26 +1198,26 @@ public:
             completeExceptionally(std::current_exception());
         }
     }
-    
+
     void fork() {
         auto& pool = getThreadPool();
         pool.enqueue([this]() { invoke(); });
     }
-    
+
     // Enhanced completion with proper propagation (matching Java's sophistication)
     void tryComplete() {
         CountedCompleter* curr = this;
         while (curr != nullptr) {
             std::lock_guard<std::mutex> lock(curr->completion_mutex);
-            
+
             if (curr->pending.load() == 0 && !curr->completed) {
                 curr->completed = true;
                 CountedCompleter* parent = curr->parent;
-                
+
                 if (parent) {
                     try {
                         curr->onCompletion(curr);
-                        
+
                         // Advanced pending count management with atomic operations
                         int prevPending = parent->pending.fetch_sub(1);
                         if (prevPending == 1) {
@@ -1220,13 +1235,13 @@ public:
             }
         }
     }
-    
+
     // Enhanced exception handling (matching Java's pattern)
     void completeExceptionally(std::exception_ptr ex) {
         std::lock_guard<std::mutex> lock(completion_mutex);
         completed = true;
-        
-        // Propagate exception to parent chain  
+
+        // Propagate exception to parent chain
         CountedCompleter* curr = parent;
         while (curr != nullptr) {
             try {
@@ -1238,36 +1253,36 @@ public:
             }
         }
     }
-    
+
     void addToPendingCount(int delta) {
         pending.fetch_add(delta);
     }
-    
+
     // Java-style pending count management
     void setPendingCount(int count) {
         pending.store(count);
     }
-    
+
     int getPendingCount() const {
         return pending.load();
     }
-    
+
     bool isCompletedAbnormally() const {
         return completed && pending.load() < 0;  // Use negative pending as error flag
     }
-    
+
     // Advanced completion checking with timeout (C++ enhancement)
     bool tryCompleteWithTimeout(int timeout_ms) {
         auto start = std::chrono::steady_clock::now();
-        
+
         while (!completed) {
             auto now = std::chrono::steady_clock::now();
             auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
-            
+
             if (elapsed.count() > timeout_ms) {
                 return false;  // Timeout
             }
-            
+
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         return true;
@@ -1276,27 +1291,27 @@ public:
 
 /**
  * @brief Generic sorter for type-erased array operations
- * 
+ *
  * This class provides a generic interface for sorting arrays of different primitive
  * types using a single implementation. It mimics Java's Object-based array handling
  * while maintaining C++ type safety through the ArrayPointer variant system.
- * 
+ *
  * Type Erasure Strategy:
  * - Uses ArrayPointer variant to store typed array pointers safely
  * - Runtime type dispatch to appropriate type-specific sorting functions
  * - Maintains Java compatibility for algorithm behavior
  * - Enables generic parallel coordination without template instantiation issues
- * 
+ *
  * Buffer Management:
  * - Coordinates primary array (a) and auxiliary buffer (b) usage
  * - Tracks offset for complex buffer reuse patterns
  * - Manages buffer allocation and deallocation automatically
- * 
+ *
  * Parallel Coordination:
  * - Integrates with CountedCompleter framework for work distribution
  * - Supports fork-join pattern for recursive parallel sorting
  * - Handles completion propagation and error handling
- * 
+ *
  * Note: This is a simplified implementation to resolve forward declaration
  * dependencies. Full runtime type dispatch will be implemented after all
  * type-specific functions are properly declared.
@@ -1305,12 +1320,12 @@ class GenericSorter : public CountedCompleter<void> {
 private:
     GenericSorter* parent;       ///< Parent task for completion propagation
     ArrayPointer a;              ///< Primary array (equivalent to Java's Object a)
-    ArrayPointer b;              ///< Buffer array (equivalent to Java's Object b) 
+    ArrayPointer b;              ///< Buffer array (equivalent to Java's Object b)
     int low;                     ///< Starting index of range to sort
     int size;                    ///< Number of elements to sort
     int offset;                  ///< Buffer offset for reuse optimization
     int depth;                   ///< Recursion depth for algorithm selection
-    
+
 public:
     /**
      * @brief Construct a generic sorter task
@@ -1323,12 +1338,12 @@ public:
      * @param depth Recursion depth for algorithm selection
      */
     GenericSorter(GenericSorter* parent, ArrayPointer a, ArrayPointer b, int low, int size, int offset, int depth)
-        : CountedCompleter<void>(parent), parent(parent), a(a), b(b), 
+        : CountedCompleter<void>(parent), parent(parent), a(a), b(b),
           low(low), size(size), offset(offset), depth(depth) {}
-    
+
     /**
      * @brief Main computation method - performs type dispatch and sorting
-     * 
+     *
      * This method will perform runtime type dispatch to call the appropriate
      * type-specific sorting function based on the ArrayPointer variant type.
      * Currently simplified to avoid forward declaration circular dependencies.
@@ -1339,18 +1354,18 @@ public:
         // For now, just complete the task to avoid compilation issues
         tryComplete();
     }
-    
+
     void onCompletion(CountedCompleter<void>* caller) override {
         // Simplified completion - full merge logic will be implemented later
     }
-    
+
         /**
      * @brief Fork a child sorter task with array range
-     * 
+     *
      * Creates and launches a child sorting task for the specified range.
      * Uses Java-style forkSorter pattern with local variable optimization
      * to improve performance through better register allocation.
-     * 
+     *
      * @param depth Recursion depth for the child task
      * @param low Starting index of range for child task
      * @param high Ending index of range for child task (exclusive)
@@ -1363,7 +1378,7 @@ public:
         auto* child = new GenericSorter(this, localA, b, low, high - low, offset, depth);
         child->fork();
     }
-    
+
     // Getter methods for buffer access
     ArrayPointer getArrayA() const { return a; }
     ArrayPointer getArrayB() const { return b; }
@@ -1372,31 +1387,31 @@ public:
 
 /**
  * @brief Parallel sorter using work-stealing and recursive decomposition
- * 
+ *
  * This class implements the core parallel sorting logic using the CountedCompleter
  * framework. It automatically decomposes large sorting tasks into smaller parallel
  * subtasks while maintaining cache efficiency and load balance.
- * 
+ *
  * Parallel Strategy:
  * - Large arrays: Recursive subdivision using dual-pivot partitioning
  * - Medium arrays: Parallel merge sort with buffer management
  * - Small arrays: Sequential sorting with optimized algorithms
- * 
+ *
  * Work Distribution:
  * - Uses forkSorter() to create parallel subtasks
  * - Automatic load balancing through work stealing
  * - Cache-aware task sizes to minimize memory contention
- * 
+ *
  * Buffer Management:
  * - Coordinates primary array (a) and auxiliary buffer (b)
  * - Tracks buffer offsets for efficient reuse
  * - Handles buffer allocation and deallocation automatically
- * 
+ *
  * Algorithm Selection:
  * - Depth-based algorithm switching (quicksort vs merge sort)
  * - Type-specific optimizations through static dispatch
  * - Automatic fallback to sequential algorithms for small tasks
- * 
+ *
  * @tparam T Element type being sorted
  */
 template<typename T>
@@ -1409,7 +1424,7 @@ private:
     int size;                    ///< Number of elements to sort
     int offset;                  ///< Buffer offset for reuse optimization
     int depth;                   ///< Recursion depth for algorithm selection
-    
+
 public:
     /**
      * @brief Construct a parallel sorter task
@@ -1422,20 +1437,20 @@ public:
      * @param depth Recursion depth for algorithm selection
      */
     Sorter(Sorter* parent, T* a, T* b, int low, int size, int offset, int depth)
-        : CountedCompleter<T>(parent), parent(parent), a(a), b(b), 
+        : CountedCompleter<T>(parent), parent(parent), a(a), b(b),
           low(low), size(size), offset(offset), depth(depth) {}
-    
+
     /**
      * @brief Main computation method for parallel sorting
-     * 
+     *
      * This method implements the core sorting logic with automatic algorithm
      * selection based on recursion depth. It coordinates between parallel
      * quicksort and parallel merge sort depending on the parallelism requirements.
-     * 
+     *
      * Algorithm Selection:
      * - Negative depth: Use parallel merge sort for maximum parallelism
      * - Positive depth: Use type-specific parallel quicksort
-     * 
+     *
      * Type Dispatch:
      * - Compile-time selection of optimized sorting algorithms
      * - Fallback to generic implementation for unsupported types
@@ -1446,10 +1461,10 @@ public:
             // Use parallel merge sort for highly parallel scenarios
             this->setPendingCount(2);
             int half = size >> 1;
-            
+
             auto* left = new Sorter(this, b, a, low, half, offset, depth + 1);
             auto* right = new Sorter(this, b, a, low + half, size - half, offset, depth + 1);
-            
+
             left->fork();
             right->compute();
         } else {
@@ -1469,19 +1484,19 @@ public:
         }
         this->tryComplete();
     }
-    
+
     /**
      * @brief Completion handler for merge operations
-     * 
+     *
      * Called when child tasks complete to perform necessary merge operations.
      * Handles the complex buffer management required for parallel merge sort
      * and coordinates the final merge of sorted segments.
-     * 
+     *
      * Buffer Coordination:
      * - Determines source and destination buffers based on depth
      * - Calculates proper offset values for buffer reuse
      * - Creates Merger tasks for combining sorted segments
-     * 
+     *
      * @param caller The child task that completed
      */
     void onCompletion(CountedCompleter<T>* caller) override {
@@ -1489,7 +1504,7 @@ public:
         if (depth < 0) {
             int mi = low + (size >> 1);
             bool src = (depth & 1) == 0;
-            
+
             // Create merger for the two halves
             auto* merger = new Merger<T>(nullptr,
                 a,                          // dst
@@ -1505,14 +1520,14 @@ public:
             delete merger;
         }
     }
-    
+
     // Factory method for creating child sorters (matching Java's forkSorter pattern)
     void forkSorter(int depth, int low, int high) {
         this->addToPendingCount(1);
         auto* child = new Sorter(this, a, b, low, high - low, offset, depth);
         child->fork();
     }
-    
+
     // Helper method to set pending count (matching Java API)
     void setPendingCount(int count) {
         this->pending.store(count);
@@ -1526,14 +1541,14 @@ private:
     int k;
     ArrayPointer a1;
     int lo1, hi1;
-    ArrayPointer a2; 
+    ArrayPointer a2;
     int lo2, hi2;
-    
+
 public:
-    GenericMerger(CountedCompleter<void>* parent, ArrayPointer dst, int k, 
+    GenericMerger(CountedCompleter<void>* parent, ArrayPointer dst, int k,
                   ArrayPointer a1, int lo1, int hi1, ArrayPointer a2, int lo2, int hi2)
         : CountedCompleter<void>(parent), dst(dst), k(k), a1(a1), lo1(lo1), hi1(hi1), a2(a2), lo2(lo2), hi2(hi2) {}
-    
+
     void compute() override {
         // Runtime type dispatch for merging operations (matching Java's approach)
         if (dst.isIntArray()) {
@@ -1553,21 +1568,21 @@ public:
 
 /**
  * @brief Parallel merger for combining sorted array segments
- * 
+ *
  * This class implements parallel merging of two sorted array segments using
  * recursive decomposition. It automatically switches between parallel and
  * sequential merging based on segment sizes to optimize performance.
- * 
+ *
  * Parallel Merge Strategy:
  * - Large segments: Use binary search partitioning for parallel subdivision
  * - Small segments: Use sequential merge to avoid thread overhead
  * - Load balancing: Ensure work is distributed evenly across threads
- * 
+ *
  * Binary Search Partitioning:
  * - Find split points using std::lower_bound for balanced workload
  * - Recursive subdivision until segments are too small for parallelism
  * - Cache-aware processing to minimize memory access overhead
- * 
+ *
  * @tparam T Element type being merged
  */
 template<typename T>
@@ -1579,7 +1594,7 @@ private:
     int lo1, hi1;                ///< Range of first segment [lo1, hi1)
     T* a2;                       ///< Second source array
     int lo2, hi2;                ///< Range of second segment [lo2, hi2)
-    
+
 public:
     /**
      * @brief Construct a parallel merger task
@@ -1590,19 +1605,19 @@ public:
      * @param lo1 Start of first segment (inclusive)
      * @param hi1 End of first segment (exclusive)
      * @param a2 Second source array
-     * @param lo2 Start of second segment (inclusive) 
+     * @param lo2 Start of second segment (inclusive)
      * @param hi2 End of second segment (exclusive)
      */
     Merger(CountedCompleter<T>* parent, T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2)
         : CountedCompleter<T>(parent), dst(dst), k(k), a1(a1), lo1(lo1), hi1(hi1), a2(a2), lo2(lo2), hi2(hi2) {}
-    
+
     /**
      * @brief Main computation method for parallel merging
-     * 
+     *
      * Implements the core merge logic with automatic parallelization for
      * large segments. Uses sophisticated load balancing to ensure optimal
      * thread utilization while maintaining cache efficiency.
-     * 
+     *
      * Merge Strategy:
      * - Check segment sizes against parallelization threshold
      * - Use parallel subdivision for large segments
@@ -1656,7 +1671,7 @@ static double* mergeRuns_double(double* a, double* b, int offset, int aim, bool 
 template<typename T>
 void mergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2);
 
-// Forward declarations for type-specific merge functions  
+// Forward declarations for type-specific merge functions
 static signed char* mergeRuns_byte(signed char* a, signed char* b, int offset, int aim, bool parallel, const std::vector<int>& run, int lo, int hi);
 static char* mergeRuns_char(char* a, char* b, int offset, int aim, bool parallel, const std::vector<int>& run, int lo, int hi);
 static short* mergeRuns_short(short* a, short* b, int offset, int aim, bool parallel, const std::vector<int>& run, int lo, int hi);
@@ -1700,9 +1715,14 @@ template<typename T>
 void parallelMergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2);
 
 // Forward declarations for type-specialized functions
+#if __cplusplus >= 202002L
+template<FloatingPoint T>
+void sort_specialized(T* a, int low, int high);
+#else
 template<typename T>
 typename std::enable_if<std::is_floating_point<T>::value, void>::type
 sort_specialized(T* a, int low, int high);
+#endif
 
 // Forward declaration for merge operations
 template<typename T>
@@ -1710,22 +1730,22 @@ void mergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2)
 
 /**
  * @brief Cache-friendly insertion sort with prefetching optimizations
- * 
+ *
  * This is an optimized implementation of insertion sort that serves as the base case
  * for small arrays in the dual-pivot quicksort algorithm. It includes several
  * performance optimizations based on modern CPU characteristics:
- * 
+ *
  * Key optimizations:
  * - Memory prefetching to reduce cache misses
  * - Branch prediction hints to reduce pipeline stalls
  * - Optimized inner loop for better instruction scheduling
- * 
+ *
  * The algorithm threshold is carefully tuned: arrays smaller than MAX_INSERTION_SORT_SIZE
  * (44 elements) benefit from this approach over more complex algorithms.
- * 
+ *
  * Time complexity: O(n²) in worst case, O(n) for nearly sorted data
  * Space complexity: O(1)
- * 
+ *
  * @tparam T Element type (must support comparison and assignment)
  * @param a Pointer to the array to sort
  * @param low Starting index (inclusive)
@@ -1736,13 +1756,13 @@ FORCE_INLINE void insertionSort(T* a, int low, int high) {
     // Phase 6: Cache-friendly insertion sort with prefetching
     for (int i, k = low; ++k < high; ) {
         T ai = a[i = k];
-        
+
         // Prefetch next elements to improve cache performance
         // This is crucial for the "memory wall" - CPU-memory speed gap
         if (LIKELY(k + 1 < high)) {
             PREFETCH_READ(&a[k + 1]);
         }
-        
+
         // Use branch prediction hints for the common case (already sorted)
         if (UNLIKELY(ai < a[i - 1])) {
             // Element is out of place - shift elements to make room
@@ -1756,27 +1776,27 @@ FORCE_INLINE void insertionSort(T* a, int low, int high) {
 
 /**
  * @brief Advanced mixed insertion sort with pin and pair insertion strategies
- * 
+ *
  * This sophisticated insertion sort variant is used for medium-sized arrays
  * (up to MAX_MIXED_INSERTION_SORT_SIZE = 65 elements). It combines multiple
  * optimization strategies to achieve better performance than simple insertion sort:
- * 
+ *
  * Strategy 1 - Pin Insertion Sort:
  * - Uses a "pin" element to separate small and large elements
  * - Reduces the number of comparisons for elements that are already roughly positioned
  * - Handles small elements first, then processes large elements separately
- * 
+ *
  * Strategy 2 - Pair Insertion Sort:
  * - Processes elements in pairs for better cache utilization
  * - Reduces the constant factor in the O(n²) complexity
  * - Optimizes for the common case of nearly sorted data
- * 
+ *
  * The algorithm dynamically switches between strategies based on array size,
  * using simple insertion for tiny arrays and the mixed approach for larger ones.
- * 
+ *
  * This is a key optimization that significantly improves performance on
  * real-world data where arrays often contain partially sorted sequences.
- * 
+ *
  * @tparam T Element type (must support comparison and assignment)
  * @param a Pointer to the array to sort
  * @param low Starting index (inclusive)
@@ -1786,12 +1806,12 @@ template<typename T>
 void mixedInsertionSort(T* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);  // Calculate transition point
-    
+
     if (end == high) {
         // Tiny array: use simple insertion sort
         for (int i; ++low < end; ) {
             T ai = a[i = low];
-            
+
             while (ai < a[--i]) {
                 a[i + 1] = a[i];
             }
@@ -1799,33 +1819,33 @@ void mixedInsertionSort(T* a, int low, int high) {
         }
     } else {
         // Mixed strategy: pin insertion sort + pair insertion sort
-        
+
         // Phase 1: Pin insertion sort on the initial part
         T pin = a[end];  // Use pin element to separate small/large values
-        
+
         for (int i, p = high; ++low < end; ) {
             T ai = a[i = low];
-            
+
             if (ai < a[i - 1]) { // Small element - needs insertion
                 // Insert small element into sorted part
                 a[i] = a[i - 1];
                 --i;
-                
+
                 while (ai < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
-                
+
             } else if (p > i && ai > pin) { // Large element - move to end
                 // Find position for large element
                 while (a[--p] > pin);
-                
+
                 // Swap large element to proper position
                 if (p > i) {
                     ai = a[p];
                     a[p] = a[i];
                 }
-                
+
                 // Insert the swapped element (now small) into sorted part
                 while (ai < a[--i]) {
                     a[i + 1] = a[i];
@@ -1833,12 +1853,12 @@ void mixedInsertionSort(T* a, int low, int high) {
                 a[i + 1] = ai;
             }
         }
-        
+
         // Phase 2: Pair insertion sort on remaining part
         // Process two elements at a time for better cache efficiency
         for (int i; low < high; ++low) {
             T a1 = a[i = low], a2 = a[++low];
-            
+
             // Insert pair of elements efficiently
             if (a1 > a2) {
                 // First element is larger - insert in reverse order
@@ -1846,19 +1866,19 @@ void mixedInsertionSort(T* a, int low, int high) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a1;
-                
+
                 while (a2 < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = a2;
-                
+
             } else if (a1 < a[i - 1]) {
                 // Both elements need insertion
                 while (a2 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a2;
-                
+
                 while (a1 < a[--i]) {
                     a[i + 1] = a[i];
                 }
@@ -1876,7 +1896,7 @@ template<typename T>
 void pushDown(T* a, int p, T value, int low, int high) {
     for (int k;;) {
         k = (p << 1) - low + 2; // Index of the right child
-        
+
         if (k > high) {
             break;
         }
@@ -1907,29 +1927,29 @@ void heapSort(T* a, int low, int high) {
 
 /**
  * @brief Optimized dual-pivot partitioning with cache-aware memory access
- * 
+ *
  * This is the heart of Yaroslavskiy's dual-pivot quicksort algorithm. It partitions
  * an array around two pivot elements P1 and P2 (where P1 ≤ P2) into three regions:
- * 
+ *
  * Array Layout After Partitioning:
  * [elements < P1] [P1 ≤ elements ≤ P2] [elements > P2]
  *                 ↑                    ↑
  *              lower                upper
- * 
+ *
  * Key Algorithm Innovations:
  * 1. Three-way partitioning reduces average comparisons vs. traditional quicksort
  * 2. Backward scanning minimizes cache misses (matching Java's optimization)
  * 3. Prefetching hints improve memory access patterns
  * 4. Branch prediction hints optimize for common cases
- * 
+ *
  * Performance Benefits:
  * - 20% fewer swaps compared to single-pivot quicksort (0.8×n×ln(n) vs 1.0×n×ln(n))
  * - Better cache locality due to sequential access patterns
  * - Fewer "scanned elements" - crucial for modern CPU-memory performance gaps
- * 
+ *
  * The algorithm processes elements from right to left, which improves cache
  * performance by accessing memory in a more predictable pattern.
- * 
+ *
  * @tparam T Element type (must support comparison and assignment)
  * @param a Pointer to the array to partition
  * @param low Starting index of the region to partition
@@ -1944,36 +1964,79 @@ FORCE_INLINE std::pair<int, int> partitionDualPivot(T* a, int low, int high, int
     int end = high - 1;
     int lower = low;
     int upper = end;
-    
+
     // Extract pivot values
     int e1 = pivotIndex1;
     int e5 = pivotIndex2;
     T pivot1 = a[e1];  // P1 - smaller pivot
     T pivot2 = a[e5];  // P2 - larger pivot (P1 ≤ P2)
-    
+
     // Move pivots to the boundaries for partitioning
     // The first and last elements are moved to positions formerly occupied by pivots
     a[e1] = a[lower];
     a[e5] = a[upper];
-    
+
     // Skip elements that are already in correct positions
     // This optimization reduces unnecessary work for partially sorted data
     while (a[++lower] < pivot1);  // Find first element >= P1
     while (a[--upper] > pivot2);  // Find first element <= P2
-    
+
     // Backward 3-interval partitioning with cache optimization
     // Process from right to left for better cache utilization
     (void)--lower; // Mark lower as used (avoid compiler warning)
     for (int k = ++upper; --k > lower; ) {
+
+        // SIMD Optimization: Skip elements that belong in the middle partition
+        // We look for a block of 8 elements where pivot1 <= x <= pivot2
+        // This significantly speeds up processing of random data where most elements
+        // fall into the middle partition.
+#ifdef __AVX2__
+        if constexpr (std::is_same_v<T, int>) {
+            // Ensure we have at least 8 elements to process (k down to k-7)
+            // and we don't cross the lower boundary
+            while (k > lower + 8) {
+                // Load 8 elements ending at k (indices k-7 to k)
+                // Note: _mm256_loadu_si256 loads 256 bits (8 ints)
+                // We load from &a[k-7] to get elements a[k-7]...a[k]
+                __m256i v = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&a[k - 7]));
+
+                // Broadcast pivots
+                __m256i p1 = _mm256_set1_epi32(pivot1);
+                __m256i p2 = _mm256_set1_epi32(pivot2);
+
+                // Check if any element is < pivot1
+                // _mm256_cmpgt_epi32(a, b) returns 0xFFFFFFFF if a > b
+                // We want v < p1, which is p1 > v
+                __m256i lt_p1 = _mm256_cmpgt_epi32(p1, v);
+
+                // Check if any element is > pivot2
+                // We want v > p2
+                __m256i gt_p2 = _mm256_cmpgt_epi32(v, p2);
+
+                // Combine conditions: if any element is outside [pivot1, pivot2]
+                __m256i outside = _mm256_or_si256(lt_p1, gt_p2);
+
+                // If all bits are zero, then all elements are in range [pivot1, pivot2]
+                if (_mm256_testz_si256(outside, outside)) {
+                    // All 8 elements are in the middle partition, skip them!
+                    k -= 8;
+                } else {
+                    // Block contains elements that need moving, process one by one
+                    break;
+                }
+            }
+        }
+#endif
+
         T ak = a[k];
-        
+
         // Prefetch elements ahead for better cache utilization
         // This addresses the "memory wall" problem where CPU speed >> memory speed
         if (LIKELY(k > lower + 1)) {
             PREFETCH_READ(&a[k - 1]);
         }
-        
-        if (UNLIKELY(ak < pivot1)) { 
+
+        if (UNLIKELY(ak < pivot1)) {
             // Element belongs in left partition (< P1)
             while (lower < k) {
                 if (LIKELY(a[++lower] >= pivot1)) {
@@ -1989,20 +2052,20 @@ FORCE_INLINE std::pair<int, int> partitionDualPivot(T* a, int low, int high, int
                     break;
                 }
             }
-        } else if (UNLIKELY(ak > pivot2)) { 
+        } else if (UNLIKELY(ak > pivot2)) {
             // Element belongs in right partition (> P2)
             a[k] = a[--upper];
             a[upper] = ak;
         }
         // Elements with P1 ≤ ak ≤ P2 stay in place (middle partition)
     }
-    
+
     // Swap the pivots into their final positions
-    a[low] = a[lower]; 
+    a[low] = a[lower];
     a[lower] = pivot1;  // P1 to its final position
-    a[end] = a[upper]; 
+    a[end] = a[upper];
     a[upper] = pivot2;  // P2 to its final position
-    
+
     return std::make_pair(lower, upper);
 }
 
@@ -2013,20 +2076,20 @@ std::pair<int, int> partitionSinglePivot(T* a, int low, int high, int pivotIndex
     int upper = end;
     int e3 = pivotIndex1;
     T pivot = a[e3];
-    
+
     // The first element to be sorted is moved to the location formerly occupied by the pivot
     a[e3] = a[lower];
-    
+
     // Traditional 3-way (Dutch National Flag) partitioning
     for (int k = ++upper; --k > lower; ) {
         T ak = a[k];
-        
+
         if (ak != pivot) {
             a[k] = pivot;
-            
+
             if (ak < pivot) { // Move a[k] to the left side
                 while (a[++lower] < pivot);
-                
+
                 if (a[lower] > pivot) {
                     a[--upper] = a[lower];
                 }
@@ -2036,11 +2099,11 @@ std::pair<int, int> partitionSinglePivot(T* a, int low, int high, int pivotIndex
             }
         }
     }
-    
+
     // Swap the pivot into its final position
     a[low] = a[lower];
     a[lower] = pivot;
-    
+
     return std::make_pair(lower, upper);
 }
 
@@ -2050,18 +2113,18 @@ std::pair<int, int> partitionSinglePivot(T* a, int low, int high, int pivotIndex
 
 /**
  * @brief Advanced run detection and merging for naturally ordered subsequences
- * 
+ *
  * This section implements the sophisticated run detection and merging system
  * that identifies naturally occurring sorted subsequences (runs) in the input
  * array and merges them efficiently. This optimization is crucial for achieving
  * excellent performance on real-world data that often contains partial order.
- * 
+ *
  * Key Concepts:
  * - Run: A maximal sequence of consecutive elements that are already sorted
  * - Ascending runs: Elements in non-decreasing order (a[i] <= a[i+1])
  * - Descending runs: Elements in non-increasing order (reversed to ascending)
  * - Constant runs: All elements equal (treated as sorted)
- * 
+ *
  * Performance Benefits:
  * - O(n) performance on already sorted data
  * - Significant speedup on partially sorted data
@@ -2071,7 +2134,7 @@ std::pair<int, int> partitionSinglePivot(T* a, int low, int high, int pivotIndex
 
 // Forward declarations for run merging functions
 template<typename T>
-T* mergeRuns(T* a, T* b, int offset, int aim, 
+T* mergeRuns(T* a, T* b, int offset, int aim,
              const std::vector<int>& run, int lo, int hi);
 
 template<typename T>
@@ -2079,30 +2142,30 @@ void mergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2)
 
 /**
  * @brief Attempts to detect and merge sorted runs for optimized sorting
- * 
+ *
  * This function implements an advanced run detection algorithm that identifies
  * naturally occurring sorted subsequences in the array. If sufficient runs
  * are found with adequate length, it merges them using an optimized merge
  * strategy, potentially achieving O(n) or near-O(n) performance.
- * 
+ *
  * Run Detection Strategy:
  * 1. Scan array to identify ascending, descending, and constant sequences
  * 2. Reverse descending sequences to make them ascending
  * 3. Validate that initial runs are long enough to justify merge overhead
  * 4. Track run boundaries in a compact integer array
  * 5. Merge runs using recursive divide-and-conquer if beneficial
- * 
+ *
  * Quality Heuristics:
  * - Initial runs must be at least MIN_FIRST_RUN_SIZE elements
  * - Total run count limited to MAX_RUN_CAPACITY to avoid overhead
  * - First runs factor validates that runs are long enough relative to total size
  * - Early termination if runs are too short or too numerous
- * 
+ *
  * Parallel Optimization:
  * - Uses parallel run merging for large run counts (>= MIN_RUN_COUNT)
  * - Falls back to sequential merging for smaller run sets
  * - Maintains cache efficiency through localized processing
- * 
+ *
  * @tparam T Element type (must support comparison and assignment)
  * @param a Pointer to the array to analyze and potentially sort
  * @param low Starting index of the range to process
@@ -2119,34 +2182,34 @@ bool tryMergeRuns(T* a, int low, int size, bool parallel = false) {
     std::vector<int> run;
     int high = low + size;
     int count = 1, last = low;
-    
+
     // Identify all possible runs
     for (int k = low + 1; k < high; ) {
-        
+
         // Find the end index of the current run
         if (a[k - 1] < a[k]) {
             // Identify ascending sequence
             while (++k < high && a[k - 1] <= a[k]);
-            
+
         } else if (a[k - 1] > a[k]) {
             // Identify descending sequence
             while (++k < high && a[k - 1] >= a[k]);
-            
+
             // Reverse into ascending order
             for (int i = last - 1, j = k; ++i < --j && a[i] > a[j]; ) {
-                T temp = a[i]; 
-                a[i] = a[j]; 
+                T temp = a[i];
+                a[i] = a[j];
                 a[j] = temp;
             }
         } else { // Identify constant sequence
             T ak = a[k];
             while (++k < high && ak == a[k]);
-            
+
             if (k < high) {
                 continue;
             }
         }
-        
+
         // Check special cases
         if (run.empty()) {
             if (k == high) {
@@ -2154,23 +2217,23 @@ bool tryMergeRuns(T* a, int low, int size, bool parallel = false) {
                 // and therefore already sorted.
                 return true;
             }
-            
+
             if (k - low < MIN_FIRST_RUN_SIZE) {
                 // The first run is too small
                 // to proceed with scanning.
                 return false;
             }
-            
+
             run.reserve(((size >> 10) | 0x7F) & 0x3FF);
             run.push_back(low);
-            
+
         } else if (a[last - 1] > a[last]) {
             if (count > (k - low) >> MIN_FIRST_RUNS_FACTOR) {
                 // The first runs are not long
                 // enough to continue scanning.
                 return false;
             }
-            
+
             if (++count == MAX_RUN_CAPACITY) {
                 // Array is not highly structured.
                 return false;
@@ -2178,16 +2241,16 @@ bool tryMergeRuns(T* a, int low, int size, bool parallel = false) {
         }
         run.push_back(last = k);
     }
-    
+
     // Merge runs of highly structured array
     if (count > 1) {
         std::vector<T> b(size);
-        
+
         if (parallel && count >= MIN_RUN_COUNT) {
             // Use parallel run merging for large run counts
             RunMerger<T> merger(a, b.data(), low, 1, run, 0, count);
             T* result = merger.compute();
-            
+
             // Copy back to main array if needed
             if (result != a) {
                 std::copy(result + low, result + low + size, a + low);
@@ -2201,9 +2264,9 @@ bool tryMergeRuns(T* a, int low, int size, bool parallel = false) {
 }
 
 template<typename T>
-T* mergeRuns(T* a, T* b, int offset, int aim, 
+T* mergeRuns(T* a, T* b, int offset, int aim,
              const std::vector<int>& run, int lo, int hi) {
-    
+
     if (hi - lo == 1) {
         if (aim >= 0) {
             return a;
@@ -2213,57 +2276,57 @@ T* mergeRuns(T* a, T* b, int offset, int aim,
         }
         return b;
     }
-    
+
     // Split into approximately equal parts
     int mi = lo;
     int rmi = (run[lo] + run[hi]) >> 1;
     while (run[++mi + 1] <= rmi);
-    
+
     // Merge the left and right parts
     T* a1 = mergeRuns(a, b, offset, -aim, run, lo, mi);
     T* a2 = mergeRuns(a, b, offset, 0, run, mi, hi);
-    
+
     T* dst = (a1 == a) ? b : a;
-    
+
     int k   = (a1 == a) ? run[lo] - offset : run[lo];
     int lo1 = (a1 == b) ? run[lo] - offset : run[lo];
     int hi1 = (a1 == b) ? run[mi] - offset : run[mi];
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
-    
+
     mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
 
 /**
  * @brief Optimized 5-element sorting network for pivot selection
- * 
+ *
  * This function implements a highly optimized sorting network specifically
  * designed for sorting exactly 5 elements. Sorting networks are optimal for
  * small, fixed-size inputs because they use a predetermined sequence of
  * comparisons that minimizes both the number of comparisons and branches.
- * 
+ *
  * Why Sorting Networks for Pivot Selection:
  * - Pivot quality is crucial for dual-pivot quicksort performance
  * - 5-element sample provides good statistical properties
  * - Fixed comparison pattern allows aggressive compiler optimization
  * - Branch-free execution improves performance on modern CPUs
- * 
+ *
  * Network Structure:
  * 1. Sort 4 elements using optimal 4-element network (5 comparisons)
  * 2. Insert 5th element using binary insertion (2-3 comparisons)
  * 3. Total: 7-8 comparisons vs 10+ for comparison-based sorting
- * 
+ *
  * Performance Benefits:
  * - Predictable execution time independent of input values
  * - Excellent branch prediction due to fixed pattern
  * - Minimal instruction dependencies for pipeline optimization
  * - Cache-friendly due to localized memory access
- * 
+ *
  * @tparam T Element type (must support comparison and assignment)
  * @param a Array containing the elements to sort
  * @param e1 Index of first element
- * @param e2 Index of second element  
+ * @param e2 Index of second element
  * @param e3 Index of third element (median will be placed here)
  * @param e4 Index of fourth element
  * @param e5 Index of fifth element
@@ -2279,19 +2342,19 @@ FORCE_INLINE void sort5Network(T* a, int e1, int e2, int e3, int e4, int e5) {
             y = temp;
         }
     };
-    
+
     // Phase 1: Optimal 4-element sorting network
     // This network sorts elements at positions e1, e2, e4, e5 optimally
     conditional_swap(a[e5], a[e2]);  // Compare outer elements with inner
     conditional_swap(a[e4], a[e1]);  // Compare remaining outer with inner
     conditional_swap(a[e5], a[e4]);  // Sort the larger elements
-    conditional_swap(a[e2], a[e1]);  // Sort the smaller elements  
+    conditional_swap(a[e2], a[e1]);  // Sort the smaller elements
     conditional_swap(a[e4], a[e2]);  // Merge sorted pairs
-    
+
     // Phase 2: Insert middle element using optimized binary insertion
     // The median will end up at position e3, which is optimal for dual-pivot
     T a3 = a[e3];
-    
+
     // Use branch prediction hints since most data is randomly distributed
     if (UNLIKELY(a3 < a[e2])) {
         // Element belongs in lower half - check against smallest element
@@ -2317,35 +2380,35 @@ FORCE_INLINE void sort5Network(T* a, int e1, int e2, int e3, int e4, int e5) {
 
 /**
  * @brief Main dual-pivot quicksort algorithm with advanced optimizations
- * 
+ *
  * This is the core implementation of Yaroslavskiy's dual-pivot quicksort algorithm
  * with numerous optimizations for real-world performance. The algorithm combines
  * multiple sorting strategies and switches between them based on array characteristics:
- * 
+ *
  * Algorithm Decision Tree:
  * 1. Small arrays (< 44 elements): Insertion sort
  * 2. Medium arrays (< 65 elements): Mixed insertion sort
  * 3. Nearly sorted arrays: Run detection and merging
  * 4. Deep recursion: Heap sort (introsort fallback)
  * 5. General case: Dual-pivot partitioning with recursion
- * 
+ *
  * Key Optimizations:
  * - Median-of-5 pivot selection using optimized sorting network
  * - Dynamic algorithm selection based on data characteristics
  * - Run detection for handling partially sorted data
  * - Introsort-style depth limiting to guarantee O(n log n) worst case
  * - Cache-aware memory access patterns
- * 
+ *
  * The 'bits' parameter serves dual purposes:
  * - Tracks recursion depth to prevent quadratic behavior
  * - Encodes optimization hints (bit 0: use mixed insertion sort)
- * 
+ *
  * Performance Characteristics:
  * - Average case: O(n log n) with ~12% fewer memory accesses than traditional quicksort
  * - Worst case: O(n log n) guaranteed via heap sort fallback
  * - Best case: O(n) for already sorted or nearly sorted data
  * - Space: O(log n) recursion stack space
- * 
+ *
  * @tparam T Element type (must support comparison and assignment)
  * @param a Pointer to the array to sort
  * @param bits Recursion depth/optimization bits
@@ -2357,56 +2420,56 @@ void sort(T* a, int bits, int low, int high) {
     while (true) {
         int end = high - 1;
         int size = high - low;
-        
+
         // Decision 1: Use mixed insertion sort on small non-leftmost parts
         // The bit check ensures we use the optimized insertion sort variant
         if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
             mixedInsertionSort(a, low, high);
             return;
         }
-        
+
         // Decision 2: Use simple insertion sort on small leftmost parts
         if (size < MAX_INSERTION_SORT_SIZE) {
             insertionSort(a, low, high);
             return;
         }
-        
+
         // Decision 3: Try to detect and merge sorted runs
         // This handles the common case of partially sorted data very efficiently
         if ((bits == 0 || (size > MIN_TRY_MERGE_SIZE && (bits & 1) > 0))
                 && tryMergeRuns(a, low, size)) {
             return;
         }
-        
+
         // Decision 4: Switch to heap sort if recursion becomes too deep
         // This guarantees O(n log n) worst-case performance (introsort principle)
         if ((bits += DELTA) > MAX_RECURSION_DEPTH) {
             heapSort(a, low, high);
             return;
         }
-        
+
         // Decision 5: Main dual-pivot quicksort with optimized pivot selection
-        
+
         // Use golden ratio approximation for optimal pivot sampling
         // This spreads the sample points evenly across the array
         int step = (size >> 3) * 3 + 3;  // ≈ size * 3/8 + 3
-        
+
         // Five sample elements around (and including) the central element
         // This provides better pivot selection than simple first/last or median-of-3
         int e1 = low + step;
         int e5 = end - step;
         int e3 = (e1 + e5) >> 1;  // Central element
-        int e2 = (e1 + e3) >> 1;  // Between e1 and e3  
+        int e2 = (e1 + e3) >> 1;  // Between e1 and e3
         int e4 = (e3 + e5) >> 1;  // Between e3 and e5
-        
+
         // Sort the 5-element sample using optimized sorting network
         // This is much faster than comparison-based sorting for exactly 5 elements
         sort5Network(a, e1, e2, e3, e4, e5);
-        
+
         // Partition boundaries after partitioning
         int lower; // Index of the last element of the left part
         int upper; // Index of the first element of the right part
-        
+
         // Decision: Dual-pivot vs single-pivot partitioning
         // Use dual-pivot when all elements are distinct for maximum benefit
         if (a[e1] < a[e2] && a[e2] < a[e3] && a[e3] < a[e4] && a[e4] < a[e5]) {
@@ -2415,23 +2478,23 @@ void sort(T* a, int bits, int low, int high) {
             auto pivotIndices = partitionDualPivot(a, low, high, e1, e5);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
-            
+
             // Recursively sort the three partitions
             // Middle part (between pivots) is processed first for better cache usage
             sort(a, bits | 1, lower + 1, upper);  // Middle partition
             sort(a, bits | 1, upper + 1, high);   // Right partition
-            
-        } else { 
+
+        } else {
             // Many equal elements: use single-pivot partitioning
             // This handles duplicate-heavy data more efficiently
             auto pivotIndices = partitionSinglePivot(a, low, high, e3, e3);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
-            
+
             // Only need to sort the right part; equal elements are already positioned
             sort(a, bits | 1, upper, high);
         }
-        
+
         // Tail recursion optimization: process left part iteratively
         high = lower; // Continue with left part in next iteration
     }
@@ -2450,7 +2513,7 @@ void sort(T* a, int bits, int low, int high) {
 static void mixedInsertionSort_int(int* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
-    
+
     if (end == high) {
         // Simple insertion sort for tiny arrays
         for (int i; ++low < end; ) {
@@ -2463,10 +2526,10 @@ static void mixedInsertionSort_int(int* a, int low, int high) {
     } else {
         // Pin insertion sort + pair insertion sort
         int pin = a[end];
-        
+
         for (int i, p = high; ++low < end; ) {
             int ai = a[i = low];
-            
+
             if (ai < a[i - 1]) { // Small element
                 a[i] = a[i - 1];
                 --i;
@@ -2474,43 +2537,43 @@ static void mixedInsertionSort_int(int* a, int low, int high) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
-                
+
             } else if (p > i && ai > pin) { // Large element
                 while (a[--p] > pin);
-                
+
                 if (p > i) {
                     ai = a[p];
                     a[p] = a[i];
                 }
-                
+
                 while (ai < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
             }
         }
-        
+
         // Pair insertion sort on remaining part
         for (int i; low < high; ++low) {
             int a1 = a[i = low], a2 = a[++low];
-            
+
             if (a1 > a2) {
                 while (a1 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a1;
-                
+
                 while (a2 < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = a2;
-                
+
             } else if (a1 < a[i - 1]) {
                 while (a2 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a2;
-                
+
                 while (a1 < a[--i]) {
                     a[i + 1] = a[i];
                 }
@@ -2524,11 +2587,11 @@ static void mixedInsertionSort_int(int* a, int low, int high) {
 static void insertionSort_int(int* a, int low, int high) {
     for (int i, k = low; ++k < high; ) {
         int ai = a[i = k];
-        
+
         if (LIKELY(k + 1 < high)) {
             PREFETCH_READ(&a[k + 1]);
         }
-        
+
         if (UNLIKELY(ai < a[i - 1])) {
             while (--i >= low && ai < a[i]) {
                 a[i + 1] = a[i];
@@ -2555,7 +2618,7 @@ static void heapSort_int(int* a, int low, int high) {
 static void pushDown_int(int* a, int p, int value, int low, int high) {
     for (int k;;) {
         k = (p << 1) - low + 2;
-        
+
         if (k > high) {
             break;
         }
@@ -2576,26 +2639,26 @@ static std::pair<int, int> partitionDualPivot_int(int* a, int low, int high, int
     int end = high - 1;
     int lower = low;
     int upper = end;
-    
+
     int e1 = pivotIndex1;
     int e5 = pivotIndex2;
     int pivot1 = a[e1];
     int pivot2 = a[e5];
-    
+
     a[e1] = a[lower];
     a[e5] = a[upper];
-    
+
     while (a[++lower] < pivot1);
     while (a[--upper] > pivot2);
-    
+
     (void)--lower;
     for (int k = ++upper; --k > lower; ) {
         int ak = a[k];
-        
+
         if (LIKELY(k > lower + 1)) {
             PREFETCH_READ(&a[k - 1]);
         }
-        
+
         if (UNLIKELY(ak < pivot1)) {
             while (lower < k) {
                 if (LIKELY(a[++lower] >= pivot1)) {
@@ -2614,12 +2677,12 @@ static std::pair<int, int> partitionDualPivot_int(int* a, int low, int high, int
             a[upper] = ak;
         }
     }
-    
-    a[low] = a[lower]; 
+
+    a[low] = a[lower];
     a[lower] = pivot1;
-    a[end] = a[upper]; 
+    a[end] = a[upper];
     a[upper] = pivot2;
-    
+
     return std::make_pair(lower, upper);
 }
 
@@ -2630,18 +2693,18 @@ static std::pair<int, int> partitionSinglePivot_int(int* a, int low, int high, i
     int upper = end;
     int e3 = pivotIndex1;
     int pivot = a[e3];
-    
+
     a[e3] = a[lower];
-    
+
     for (int k = ++upper; --k > lower; ) {
         int ak = a[k];
-        
+
         if (ak != pivot) {
             a[k] = pivot;
-            
+
             if (ak < pivot) {
                 while (a[++lower] < pivot);
-                
+
                 if (a[lower] > pivot) {
                     a[--upper] = a[lower];
                 }
@@ -2651,21 +2714,21 @@ static std::pair<int, int> partitionSinglePivot_int(int* a, int low, int high, i
             }
         }
     }
-    
+
     a[low] = a[lower];
     a[lower] = pivot;
-    
+
     return std::make_pair(lower, upper);
 }
 
-// LONG ARRAY IMPLEMENTATIONS  
+// LONG ARRAY IMPLEMENTATIONS
 // ---------------------------
 
 // Type-specific mixed insertion sort for long arrays
 static void mixedInsertionSort_long(long* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
-    
+
     if (end == high) {
         for (int i; ++low < end; ) {
             long ai = a[i = low];
@@ -2676,10 +2739,10 @@ static void mixedInsertionSort_long(long* a, int low, int high) {
         }
     } else {
         long pin = a[end];
-        
+
         for (int i, p = high; ++low < end; ) {
             long ai = a[i = low];
-            
+
             if (ai < a[i - 1]) {
                 a[i] = a[i - 1];
                 --i;
@@ -2687,42 +2750,42 @@ static void mixedInsertionSort_long(long* a, int low, int high) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
-                
+
             } else if (p > i && ai > pin) {
                 while (a[--p] > pin);
-                
+
                 if (p > i) {
                     ai = a[p];
                     a[p] = a[i];
                 }
-                
+
                 while (ai < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
             }
         }
-        
+
         for (int i; low < high; ++low) {
             long a1 = a[i = low], a2 = a[++low];
-            
+
             if (a1 > a2) {
                 while (a1 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a1;
-                
+
                 while (a2 < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = a2;
-                
+
             } else if (a1 < a[i - 1]) {
                 while (a2 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a2;
-                
+
                 while (a1 < a[--i]) {
                     a[i + 1] = a[i];
                 }
@@ -2736,11 +2799,11 @@ static void mixedInsertionSort_long(long* a, int low, int high) {
 static void insertionSort_long(long* a, int low, int high) {
     for (int i, k = low; ++k < high; ) {
         long ai = a[i = k];
-        
+
         if (LIKELY(k + 1 < high)) {
             PREFETCH_READ(&a[k + 1]);
         }
-        
+
         if (UNLIKELY(ai < a[i - 1])) {
             while (--i >= low && ai < a[i]) {
                 a[i + 1] = a[i];
@@ -2766,7 +2829,7 @@ static void heapSort_long(long* a, int low, int high) {
 static void pushDown_long(long* a, int p, long value, int low, int high) {
     for (int k;;) {
         k = (p << 1) - low + 2;
-        
+
         if (k > high) {
             break;
         }
@@ -2789,7 +2852,7 @@ static void pushDown_long(long* a, int p, long value, int low, int high) {
 static void mixedInsertionSort_float(float* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
-    
+
     if (end == high) {
         // Simple insertion sort for tiny arrays
         for (int i; ++low < end; ) {
@@ -2802,10 +2865,10 @@ static void mixedInsertionSort_float(float* a, int low, int high) {
     } else {
         // Pin insertion sort + pair insertion sort
         float pin = a[end];
-        
+
         for (int i, p = high; ++low < end; ) {
             float ai = a[i = low];
-            
+
             if (ai < a[i - 1]) { // Small element
                 a[i] = a[i - 1];
                 --i;
@@ -2813,43 +2876,43 @@ static void mixedInsertionSort_float(float* a, int low, int high) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
-                
+
             } else if (p > i && ai > pin) { // Large element
                 while (a[--p] > pin);
-                
+
                 if (p > i) {
                     ai = a[p];
                     a[p] = a[i];
                 }
-                
+
                 while (ai < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
             }
         }
-        
+
         // Pair insertion sort on remaining part
         for (int i; low < high; ++low) {
             float a1 = a[i = low], a2 = a[++low];
-            
+
             if (a1 > a2) {
                 while (a1 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a1;
-                
+
                 while (a2 < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = a2;
-                
+
             } else if (a1 < a[i - 1]) {
                 while (a2 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a2;
-                
+
                 while (a1 < a[--i]) {
                     a[i + 1] = a[i];
                 }
@@ -2863,11 +2926,11 @@ static void mixedInsertionSort_float(float* a, int low, int high) {
 static void insertionSort_float(float* a, int low, int high) {
     for (int i, k = low; ++k < high; ) {
         float ai = a[i = k];
-        
+
         if (LIKELY(k + 1 < high)) {
             PREFETCH_READ(&a[k + 1]);
         }
-        
+
         if (UNLIKELY(ai < a[i - 1])) {
             while (--i >= low && ai < a[i]) {
                 a[i + 1] = a[i];
@@ -2894,7 +2957,7 @@ static void heapSort_float(float* a, int low, int high) {
 static void pushDown_float(float* a, int p, float value, int low, int high) {
     for (int k;;) {
         k = (p << 1) - low + 2;
-        
+
         if (k > high) {
             break;
         }
@@ -2915,26 +2978,26 @@ static std::pair<int, int> partitionDualPivot_float(float* a, int low, int high,
     int end = high - 1;
     int lower = low;
     int upper = end;
-    
+
     int e1 = pivotIndex1;
     int e5 = pivotIndex2;
     float pivot1 = a[e1];
     float pivot2 = a[e5];
-    
+
     a[e1] = a[lower];
     a[e5] = a[upper];
-    
+
     while (a[++lower] < pivot1);
     while (a[--upper] > pivot2);
-    
+
     (void)--lower;
     for (int k = ++upper; --k > lower; ) {
         float ak = a[k];
-        
+
         if (LIKELY(k > lower + 1)) {
             PREFETCH_READ(&a[k - 1]);
         }
-        
+
         if (UNLIKELY(ak < pivot1)) {
             while (lower < k) {
                 if (LIKELY(a[++lower] >= pivot1)) {
@@ -2953,12 +3016,12 @@ static std::pair<int, int> partitionDualPivot_float(float* a, int low, int high,
             a[upper] = ak;
         }
     }
-    
-    a[low] = a[lower]; 
+
+    a[low] = a[lower];
     a[lower] = pivot1;
-    a[end] = a[upper]; 
+    a[end] = a[upper];
     a[upper] = pivot2;
-    
+
     return std::make_pair(lower, upper);
 }
 
@@ -2969,18 +3032,18 @@ static std::pair<int, int> partitionSinglePivot_float(float* a, int low, int hig
     int upper = end;
     int e3 = pivotIndex1;
     float pivot = a[e3];
-    
+
     a[e3] = a[lower];
-    
+
     for (int k = ++upper; --k > lower; ) {
         float ak = a[k];
-        
+
         if (ak != pivot) {
             a[k] = pivot;
-            
+
             if (ak < pivot) {
                 while (a[++lower] < pivot);
-                
+
                 if (a[lower] > pivot) {
                     a[--upper] = a[lower];
                 }
@@ -2990,10 +3053,10 @@ static std::pair<int, int> partitionSinglePivot_float(float* a, int low, int hig
             }
         }
     }
-    
+
     a[low] = a[lower];
     a[lower] = pivot;
-    
+
     return std::make_pair(lower, upper);
 }
 
@@ -3004,7 +3067,7 @@ static std::pair<int, int> partitionSinglePivot_float(float* a, int low, int hig
 static void mixedInsertionSort_double(double* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
-    
+
     if (end == high) {
         for (int i; ++low < end; ) {
             double ai = a[i = low];
@@ -3015,10 +3078,10 @@ static void mixedInsertionSort_double(double* a, int low, int high) {
         }
     } else {
         double pin = a[end];
-        
+
         for (int i, p = high; ++low < end; ) {
             double ai = a[i = low];
-            
+
             if (ai < a[i - 1]) {
                 a[i] = a[i - 1];
                 --i;
@@ -3026,42 +3089,42 @@ static void mixedInsertionSort_double(double* a, int low, int high) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
-                
+
             } else if (p > i && ai > pin) {
                 while (a[--p] > pin);
-                
+
                 if (p > i) {
                     ai = a[p];
                     a[p] = a[i];
                 }
-                
+
                 while (ai < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
             }
         }
-        
+
         for (int i; low < high; ++low) {
             double a1 = a[i = low], a2 = a[++low];
-            
+
             if (a1 > a2) {
                 while (a1 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a1;
-                
+
                 while (a2 < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = a2;
-                
+
             } else if (a1 < a[i - 1]) {
                 while (a2 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a2;
-                
+
                 while (a1 < a[--i]) {
                     a[i + 1] = a[i];
                 }
@@ -3075,11 +3138,11 @@ static void mixedInsertionSort_double(double* a, int low, int high) {
 static void insertionSort_double(double* a, int low, int high) {
     for (int i, k = low; ++k < high; ) {
         double ai = a[i = k];
-        
+
         if (LIKELY(k + 1 < high)) {
             PREFETCH_READ(&a[k + 1]);
         }
-        
+
         if (UNLIKELY(ai < a[i - 1])) {
             while (--i >= low && ai < a[i]) {
                 a[i + 1] = a[i];
@@ -3105,7 +3168,7 @@ static void heapSort_double(double* a, int low, int high) {
 static void pushDown_double(double* a, int p, double value, int low, int high) {
     for (int k;;) {
         k = (p << 1) - low + 2;
-        
+
         if (k > high) {
             break;
         }
@@ -3126,26 +3189,26 @@ static std::pair<int, int> partitionDualPivot_double(double* a, int low, int hig
     int end = high - 1;
     int lower = low;
     int upper = end;
-    
+
     int e1 = pivotIndex1;
     int e5 = pivotIndex2;
     double pivot1 = a[e1];
     double pivot2 = a[e5];
-    
+
     a[e1] = a[lower];
     a[e5] = a[upper];
-    
+
     while (a[++lower] < pivot1);
     while (a[--upper] > pivot2);
-    
+
     (void)--lower;
     for (int k = ++upper; --k > lower; ) {
         double ak = a[k];
-        
+
         if (LIKELY(k > lower + 1)) {
             PREFETCH_READ(&a[k - 1]);
         }
-        
+
         if (UNLIKELY(ak < pivot1)) {
             while (lower < k) {
                 if (LIKELY(a[++lower] >= pivot1)) {
@@ -3164,12 +3227,12 @@ static std::pair<int, int> partitionDualPivot_double(double* a, int low, int hig
             a[upper] = ak;
         }
     }
-    
-    a[low] = a[lower]; 
+
+    a[low] = a[lower];
     a[lower] = pivot1;
-    a[end] = a[upper]; 
+    a[end] = a[upper];
     a[upper] = pivot2;
-    
+
     return std::make_pair(lower, upper);
 }
 
@@ -3180,18 +3243,18 @@ static std::pair<int, int> partitionSinglePivot_double(double* a, int low, int h
     int upper = end;
     int e3 = pivotIndex1;
     double pivot = a[e3];
-    
+
     a[e3] = a[lower];
-    
+
     for (int k = ++upper; --k > lower; ) {
         double ak = a[k];
-        
+
         if (ak != pivot) {
             a[k] = pivot;
-            
+
             if (ak < pivot) {
                 while (a[++lower] < pivot);
-                
+
                 if (a[lower] > pivot) {
                     a[--upper] = a[lower];
                 }
@@ -3201,10 +3264,10 @@ static std::pair<int, int> partitionSinglePivot_double(double* a, int low, int h
             }
         }
     }
-    
+
     a[low] = a[lower];
     a[lower] = pivot;
-    
+
     return std::make_pair(lower, upper);
 }
 
@@ -3215,7 +3278,7 @@ static std::pair<int, int> partitionSinglePivot_double(double* a, int low, int h
 static void mixedInsertionSort_byte(signed char* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
-    
+
     if (end == high) {
         // Simple insertion sort for tiny byte arrays
         for (int i; ++low < end; ) {
@@ -3228,10 +3291,10 @@ static void mixedInsertionSort_byte(signed char* a, int low, int high) {
     } else {
         // Pin insertion sort optimized for byte values
         signed char pin = a[end];
-        
+
         for (int i, p = high; ++low < end; ) {
             signed char ai = a[i = low];
-            
+
             if (ai < a[i - 1]) { // Small element
                 a[i] = a[i - 1];
                 --i;
@@ -3239,43 +3302,43 @@ static void mixedInsertionSort_byte(signed char* a, int low, int high) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
-                
+
             } else if (p > i && ai > pin) { // Large element
                 while (a[--p] > pin);
-                
+
                 if (p > i) {
                     ai = a[p];
                     a[p] = a[i];
                 }
-                
+
                 while (ai < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
             }
         }
-        
+
         // Pair insertion sort optimized for byte values
         for (int i; low < high; ++low) {
             signed char a1 = a[i = low], a2 = a[++low];
-            
+
             if (a1 > a2) {
                 while (a1 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a1;
-                
+
                 while (a2 < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = a2;
-                
+
             } else if (a1 < a[i - 1]) {
                 while (a2 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a2;
-                
+
                 while (a1 < a[--i]) {
                     a[i + 1] = a[i];
                 }
@@ -3292,7 +3355,7 @@ static void mixedInsertionSort_byte(signed char* a, int low, int high) {
 static void mixedInsertionSort_char(char* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
-    
+
     if (end == high) {
         // Simple insertion sort for tiny char arrays
         for (int i; ++low < end; ) {
@@ -3305,10 +3368,10 @@ static void mixedInsertionSort_char(char* a, int low, int high) {
     } else {
         // Pin insertion sort optimized for char values
         char pin = a[end];
-        
+
         for (int i, p = high; ++low < end; ) {
             char ai = a[i = low];
-            
+
             if (ai < a[i - 1]) { // Small element
                 a[i] = a[i - 1];
                 --i;
@@ -3316,43 +3379,43 @@ static void mixedInsertionSort_char(char* a, int low, int high) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
-                
+
             } else if (p > i && ai > pin) { // Large element
                 while (a[--p] > pin);
-                
+
                 if (p > i) {
                     ai = a[p];
                     a[p] = a[i];
                 }
-                
+
                 while (ai < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
             }
         }
-        
+
         // Pair insertion sort optimized for char values
         for (int i; low < high; ++low) {
             char a1 = a[i = low], a2 = a[++low];
-            
+
             if (a1 > a2) {
                 while (a1 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a1;
-                
+
                 while (a2 < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = a2;
-                
+
             } else if (a1 < a[i - 1]) {
                 while (a2 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a2;
-                
+
                 while (a1 < a[--i]) {
                     a[i + 1] = a[i];
                 }
@@ -3369,7 +3432,7 @@ static void mixedInsertionSort_char(char* a, int low, int high) {
 static void mixedInsertionSort_short(short* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
-    
+
     if (end == high) {
         // Simple insertion sort for tiny short arrays
         for (int i; ++low < end; ) {
@@ -3382,10 +3445,10 @@ static void mixedInsertionSort_short(short* a, int low, int high) {
     } else {
         // Pin insertion sort optimized for short values
         short pin = a[end];
-        
+
         for (int i, p = high; ++low < end; ) {
             short ai = a[i = low];
-            
+
             if (ai < a[i - 1]) { // Small element
                 a[i] = a[i - 1];
                 --i;
@@ -3393,43 +3456,43 @@ static void mixedInsertionSort_short(short* a, int low, int high) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
-                
+
             } else if (p > i && ai > pin) { // Large element
                 while (a[--p] > pin);
-                
+
                 if (p > i) {
                     ai = a[p];
                     a[p] = a[i];
                 }
-                
+
                 while (ai < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
             }
         }
-        
+
         // Pair insertion sort optimized for short values
         for (int i; low < high; ++low) {
             short a1 = a[i = low], a2 = a[++low];
-            
+
             if (a1 > a2) {
                 while (a1 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a1;
-                
+
                 while (a2 < a[--i]) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = a2;
-                
+
             } else if (a1 < a[i - 1]) {
                 while (a2 < a[--i]) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a2;
-                
+
                 while (a1 < a[--i]) {
                     a[i + 1] = a[i];
                 }
@@ -3444,26 +3507,26 @@ static std::pair<int, int> partitionDualPivot_long(long* a, int low, int high, i
     int end = high - 1;
     int lower = low;
     int upper = end;
-    
+
     int e1 = pivotIndex1;
     int e5 = pivotIndex2;
     long pivot1 = a[e1];
     long pivot2 = a[e5];
-    
+
     a[e1] = a[lower];
     a[e5] = a[upper];
-    
+
     while (a[++lower] < pivot1);
     while (a[--upper] > pivot2);
-    
+
     (void)--lower;
     for (int k = ++upper; --k > lower; ) {
         long ak = a[k];
-        
+
         if (LIKELY(k > lower + 1)) {
             PREFETCH_READ(&a[k - 1]);
         }
-        
+
         if (UNLIKELY(ak < pivot1)) {
             while (lower < k) {
                 if (LIKELY(a[++lower] >= pivot1)) {
@@ -3482,12 +3545,12 @@ static std::pair<int, int> partitionDualPivot_long(long* a, int low, int high, i
             a[upper] = ak;
         }
     }
-    
-    a[low] = a[lower]; 
+
+    a[low] = a[lower];
     a[lower] = pivot1;
-    a[end] = a[upper]; 
+    a[end] = a[upper];
     a[upper] = pivot2;
-    
+
     return std::make_pair(lower, upper);
 }
 
@@ -3498,18 +3561,18 @@ static std::pair<int, int> partitionSinglePivot_long(long* a, int low, int high,
     int upper = end;
     int e3 = pivotIndex1;
     long pivot = a[e3];
-    
+
     a[e3] = a[lower];
-    
+
     for (int k = ++upper; --k > lower; ) {
         long ak = a[k];
-        
+
         if (ak != pivot) {
             a[k] = pivot;
-            
+
             if (ak < pivot) {
                 while (a[++lower] < pivot);
-                
+
                 if (a[lower] > pivot) {
                     a[--upper] = a[lower];
                 }
@@ -3519,10 +3582,10 @@ static std::pair<int, int> partitionSinglePivot_long(long* a, int low, int high,
             }
         }
     }
-    
+
     a[low] = a[lower];
     a[lower] = pivot;
-    
+
     return std::make_pair(lower, upper);
 }
 
@@ -3534,65 +3597,65 @@ static bool tryMergeRuns_int(Sorter<int>* sorter, int* a, int low, int size) {
     std::vector<int> run;
     int high = low + size;
     int count = 1, last = low;
-    
+
     // Run detection logic (same as generic version but type-specific)
     for (int k = low + 1; k < high; ) {
-        
+
         if (a[k - 1] < a[k]) {
             while (++k < high && a[k - 1] <= a[k]);
         } else if (a[k - 1] > a[k]) {
             while (++k < high && a[k - 1] >= a[k]);
-            
+
             // Reverse into ascending order
             for (int i = last - 1, j = k; ++i < --j && a[i] > a[j]; ) {
-                int temp = a[i]; 
-                a[i] = a[j]; 
+                int temp = a[i];
+                a[i] = a[j];
                 a[j] = temp;
             }
         } else {
             int ak = a[k];
             while (++k < high && ak == a[k]);
-            
+
             if (k < high) {
                 continue;
             }
         }
-        
+
         if (run.empty()) {
             if (k == high) {
                 return true;
             }
-            
+
             if (k - low < MIN_FIRST_RUN_SIZE) {
                 return false;
             }
-            
+
             run.reserve(((size >> 10) | 0x7F) & 0x3FF);
             run.push_back(low);
-            
+
         } else if (a[last - 1] > a[last]) {
             if (count > (k - low) >> MIN_FIRST_RUNS_FACTOR) {
                 return false;
             }
-            
+
             if (++count == MAX_RUN_CAPACITY) {
                 return false;
             }
         }
         run.push_back(last = k);
     }
-    
+
     // Merge runs with advanced parallel coordination (matching Java's approach)
     if (count > 1) {
         std::vector<int> b(size);
-        
+
         // Advanced parallel run merging logic with MIN_RUN_COUNT threshold
         if (count >= MIN_RUN_COUNT && sorter != nullptr) {
             // Use Java-style forkMe/getDestination pattern for parallel merging
             RunMerger<int> merger(a, b.data(), low, 1, run, 0, count);
             RunMerger<int>& forked = merger.forkMe();
             int* result = forked.getDestination();
-            
+
             // Copy back to main array if needed (matching Java's buffer management)
             if (result != a) {
                 std::copy(result + low, result + low + size, a + low);
@@ -3611,52 +3674,52 @@ static bool tryMergeRuns_long(Sorter<long>* sorter, long* a, int low, int size) 
     std::vector<int> run;
     int high = low + size;
     int count = 1, last = low;
-    
+
     for (int k = low + 1; k < high; ) {
-        
+
         if (a[k - 1] < a[k]) {
             while (++k < high && a[k - 1] <= a[k]);
         } else if (a[k - 1] > a[k]) {
             while (++k < high && a[k - 1] >= a[k]);
-            
+
             for (int i = last - 1, j = k; ++i < --j && a[i] > a[j]; ) {
-                long temp = a[i]; 
-                a[i] = a[j]; 
+                long temp = a[i];
+                a[i] = a[j];
                 a[j] = temp;
             }
         } else {
             long ak = a[k];
             while (++k < high && ak == a[k]);
-            
+
             if (k < high) {
                 continue;
             }
         }
-        
+
         if (run.empty()) {
             if (k == high) {
                 return true;
             }
-            
+
             if (k - low < MIN_FIRST_RUN_SIZE) {
                 return false;
             }
-            
+
             run.reserve(((size >> 10) | 0x7F) & 0x3FF);
             run.push_back(low);
-            
+
         } else if (a[last - 1] > a[last]) {
             if (count > (k - low) >> MIN_FIRST_RUNS_FACTOR) {
                 return false;
             }
-            
+
             if (++count == MAX_RUN_CAPACITY) {
                 return false;
             }
         }
         run.push_back(last = k);
     }
-    
+
     if (count > 1) {
         std::vector<long> b(size);
         mergeRuns_long(a, b.data(), low, 1, count >= MIN_RUN_COUNT && sorter != nullptr, run, 0, count);
@@ -3669,53 +3732,53 @@ static bool tryMergeRuns_float(Sorter<float>* sorter, float* a, int low, int siz
     std::vector<int> run;
     int high = low + size;
     int count = 1, last = low;
-    
+
     for (int k = low + 1; k < high; ) {
-        
+
         if (a[k - 1] < a[k]) {
             while (++k < high && a[k - 1] <= a[k]);
         } else if (a[k - 1] > a[k]) {
             while (++k < high && a[k - 1] >= a[k]);
-            
+
             // Reverse into ascending order
             for (int i = last - 1, j = k; ++i < --j && a[i] > a[j]; ) {
-                float temp = a[i]; 
-                a[i] = a[j]; 
+                float temp = a[i];
+                a[i] = a[j];
                 a[j] = temp;
             }
         } else {
             float ak = a[k];
             while (++k < high && ak == a[k]);
-            
+
             if (k < high) {
                 continue;
             }
         }
-        
+
         if (run.empty()) {
             if (k == high) {
                 return true;
             }
-            
+
             if (k - low < MIN_FIRST_RUN_SIZE) {
                 return false;
             }
-            
+
             run.reserve(((size >> 10) | 0x7F) & 0x3FF);
             run.push_back(low);
-            
+
         } else if (a[last - 1] > a[last]) {
             if (count > (k - low) >> MIN_FIRST_RUNS_FACTOR) {
                 return false;
             }
-            
+
             if (++count == MAX_RUN_CAPACITY) {
                 return false;
             }
         }
         run.push_back(last = k);
     }
-    
+
     if (count > 1) {
         std::vector<float> b(size);
         mergeRuns_float(a, b.data(), low, 1, count >= MIN_RUN_COUNT && sorter != nullptr, run, 0, count);
@@ -3728,53 +3791,53 @@ static bool tryMergeRuns_double(Sorter<double>* sorter, double* a, int low, int 
     std::vector<int> run;
     int high = low + size;
     int count = 1, last = low;
-    
+
     for (int k = low + 1; k < high; ) {
-        
+
         if (a[k - 1] < a[k]) {
             while (++k < high && a[k - 1] <= a[k]);
         } else if (a[k - 1] > a[k]) {
             while (++k < high && a[k - 1] >= a[k]);
-            
+
             // Reverse into ascending order
             for (int i = last - 1, j = k; ++i < --j && a[i] > a[j]; ) {
-                double temp = a[i]; 
-                a[i] = a[j]; 
+                double temp = a[i];
+                a[i] = a[j];
                 a[j] = temp;
             }
         } else {
             double ak = a[k];
             while (++k < high && ak == a[k]);
-            
+
             if (k < high) {
                 continue;
             }
         }
-        
+
         if (run.empty()) {
             if (k == high) {
                 return true;
             }
-            
+
             if (k - low < MIN_FIRST_RUN_SIZE) {
                 return false;
             }
-            
+
             run.reserve(((size >> 10) | 0x7F) & 0x3FF);
             run.push_back(low);
-            
+
         } else if (a[last - 1] > a[last]) {
             if (count > (k - low) >> MIN_FIRST_RUNS_FACTOR) {
                 return false;
             }
-            
+
             if (++count == MAX_RUN_CAPACITY) {
                 return false;
             }
         }
         run.push_back(last = k);
     }
-    
+
     if (count > 1) {
         std::vector<double> b(size);
         mergeRuns_double(a, b.data(), low, 1, count >= MIN_RUN_COUNT && sorter != nullptr, run, 0, count);
@@ -3793,22 +3856,22 @@ static int* mergeRuns_int(int* a, int* b, int offset, int aim, bool parallel, co
         }
         return b;
     }
-    
+
     int mi = lo;
     int rmi = (run[lo] + run[hi]) >> 1;
     while (run[++mi + 1] <= rmi);
-    
+
     int* a1 = mergeRuns_int(a, b, offset, -aim, parallel, run, lo, mi);
     int* a2 = mergeRuns_int(a, b, offset,    0, parallel, run, mi, hi);
-    
+
     int* dst = (a1 == a) ? b : a;
-    
+
     int k   = (a1 == a) ? run[lo] - offset : run[lo];
     int lo1 = (a1 == b) ? run[lo] - offset : run[lo];
     int hi1 = (a1 == b) ? run[mi] - offset : run[mi];
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
-    
+
     mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
@@ -3823,22 +3886,22 @@ static long* mergeRuns_long(long* a, long* b, int offset, int aim, bool parallel
         }
         return b;
     }
-    
+
     int mi = lo;
     int rmi = (run[lo] + run[hi]) >> 1;
     while (run[++mi + 1] <= rmi);
-    
+
     long* a1 = mergeRuns_long(a, b, offset, -aim, parallel, run, lo, mi);
     long* a2 = mergeRuns_long(a, b, offset,    0, parallel, run, mi, hi);
-    
+
     long* dst = (a1 == a) ? b : a;
-    
+
     int k   = (a1 == a) ? run[lo] - offset : run[lo];
     int lo1 = (a1 == b) ? run[lo] - offset : run[lo];
     int hi1 = (a1 == b) ? run[mi] - offset : run[mi];
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
-    
+
     mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
@@ -3853,22 +3916,22 @@ static float* mergeRuns_float(float* a, float* b, int offset, int aim, bool para
         }
         return b;
     }
-    
+
     int mi = lo;
     int rmi = (run[lo] + run[hi]) >> 1;
     while (run[++mi + 1] <= rmi);
-    
+
     float* a1 = mergeRuns_float(a, b, offset, -aim, parallel, run, lo, mi);
     float* a2 = mergeRuns_float(a, b, offset,    0, parallel, run, mi, hi);
-    
+
     float* dst = (a1 == a) ? b : a;
-    
+
     int k   = (a1 == a) ? run[lo] - offset : run[lo];
     int lo1 = (a1 == b) ? run[lo] - offset : run[lo];
     int hi1 = (a1 == b) ? run[mi] - offset : run[mi];
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
-    
+
     mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
@@ -3883,22 +3946,22 @@ static double* mergeRuns_double(double* a, double* b, int offset, int aim, bool 
         }
         return b;
     }
-    
+
     int mi = lo;
     int rmi = (run[lo] + run[hi]) >> 1;
     while (run[++mi + 1] <= rmi);
-    
+
     double* a1 = mergeRuns_double(a, b, offset, -aim, parallel, run, lo, mi);
     double* a2 = mergeRuns_double(a, b, offset,    0, parallel, run, mi, hi);
-    
+
     double* dst = (a1 == a) ? b : a;
-    
+
     int k   = (a1 == a) ? run[lo] - offset : run[lo];
     int lo1 = (a1 == b) ? run[lo] - offset : run[lo];
     int hi1 = (a1 == b) ? run[mi] - offset : run[mi];
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
-    
+
     mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
@@ -3911,54 +3974,54 @@ static bool tryMergeRuns_byte(signed char* a, int low, int size) {
     std::vector<int> run;
     int high = low + size;
     int count = 1, last = low;
-    
+
     // Run detection logic (matching Java's approach for byte arrays)
     for (int k = low + 1; k < high; ) {
-        
+
         if (a[k - 1] < a[k]) {
             while (++k < high && a[k - 1] <= a[k]);
         } else if (a[k - 1] > a[k]) {
             while (++k < high && a[k - 1] >= a[k]);
-            
+
             // Reverse into ascending order
             for (int i = last - 1, j = k; ++i < --j && a[i] > a[j]; ) {
-                signed char temp = a[i]; 
-                a[i] = a[j]; 
+                signed char temp = a[i];
+                a[i] = a[j];
                 a[j] = temp;
             }
         } else {
             signed char ak = a[k];
             while (++k < high && ak == a[k]);
-            
+
             if (k < high) {
                 continue;
             }
         }
-        
+
         if (run.empty()) {
             if (k == high) {
                 return true;
             }
-            
+
             if (k - low < MIN_FIRST_RUN_SIZE) {
                 return false;
             }
-            
+
             run.reserve(((size >> 10) | 0x7F) & 0x3FF);
             run.push_back(low);
-            
+
         } else if (a[last - 1] > a[last]) {
             if (count > (k - low) >> MIN_FIRST_RUNS_FACTOR) {
                 return false;
             }
-            
+
             if (++count == MAX_RUN_CAPACITY) {
                 return false;
             }
         }
         run.push_back(last = k);
     }
-    
+
     // Merge runs for byte arrays (simplified, no parallel coordination)
     if (count > 1) {
         std::vector<signed char> b(size);
@@ -3972,52 +4035,52 @@ static bool tryMergeRuns_char(char* a, int low, int size) {
     std::vector<int> run;
     int high = low + size;
     int count = 1, last = low;
-    
+
     for (int k = low + 1; k < high; ) {
-        
+
         if (a[k - 1] < a[k]) {
             while (++k < high && a[k - 1] <= a[k]);
         } else if (a[k - 1] > a[k]) {
             while (++k < high && a[k - 1] >= a[k]);
-            
+
             for (int i = last - 1, j = k; ++i < --j && a[i] > a[j]; ) {
-                char temp = a[i]; 
-                a[i] = a[j]; 
+                char temp = a[i];
+                a[i] = a[j];
                 a[j] = temp;
             }
         } else {
             char ak = a[k];
             while (++k < high && ak == a[k]);
-            
+
             if (k < high) {
                 continue;
             }
         }
-        
+
         if (run.empty()) {
             if (k == high) {
                 return true;
             }
-            
+
             if (k - low < MIN_FIRST_RUN_SIZE) {
                 return false;
             }
-            
+
             run.reserve(((size >> 10) | 0x7F) & 0x3FF);
             run.push_back(low);
-            
+
         } else if (a[last - 1] > a[last]) {
             if (count > (k - low) >> MIN_FIRST_RUNS_FACTOR) {
                 return false;
             }
-            
+
             if (++count == MAX_RUN_CAPACITY) {
                 return false;
             }
         }
         run.push_back(last = k);
     }
-    
+
     if (count > 1) {
         std::vector<char> b(size);
         mergeRuns_char(a, b.data(), low, 1, false, run, 0, count);
@@ -4030,52 +4093,52 @@ static bool tryMergeRuns_short(short* a, int low, int size) {
     std::vector<int> run;
     int high = low + size;
     int count = 1, last = low;
-    
+
     for (int k = low + 1; k < high; ) {
-        
+
         if (a[k - 1] < a[k]) {
             while (++k < high && a[k - 1] <= a[k]);
         } else if (a[k - 1] > a[k]) {
             while (++k < high && a[k - 1] >= a[k]);
-            
+
             for (int i = last - 1, j = k; ++i < --j && a[i] > a[j]; ) {
-                short temp = a[i]; 
-                a[i] = a[j]; 
+                short temp = a[i];
+                a[i] = a[j];
                 a[j] = temp;
             }
         } else {
             short ak = a[k];
             while (++k < high && ak == a[k]);
-            
+
             if (k < high) {
                 continue;
             }
         }
-        
+
         if (run.empty()) {
             if (k == high) {
                 return true;
             }
-            
+
             if (k - low < MIN_FIRST_RUN_SIZE) {
                 return false;
             }
-            
+
             run.reserve(((size >> 10) | 0x7F) & 0x3FF);
             run.push_back(low);
-            
+
         } else if (a[last - 1] > a[last]) {
             if (count > (k - low) >> MIN_FIRST_RUNS_FACTOR) {
                 return false;
             }
-            
+
             if (++count == MAX_RUN_CAPACITY) {
                 return false;
             }
         }
         run.push_back(last = k);
     }
-    
+
     if (count > 1) {
         std::vector<short> b(size);
         mergeRuns_short(a, b.data(), low, 1, false, run, 0, count);
@@ -4094,22 +4157,22 @@ static signed char* mergeRuns_byte(signed char* a, signed char* b, int offset, i
         }
         return b;
     }
-    
+
     int mi = lo;
     int rmi = (run[lo] + run[hi]) >> 1;
     while (run[++mi + 1] <= rmi);
-    
+
     signed char* a1 = mergeRuns_byte(a, b, offset, -aim, parallel, run, lo, mi);
     signed char* a2 = mergeRuns_byte(a, b, offset,    0, parallel, run, mi, hi);
-    
+
     signed char* dst = (a1 == a) ? b : a;
-    
+
     int k   = (a1 == a) ? run[lo] - offset : run[lo];
     int lo1 = (a1 == b) ? run[lo] - offset : run[lo];
     int hi1 = (a1 == b) ? run[mi] - offset : run[mi];
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
-    
+
     mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
@@ -4124,22 +4187,22 @@ static char* mergeRuns_char(char* a, char* b, int offset, int aim, bool parallel
         }
         return b;
     }
-    
+
     int mi = lo;
     int rmi = (run[lo] + run[hi]) >> 1;
     while (run[++mi + 1] <= rmi);
-    
+
     char* a1 = mergeRuns_char(a, b, offset, -aim, parallel, run, lo, mi);
     char* a2 = mergeRuns_char(a, b, offset,    0, parallel, run, mi, hi);
-    
+
     char* dst = (a1 == a) ? b : a;
-    
+
     int k   = (a1 == a) ? run[lo] - offset : run[lo];
     int lo1 = (a1 == b) ? run[lo] - offset : run[lo];
     int hi1 = (a1 == b) ? run[mi] - offset : run[mi];
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
-    
+
     mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
@@ -4154,34 +4217,42 @@ static short* mergeRuns_short(short* a, short* b, int offset, int aim, bool para
         }
         return b;
     }
-    
+
     int mi = lo;
     int rmi = (run[lo] + run[hi]) >> 1;
     while (run[++mi + 1] <= rmi);
-    
+
     short* a1 = mergeRuns_short(a, b, offset, -aim, parallel, run, lo, mi);
     short* a2 = mergeRuns_short(a, b, offset,    0, parallel, run, mi, hi);
-    
+
     short* dst = (a1 == a) ? b : a;
-    
+
     int k   = (a1 == a) ? run[lo] - offset : run[lo];
     int lo1 = (a1 == b) ? run[lo] - offset : run[lo];
     int hi1 = (a1 == b) ? run[mi] - offset : run[mi];
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
-    
+
     mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
 
 // Forward declarations for counting sorts
+#if __cplusplus >= 202002L
+template<Integral T> requires (sizeof(T) == 1)
+void countingSort(T* a, int low, int high);
+
+template<Integral T> requires (sizeof(T) == 2)
+void countingSort(T* a, int low, int high);
+#else
 template<typename T>
 typename std::enable_if<std::is_integral<T>::value && sizeof(T) == 1, void>::type
 countingSort(T* a, int low, int high);
 
-template<typename T>  
+template<typename T>
 typename std::enable_if<std::is_integral<T>::value && sizeof(T) == 2, void>::type
 countingSort(T* a, int low, int high);
+#endif
 
 // -----------------------------------------------------------------------------
 // INTEGER TYPE SORT IMPLEMENTATIONS
@@ -4196,31 +4267,31 @@ static void sort_int_sequential(Sorter<int>* sorter, int* a, int bits, int low, 
     while (true) {
         int end = high - 1;
         int size = high - low;
-        
+
         // Use mixed insertion sort on small non-leftmost parts
         if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
             sort_intrinsic(a, low, high, mixedInsertionSort_int);
             return;
         }
-        
+
         // Use insertion sort on small leftmost parts
         if (size < MAX_INSERTION_SORT_SIZE) {
             sort_intrinsic(a, low, high, insertionSort_int);
             return;
         }
-        
+
         // Try merge runs for nearly sorted data
         if ((bits == 0 || (size > MIN_TRY_MERGE_SIZE && (bits & 1) > 0))
                 && tryMergeRuns_int(sorter, a, low, size)) {
             return;
         }
-        
+
         // Switch to heap sort if execution time is becoming quadratic
         if ((bits += DELTA) > MAX_RECURSION_DEPTH) {
             sort_intrinsic(a, low, high, heapSort_int);
             return;
         }
-        
+
         // Five-element pivot selection
         int step = (size >> 3) * 3 + 3;
         int e1 = low + step;
@@ -4228,18 +4299,18 @@ static void sort_int_sequential(Sorter<int>* sorter, int* a, int bits, int low, 
         int e3 = (e1 + e5) >> 1;
         int e2 = (e1 + e3) >> 1;
         int e4 = (e3 + e5) >> 1;
-        
+
         // Sort 5-element sample
         sort5Network(a, e1, e2, e3, e4, e5);
-        
+
         int lower, upper;
-        
+
         // Dual-pivot partitioning
         if (a[e1] < a[e2] && a[e2] < a[e3] && a[e3] < a[e4] && a[e4] < a[e5]) {
             auto pivotIndices = partition_intrinsic(a, low, high, e1, e5, partitionDualPivot_int);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
-            
+
             // Fork parallel tasks if sorter available
             if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
                 sorter->forkSorter(bits | 1, lower + 1, upper);
@@ -4253,14 +4324,14 @@ static void sort_int_sequential(Sorter<int>* sorter, int* a, int bits, int low, 
             auto pivotIndices = partition_intrinsic(a, low, high, e3, e3, partitionSinglePivot_int);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
-            
+
             if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
                 sorter->forkSorter(bits | 1, upper, high);
             } else {
                 sort_int_sequential(sorter, a, bits | 1, upper, high);
             }
         }
-        
+
         high = lower; // Continue with left part
     }
 }
@@ -4274,43 +4345,43 @@ static void sort_long_sequential(Sorter<long>* sorter, long* a, int bits, int lo
     while (true) {
         int end = high - 1;
         int size = high - low;
-        
+
         if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
             sort_intrinsic(a, low, high, mixedInsertionSort_long);
             return;
         }
-        
+
         if (size < MAX_INSERTION_SORT_SIZE) {
             sort_intrinsic(a, low, high, insertionSort_long);
             return;
         }
-        
+
         if ((bits == 0 || (size > MIN_TRY_MERGE_SIZE && (bits & 1) > 0))
                 && tryMergeRuns_long(sorter, a, low, size)) {
             return;
         }
-        
+
         if ((bits += DELTA) > MAX_RECURSION_DEPTH) {
             sort_intrinsic(a, low, high, heapSort_long);
             return;
         }
-        
+
         int step = (size >> 3) * 3 + 3;
         int e1 = low + step;
         int e5 = end - step;
         int e3 = (e1 + e5) >> 1;
         int e2 = (e1 + e3) >> 1;
         int e4 = (e3 + e5) >> 1;
-        
+
         sort5Network(a, e1, e2, e3, e4, e5);
-        
+
         int lower, upper;
-        
+
         if (a[e1] < a[e2] && a[e2] < a[e3] && a[e3] < a[e4] && a[e4] < a[e5]) {
             auto pivotIndices = partitionDualPivot_long(a, low, high, e1, e5);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
-            
+
             if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
                 sorter->forkSorter(bits | 1, lower + 1, upper);
                 sorter->forkSorter(bits | 1, upper + 1, high);
@@ -4322,14 +4393,14 @@ static void sort_long_sequential(Sorter<long>* sorter, long* a, int bits, int lo
             auto pivotIndices = partitionSinglePivot_long(a, low, high, e3, e3);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
-            
+
             if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
                 sorter->forkSorter(bits | 1, upper, high);
             } else {
                 sort_long_sequential(sorter, a, bits | 1, upper, high);
             }
         }
-        
+
         high = lower;
     }
 }
@@ -4345,11 +4416,11 @@ sort_float_specialized(T* a, int low, int hi) {
     // Phase 1: Handle special floating-point values using precise bit manipulation
     int numNegativeZero = 0;
     int actualHigh = hi;
-    
+
     // Move NaNs to end and count negative zeros using precise bit-level detection
     for (int k = actualHigh - 1; k >= low; k--) {
         T ak = a[k];
-        
+
         // Use precise bit-level NaN detection
         if constexpr (std::is_same_v<T, float>) {
             if (isNaN(ak)) {
@@ -4357,7 +4428,7 @@ sort_float_specialized(T* a, int low, int hi) {
                 a[actualHigh] = ak;
             } else if (isNegativeZero(ak)) {
                 numNegativeZero++;
-                a[k] = T(0); // Convert to positive zero for sorting  
+                a[k] = T(0); // Convert to positive zero for sorting
             }
         } else if constexpr (std::is_same_v<T, double>) {
             if (isNaN(ak)) {
@@ -4369,7 +4440,7 @@ sort_float_specialized(T* a, int low, int hi) {
             }
         }
     }
-    
+
     // Phase 2: Sort the non-NaN part using regular algorithm
     if (actualHigh > low) {
         if constexpr (std::is_same_v<T, float>) {
@@ -4378,12 +4449,12 @@ sort_float_specialized(T* a, int low, int hi) {
             sort_double_sequential(nullptr, a, 0, low, actualHigh);
         }
     }
-    
+
     // Phase 3: Restore negative zeros using optimized binary search
     if (numNegativeZero > 0) {
         // Use precise binary search with unsigned right shift (matching Java >>> operator)
         int left = findZeroPosition(a, low, actualHigh - 1);
-        
+
         // Replace positive zeros with negative zeros using bit manipulation
         for (int i = 0; i < numNegativeZero && left < actualHigh; i++, left++) {
             if constexpr (std::is_same_v<T, float>) {
@@ -4405,43 +4476,43 @@ static void sort_float_sequential(Sorter<float>* sorter, float* a, int bits, int
     while (true) {
         int end = high - 1;
         int size = high - low;
-        
+
         if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
             sort_intrinsic(a, low, high, mixedInsertionSort_float);
             return;
         }
-        
+
         if (size < MAX_INSERTION_SORT_SIZE) {
             sort_intrinsic(a, low, high, insertionSort_float);
             return;
         }
-        
+
         if ((bits == 0 || (size > MIN_TRY_MERGE_SIZE && (bits & 1) > 0))
                 && tryMergeRuns_float(sorter, a, low, size)) {
             return;
         }
-        
+
         if ((bits += DELTA) > MAX_RECURSION_DEPTH) {
             sort_intrinsic(a, low, high, heapSort_float);
             return;
         }
-        
+
         int step = (size >> 3) * 3 + 3;
         int e1 = low + step;
         int e5 = end - step;
         int e3 = (e1 + e5) >> 1;
         int e2 = (e1 + e3) >> 1;
         int e4 = (e3 + e5) >> 1;
-        
+
         sort5Network(a, e1, e2, e3, e4, e5);
-        
+
         int lower, upper;
-        
+
         if (a[e1] < a[e2] && a[e2] < a[e3] && a[e3] < a[e4] && a[e4] < a[e5]) {
             auto pivotIndices = partitionDualPivot_float(a, low, high, e1, e5);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
-            
+
             if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
                 sorter->forkSorter(bits | 1, lower + 1, upper);
                 sorter->forkSorter(bits | 1, upper + 1, high);
@@ -4453,14 +4524,14 @@ static void sort_float_sequential(Sorter<float>* sorter, float* a, int bits, int
             auto pivotIndices = partitionSinglePivot_float(a, low, high, e3, e3);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
-            
+
             if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
                 sorter->forkSorter(bits | 1, upper, high);
             } else {
                 sort_float_sequential(sorter, a, bits | 1, upper, high);
             }
         }
-        
+
         high = lower;
     }
 }
@@ -4470,43 +4541,43 @@ static void sort_double_sequential(Sorter<double>* sorter, double* a, int bits, 
     while (true) {
         int end = high - 1;
         int size = high - low;
-        
+
         if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
             sort_intrinsic(a, low, high, mixedInsertionSort_double);
             return;
         }
-        
+
         if (size < MAX_INSERTION_SORT_SIZE) {
             sort_intrinsic(a, low, high, insertionSort_double);
             return;
         }
-        
+
         if ((bits == 0 || (size > MIN_TRY_MERGE_SIZE && (bits & 1) > 0))
                 && tryMergeRuns_double(sorter, a, low, size)) {
             return;
         }
-        
+
         if ((bits += DELTA) > MAX_RECURSION_DEPTH) {
             sort_intrinsic(a, low, high, heapSort_double);
             return;
         }
-        
+
         int step = (size >> 3) * 3 + 3;
         int e1 = low + step;
         int e5 = end - step;
         int e3 = (e1 + e5) >> 1;
         int e2 = (e1 + e3) >> 1;
         int e4 = (e3 + e5) >> 1;
-        
+
         sort5Network(a, e1, e2, e3, e4, e5);
-        
+
         int lower, upper;
-        
+
         if (a[e1] < a[e2] && a[e2] < a[e3] && a[e3] < a[e4] && a[e4] < a[e5]) {
             auto pivotIndices = partitionDualPivot_double(a, low, high, e1, e5);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
-            
+
             if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
                 sorter->forkSorter(bits | 1, lower + 1, upper);
                 sorter->forkSorter(bits | 1, upper + 1, high);
@@ -4518,21 +4589,26 @@ static void sort_double_sequential(Sorter<double>* sorter, double* a, int bits, 
             auto pivotIndices = partitionSinglePivot_double(a, low, high, e3, e3);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
-            
+
             if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
                 sorter->forkSorter(bits | 1, upper, high);
             } else {
                 sort_double_sequential(sorter, a, bits | 1, upper, high);
             }
         }
-        
+
         high = lower;
     }
 }
 
 template<typename T>
+#if __cplusplus >= 202002L
+requires (Integral<T> && sizeof(T) == 1)
+void sort_specialized(T* a, int low, int high) {
+#else
 typename std::enable_if<std::is_integral<T>::value && sizeof(T) == 1, void>::type
 sort_specialized(T* a, int low, int high) {
+#endif
     // Counting sort for byte-sized integers (char, unsigned char, signed char)
     if (high - low >= MIN_BYTE_COUNTING_SORT_SIZE) {
         countingSort(a, low, high);
@@ -4542,8 +4618,13 @@ sort_specialized(T* a, int low, int high) {
 }
 
 template<typename T>
+#if __cplusplus >= 202002L
+requires (Integral<T> && sizeof(T) == 2)
+void sort_specialized(T* a, int low, int high) {
+#else
 typename std::enable_if<std::is_integral<T>::value && sizeof(T) == 2, void>::type
 sort_specialized(T* a, int low, int high) {
+#endif
     // Counting sort for short-sized integers when range is reasonable
     if (high - low >= MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE) {
         // For now, fallback to regular sort - full counting sort would need range analysis
@@ -4554,16 +4635,21 @@ sort_specialized(T* a, int low, int high) {
 }
 
 template<typename T>
+#if __cplusplus >= 202002L
+requires FloatingPoint<T>
+void sort_specialized(T* a, int low, int high) {
+#else
 typename std::enable_if<std::is_floating_point<T>::value, void>::type
 sort_specialized(T* a, int low, int high) {
+#endif
     // Phase 1: Handle special floating-point values
     int numNegativeZero = 0;
     int actualHigh = high;
-    
+
     // Move NaNs to end and count negative zeros
     for (int k = actualHigh - 1; k >= low; k--) {
         T ak = a[k];
-        
+
         if (ak != ak) { // NaN detection
             a[k] = a[--actualHigh];
             a[actualHigh] = ak;
@@ -4582,12 +4668,12 @@ sort_specialized(T* a, int low, int high) {
             }
         }
     }
-    
+
     // Phase 2: Sort the non-NaN part
     if (actualHigh > low) {
         sort(a, 0, low, actualHigh);
     }
-    
+
     // Phase 3: Restore negative zeros if any
     if (numNegativeZero > 0) {
         // Find position of zeros using binary search
@@ -4600,7 +4686,7 @@ sort_specialized(T* a, int low, int high) {
                 right = mid - 1;
             }
         }
-        
+
         // Replace positive zeros with negative zeros
         for (int i = 0; i < numNegativeZero && left < actualHigh; i++, left++) {
             if (a[left] == T(0)) {
@@ -4617,19 +4703,19 @@ sort_specialized(T* a, int low, int high) {
 
 /**
  * @brief Advanced counting sort optimized for small integer types
- * 
+ *
  * This section implements highly optimized counting sort variants for small
  * integer types where the value range is limited. Counting sort achieves O(n + k)
  * time complexity where k is the range of input values, making it optimal for
  * small ranges like bytes (k=256) and sometimes shorts (k=65536).
- * 
+ *
  * Key Optimizations:
  * - Two-strategy placement based on array size and sparsity
  * - Skip-zero optimization for sparse data distributions
  * - Reverse iteration for better cache performance on large arrays
  * - Careful offset handling for signed/unsigned type compatibility
  * - Thread-local histogram arrays to avoid memory allocation overhead
- * 
+ *
  * Performance Characteristics:
  * - O(n + k) time complexity vs O(n log n) for comparison-based sorts
  * - O(k) space complexity for histogram array
@@ -4639,33 +4725,38 @@ sort_specialized(T* a, int low, int high) {
 
 /**
  * @brief Advanced byte counting sort with optimized histogram computation
- * 
+ *
  * Implements counting sort for 8-bit integer types (signed char, unsigned char).
  * Uses sophisticated optimization strategies based on array size and data distribution.
- * 
+ *
  * Optimization Strategies:
  * 1. Large arrays: Use reverse iteration to minimize cache misses
  * 2. Small arrays: Use skip-zero optimization for sparse histograms
  * 3. Offset handling: Unified treatment of signed/unsigned types
- * 
+ *
  * @tparam T Integral type with sizeof(T) == 1 (char, signed char, unsigned char)
  * @param a Array to sort
  * @param low Starting index (inclusive)
  * @param high Ending index (exclusive)
  */
 template<typename T>
+#if __cplusplus >= 202002L
+requires (Integral<T> && sizeof(T) == 1)
+void countingSort(T* a, int low, int high) {
+#else
 typename std::enable_if<std::is_integral<T>::value && sizeof(T) == 1, void>::type
 countingSort(T* a, int low, int high) {
+#endif
     static constexpr int NUM_VALUES = 1 << (8 * sizeof(T));
     static constexpr int OFFSET = std::is_signed<T>::value ? (1 << (8 * sizeof(T) - 1)) : 0;
-    
+
     std::vector<int> count(NUM_VALUES, 0);
-    
+
     // Optimized histogram computation (matching Java's reverse iteration for better cache performance)
     for (int i = high; i > low; ) {
         count[static_cast<unsigned char>(a[--i]) + OFFSET]++;
     }
-    
+
     // Two-strategy placement algorithm based on array size (matching Java's approach)
     int size = high - low;
     if (size > NUM_VALUES / 2) {
@@ -4695,29 +4786,29 @@ countingSort(T* a, int low, int high) {
 
 /**
  * @brief Advanced character counting sort with Unicode optimization
- * 
+ *
  * Specialized counting sort for character arrays that can handle the full
  * Unicode range efficiently. Uses optimized histogram computation and
  * placement strategies for character-specific data patterns.
- * 
+ *
  * Unicode Considerations:
  * - Supports full 16-bit Unicode range (65536 possible values)
  * - Optimized for typical character distributions (ASCII-heavy)
  * - Direct unsigned access for consistent behavior across platforms
- * 
+ *
  * @param a Character array to sort
- * @param low Starting index (inclusive) 
+ * @param low Starting index (inclusive)
  * @param high Ending index (exclusive)
  */
 static void countingSort(char* a, int low, int high) {
     static constexpr int NUM_CHAR_VALUES = 1 << 16; // Full Unicode range
     std::vector<int> count(NUM_CHAR_VALUES, 0);
-    
+
     // Direct unsigned access for characters (matching Java's approach)
     for (int i = high; i > low; ) {
         ++count[static_cast<unsigned char>(a[--i])];
     }
-    
+
     // Optimized placement for character ranges
     int index = low;
     for (int i = 0; i < NUM_CHAR_VALUES; i++) {
@@ -4733,44 +4824,49 @@ static void countingSort(char* a, int low, int high) {
 
 /**
  * @brief Advanced counting sort for 16-bit integers with dual strategy
- * 
+ *
  * Implements counting sort for 16-bit integer types (short, unsigned short)
  * with sophisticated strategy selection based on array size. Uses bit manipulation
  * tricks and careful range management to handle the larger value space efficiently.
- * 
+ *
  * Dual Strategy Approach:
  * 1. Small arrays: Use compact histogram with skip-zero optimization
  * 2. Large arrays: Use reverse iteration with extended histogram for signed handling
- * 
+ *
  * Bit Manipulation Optimizations:
  * - Uses bit masks (& 0xFFFF) for unified signed/unsigned handling
  * - Sign extension handling for negative values in signed types
  * - Offset calculations to map signed ranges to array indices
- * 
+ *
  * @tparam T Integral type with sizeof(T) == 2 (short, unsigned short)
  * @param a Array to sort
  * @param low Starting index (inclusive)
  * @param high Ending index (exclusive)
  */
 template<typename T>
+#if __cplusplus >= 202002L
+requires (Integral<T> && sizeof(T) == 2)
+void countingSort(T* a, int low, int high) {
+#else
 typename std::enable_if<std::is_integral<T>::value && sizeof(T) == 2, void>::type
 countingSort(T* a, int low, int high) {
+#endif
     static constexpr int NUM_SHORT_VALUES = 1 << 16; // 65536
-    static constexpr int MAX_SHORT_INDEX = std::is_signed<T>::value ? 
+    static constexpr int MAX_SHORT_INDEX = std::is_signed<T>::value ?
         (1 << 15) + NUM_SHORT_VALUES + 1 : NUM_SHORT_VALUES + 1;
-    
+
     int size = high - low;
-    
+
     // Use full histogram for moderate-sized arrays
     if (size < NUM_SHORT_VALUES) {
         std::vector<int> count(NUM_SHORT_VALUES, 0);
-        
+
         // Bit manipulation optimization (matching Java's approach)
         for (int i = high; i > low; ) {
             ++count[a[--i] & 0xFFFF]; // Mask to handle signed/unsigned uniformly
         }
-        
-        // Skip-zero strategy for small arrays  
+
+        // Skip-zero strategy for small arrays
         int index = low;
         for (int i = 0; i < NUM_SHORT_VALUES; ) {
             // Skip consecutive zeros for better performance
@@ -4791,7 +4887,7 @@ countingSort(T* a, int low, int high) {
     } else {
         // For large arrays, use reverse iteration strategy (matching Java)
         std::vector<int> count(MAX_SHORT_INDEX, 0);
-        
+
         for (int i = high; i > low; ) {
             T val = a[--i];
             int idx = static_cast<int>(val);
@@ -4800,7 +4896,7 @@ countingSort(T* a, int low, int high) {
             }
             ++count[idx];
         }
-        
+
         // Reverse iteration for large arrays to improve cache locality
         int index = high;
         for (int i = MAX_SHORT_INDEX; --i >= 0; ) {
@@ -4822,47 +4918,57 @@ countingSort(T* a, int low, int high) {
 
 // Default case for other types - use regular dual-pivot sort
 template<typename T>
+#if __cplusplus >= 202002L
+requires (!Integral<T> && !FloatingPoint<T>)
+void sort_specialized(T* a, int low, int high) {
+#else
 typename std::enable_if<!std::is_integral<T>::value && !std::is_floating_point<T>::value, void>::type
 sort_specialized(T* a, int low, int high) {
+#endif
     sort(a, 0, low, high);
 }
 
 // Override for larger integral types (int, long, etc.) - use regular sort
 template<typename T>
+#if __cplusplus >= 202002L
+requires (Integral<T> && sizeof(T) > 2)
+void sort_specialized(T* a, int low, int high) {
+#else
 typename std::enable_if<std::is_integral<T>::value && (sizeof(T) > 2), void>::type
 sort_specialized(T* a, int low, int high) {
+#endif
     sort(a, 0, low, high);
 }
 
 /**
  * @brief Main STL-compatible dual-pivot quicksort interface
- * 
+ *
  * This is the primary public interface for the dual-pivot quicksort algorithm,
  * designed to be a drop-in replacement for std::sort with superior performance.
- * 
+ *
  * The function automatically detects the best sorting strategy based on:
  * - Element type (uses specialized optimizations for primitive types)
  * - Array size (small arrays use insertion sort variants)
  * - Data characteristics (detects and optimizes for partially sorted data)
- * 
+ *
  * Key Features:
  * - STL-compatible random access iterator interface
  * - Compile-time type safety and optimization
  * - Automatic algorithm selection for optimal performance
  * - Support for all standard primitive types and custom comparable types
- * 
+ *
  * Performance Benefits vs std::sort:
  * - ~10-12% improvement for random data
- * - >20% improvement for arrays with many duplicates  
+ * - >20% improvement for arrays with many duplicates
  * - Significantly faster on partially sorted data
  * - Better cache performance due to optimized memory access patterns
- * 
+ *
  * @tparam RandomAccessIterator Iterator type (must be random access)
  * @param first Iterator to the beginning of the range
  * @param last Iterator to the end of the range (exclusive)
- * 
+ *
  * @throws static_assert if iterator is not random access
- * 
+ *
  * Example usage:
  * @code
  * std::vector<int> data = {3, 1, 4, 1, 5, 9, 2, 6};
@@ -4871,18 +4977,18 @@ sort_specialized(T* a, int low, int high) {
  */
 template<typename RandomAccessIterator>
 void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last) {
-    static_assert(std::is_same_v<typename std::iterator_traits<RandomAccessIterator>::iterator_category, 
-                                std::random_access_iterator_tag>, 
+    static_assert(std::is_same_v<typename std::iterator_traits<RandomAccessIterator>::iterator_category,
+                                std::random_access_iterator_tag>,
                   "dual_pivot_quicksort requires random access iterators");
-    
+
     if (first >= last) return;
-    
+
     int size = last - first;
     if (size <= 1) return;
-    
+
     // Get pointer to underlying array for maximum performance
     auto* a = &(*first);
-    
+
     // Use type-specialized sorting when beneficial for primitive types
     using ValueType = typename std::iterator_traits<RandomAccessIterator>::value_type;
     if constexpr (std::is_integral_v<ValueType> && sizeof(ValueType) <= 2) {
@@ -4899,30 +5005,30 @@ void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last)
 
 /**
  * @brief Parallel dual-pivot quicksort with configurable thread count
- * 
+ *
  * This variant enables parallel processing for large arrays, using work-stealing
  * and sophisticated load balancing to maximize CPU utilization. The algorithm
  * automatically determines when parallel processing is beneficial and falls back
  * to sequential sorting for small arrays.
- * 
+ *
  * Parallel Strategy:
  * - Large arrays are divided using parallel partitioning
  * - Work-stealing thread pool distributes load dynamically
  * - Automatic load balancing prevents thread starvation
  * - Cache-aware work distribution minimizes memory contention
- * 
+ *
  * Performance Scaling:
  * - Near-linear speedup for random data on multi-core systems
  * - Automatic fallback to sequential for small arrays (< 4096 elements)
  * - Efficient even with moderate parallelism (2-4 cores)
- * 
+ *
  * @tparam RandomAccessIterator Iterator type (must be random access)
  * @param first Iterator to the beginning of the range
  * @param last Iterator to the end of the range (exclusive)
  * @param parallelism Number of threads to use (default: hardware concurrency)
- * 
+ *
  * @throws static_assert if iterator is not random access
- * 
+ *
  * Example usage:
  * @code
  * std::vector<int> large_data(1000000);
@@ -4931,20 +5037,20 @@ void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last)
  * @endcode
  */
 template<typename RandomAccessIterator>
-void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessIterator last, 
+void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessIterator last,
                                   int parallelism = std::thread::hardware_concurrency()) {
-    static_assert(std::is_same_v<typename std::iterator_traits<RandomAccessIterator>::iterator_category, 
-                                std::random_access_iterator_tag>, 
+    static_assert(std::is_same_v<typename std::iterator_traits<RandomAccessIterator>::iterator_category,
+                                std::random_access_iterator_tag>,
                   "dual_pivot_quicksort requires random access iterators");
-    
+
     if (first >= last) return;
-    
+
     int size = last - first;
     if (size <= 1) return;
-    
+
     // Get pointer to underlying array
     auto* a = &(*first);
-    
+
     // Use parallel sorting for large arrays with sufficient parallelism
     using ValueType = typename std::iterator_traits<RandomAccessIterator>::value_type;
     if (size > MIN_PARALLEL_SORT_SIZE && parallelism > 1) {
@@ -4955,14 +5061,14 @@ void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessItera
     }
 }
 
-// Phase 5: Parallel sorting implementation  
+// Phase 5: Parallel sorting implementation
 template<typename T>
 void parallelSort(T* a, int parallelism, int low, int high) {
     int size = high - low;
-    
+
     if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
         int depth = getDepth(parallelism, size >> 12);
-        
+
         if (depth < 0) {
             // Use parallel merge sort approach for highly parallel scenarios
             std::vector<T> b(size);
@@ -4980,37 +5086,37 @@ void parallelSort(T* a, int parallelism, int low, int high) {
 template<typename T>
 void parallelQuickSort(T* a, int bits, int low, int high) {
     int size = high - low;
-    
+
     // Use parallel partitioning for large arrays
     if (size > MIN_PARALLEL_SORT_SIZE) {
         while (true) {
             int end = high - 1;
             size = high - low;
-            
+
             // Run mixed insertion sort on small non-leftmost parts
             if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
                 mixedInsertionSort(a, low, high);
                 return;
             }
-            
+
             // Invoke insertion sort on small leftmost part
             if (size < MAX_INSERTION_SORT_SIZE) {
                 insertionSort(a, low, high);
                 return;
             }
-            
+
             // Check if the whole array or large non-leftmost parts are nearly sorted
             if ((bits == 0 || (size > MIN_TRY_MERGE_SIZE && (bits & 1) > 0))
                     && tryMergeRuns(a, low, size)) {
                 return;
             }
-            
+
             // Switch to heap sort if execution time is becoming quadratic
             if ((bits += DELTA) > MAX_RECURSION_DEPTH) {
                 heapSort(a, low, high);
                 return;
             }
-            
+
             // Pivot selection (same as sequential)
             int step = (size >> 3) * 3 + 3;
             int e1 = low + step;
@@ -5019,14 +5125,14 @@ void parallelQuickSort(T* a, int bits, int low, int high) {
             int e2 = (e1 + e3) >> 1;
             int e4 = (e3 + e5) >> 1;
             T a3 = a[e3];
-            
+
             // 5-element sorting network
             if (a[e5] < a[e2]) { T t = a[e5]; a[e5] = a[e2]; a[e2] = t; }
             if (a[e4] < a[e1]) { T t = a[e4]; a[e4] = a[e1]; a[e1] = t; }
             if (a[e5] < a[e4]) { T t = a[e5]; a[e5] = a[e4]; a[e4] = t; }
             if (a[e2] < a[e1]) { T t = a[e2]; a[e2] = a[e1]; a[e1] = t; }
             if (a[e4] < a[e2]) { T t = a[e4]; a[e4] = a[e2]; a[e2] = t; }
-            
+
             if (a3 < a[e2]) {
                 if (a3 < a[e1]) {
                     a[e3] = a[e2]; a[e2] = a[e1]; a[e1] = a3;
@@ -5040,36 +5146,36 @@ void parallelQuickSort(T* a, int bits, int low, int high) {
                     a[e3] = a[e4]; a[e4] = a3;
                 }
             }
-            
+
             int lower, upper;
-            
+
             // Dual pivot partitioning with parallel recursive sorts
             if (a[e1] < a[e2] && a[e2] < a[e3] && a[e3] < a[e4] && a[e4] < a[e5]) {
                 auto pivotIndices = partitionDualPivot(a, low, high, e1, e5);
                 lower = pivotIndices.first;
                 upper = pivotIndices.second;
-                
+
                 // Launch parallel tasks for the three parts
                 auto& pool = getThreadPool();
-                
+
                 auto future1 = pool.enqueue([=] { parallelQuickSort(a, bits | 1, lower + 1, upper); });
                 auto future2 = pool.enqueue([=] { parallelQuickSort(a, bits | 1, upper + 1, high); });
-                
+
                 // Wait for completion
                 future1.get();
                 future2.get();
-                
+
             } else {
                 auto pivotIndices = partitionSinglePivot(a, low, high, e3, e3);
                 lower = pivotIndices.first;
                 upper = pivotIndices.second;
-                
+
                 // Launch parallel task for right part
                 auto& pool = getThreadPool();
                 auto future = pool.enqueue([=] { parallelQuickSort(a, bits | 1, upper, high); });
                 future.get();
             }
-            
+
             high = lower; // Iterate along the left part
         }
     } else {
@@ -5083,14 +5189,14 @@ void parallelMergeSort(T* a, T* b, int low, int size, int offset, int depth) {
     if (depth < 0) {
         // Split the array and sort both halves in parallel
         int half = size >> 1;
-        
+
         auto& pool = getThreadPool();
         auto future1 = pool.enqueue([=] { parallelMergeSort(b, a, low, half, offset, depth + 1); });
         auto future2 = pool.enqueue([=] { parallelMergeSort(b, a, low + half, size - half, offset, depth + 1); });
-        
+
         future1.get();
         future2.get();
-        
+
         // Merge the results
         parallelMergeParts(a, low, b, low, low + half, b, low + half, low + size);
     } else {
@@ -5107,19 +5213,19 @@ void parallelMergeSort(T* a, T* b, int low, int size, int offset, int depth) {
 
 // Forward declarations for advanced buffer management
 template<typename T> class AdvancedSorter;
-template<typename T> class BufferManager;
+template<typename T, typename Allocator = std::allocator<T>> class BufferManager;
 
 // Enhanced buffer manager for sophisticated buffer reuse (matching Java's pattern)
-template<typename T>
+template<typename T, typename Allocator>
 class BufferManager {
 private:
-    static thread_local std::vector<T> buffer_pool;
+    static thread_local std::vector<T, Allocator> buffer_pool;
     static thread_local bool pool_initialized;
     static thread_local std::vector<int> buffer_offsets; // Advanced offset tracking
     static thread_local int buffer_usage_count; // Usage statistics
-    
+
 public:
-    // Advanced buffer allocation with sophisticated reuse patterns  
+    // Advanced buffer allocation with sophisticated reuse patterns
     static T* getBuffer(int size, int& offset) {
         if (!pool_initialized || buffer_pool.size() < size) {
             // Sophisticated buffer sizing (matching Java's growth strategy)
@@ -5131,18 +5237,18 @@ public:
             buffer_usage_count = 0;
             return buffer_pool.data();
         }
-        
+
         // Advanced offset calculation for buffer reuse (matching Java's pattern)
         offset = (buffer_usage_count * 32) % (buffer_pool.size() / 2);
         buffer_usage_count++;
-        
+
         return buffer_pool.data();
     }
-    
+
     // Sophisticated buffer return with usage tracking
     static void returnBuffer(T* buffer, int size, int offset) {
         // Advanced buffer validation and cleanup (matching Java's approach)
-        if (buffer >= buffer_pool.data() && 
+        if (buffer >= buffer_pool.data() &&
             buffer < buffer_pool.data() + buffer_pool.size()) {
             // Mark offset as available for reuse
             int chunk_index = offset / 64;
@@ -5151,12 +5257,12 @@ public:
             }
         }
     }
-    
+
     // Advanced buffer statistics (C++ enhancement)
     static int getBufferUsage() {
         return buffer_usage_count;
     }
-    
+
     // Buffer pool optimization
     static void optimizePool() {
         if (buffer_usage_count > 100) {
@@ -5167,17 +5273,17 @@ public:
     }
 };
 
-template<typename T>
-thread_local std::vector<T> BufferManager<T>::buffer_pool;
+template<typename T, typename Allocator>
+thread_local std::vector<T, Allocator> BufferManager<T, Allocator>::buffer_pool;
 
-template<typename T>
-thread_local bool BufferManager<T>::pool_initialized = false;
+template<typename T, typename Allocator>
+thread_local bool BufferManager<T, Allocator>::pool_initialized = false;
 
-template<typename T>
-thread_local std::vector<int> BufferManager<T>::buffer_offsets;
+template<typename T, typename Allocator>
+thread_local std::vector<int> BufferManager<T, Allocator>::buffer_offsets;
 
-template<typename T>
-thread_local int BufferManager<T>::buffer_usage_count = 0;
+template<typename T, typename Allocator>
+thread_local int BufferManager<T, Allocator>::buffer_usage_count = 0;
 
 // Enhanced Sorter with advanced buffer management (matching Java's Sorter class)
 template<typename T>
@@ -5187,39 +5293,39 @@ private:
     T* a;           // Primary array
     T* b;           // Buffer array (can be shared/reused)
     int low;
-    int size; 
+    int size;
     int offset;     // Buffer offset for reuse optimization
     int depth;
     bool owns_buffer;
-    
+
 public:
     AdvancedSorter(AdvancedSorter* parent, T* a, T* b, int low, int size, int offset, int depth)
-        : Sorter<T>(parent, a, b, low, size, offset, depth), parent(parent), a(a), b(b), 
+        : Sorter<T>(parent, a, b, low, size, offset, depth), parent(parent), a(a), b(b),
           low(low), size(size), offset(offset), depth(depth), owns_buffer(false) {
-        
+
         // Advanced buffer allocation (matching Java's pattern)
         if (b == nullptr && depth >= 0) {
             this->b = BufferManager<T>::getBuffer(size, this->offset);
             owns_buffer = true;
         }
     }
-    
+
     ~AdvancedSorter() {
         if (owns_buffer && b != nullptr) {
             BufferManager<T>::returnBuffer(b, size, offset);
         }
     }
-    
+
     void compute() override {
         if (depth < 0) {
             // Parallel merge sort mode with sophisticated buffer management
             this->setPendingCount(2);
             int half = size >> 1;
-            
+
             // Create child sorters with buffer reuse
             auto* left = new AdvancedSorter(this, b, a, low, half, offset, depth + 1);
             auto* right = new AdvancedSorter(this, b, a, low + half, size - half, offset, depth + 1);
-            
+
             left->fork();
             right->compute();
         } else {
@@ -5239,28 +5345,28 @@ public:
         }
         this->tryComplete();
     }
-    
+
     void onCompletion(CountedCompleter<T>* caller) override {
         // Advanced completion handling with buffer management
         if (depth < 0) {
             int mi = low + (size >> 1);
             bool src = (depth & 1) == 0;
-            
+
             // Sophisticated buffer destination calculation
             T* dst = src ? a : b;
             int k = src ? (low - offset) : low;
-            
+
             // Create merger with proper buffer coordination
             auto* merger = new Merger<T>(nullptr,
-                dst, k,                                    
-                b, src ? (low - offset) : low, src ? (mi - offset) : mi,     
+                dst, k,
+                b, src ? (low - offset) : low, src ? (mi - offset) : mi,
                 b, src ? (mi - offset) : mi, src ? (low + size - offset) : (low + size)
             );
             merger->invoke();
             delete merger;
         }
     }
-    
+
     // Java-style forkSorter with local variable optimization
     void forkSorter(int depth, int low, int high) {
         this->addToPendingCount(1);
@@ -5268,12 +5374,12 @@ public:
         auto* child = new AdvancedSorter(this, localA, b, low, high - low, offset, depth);
         child->fork();
     }
-    
+
     // Advanced pending count management
     void setPendingCount(int count) {
         this->pending.store(count);
     }
-    
+
     // Get buffer for child operations
     T* getBuffer() { return b; }
     int getOffset() { return offset; }
@@ -5281,18 +5387,18 @@ public:
 
 /**
  * @brief Comprehensive error handling and validation system
- * 
+ *
  * This section implements robust error handling and validation mechanisms
  * that ensure the sorting algorithms operate safely and correctly under
  * all conditions. The validation follows Java's approach with enhanced
  * C++ exception handling.
- * 
+ *
  * Validation Categories:
  * - Null pointer checking: Prevents segmentation faults
- * - Range validation: Ensures indices are within valid bounds  
+ * - Range validation: Ensures indices are within valid bounds
  * - Overflow protection: Uses safe arithmetic to prevent integer overflow
  * - Early termination: Optimizes for already-sorted or trivial cases
- * 
+ *
  * Error Handling Strategy:
  * - Input validation with descriptive error messages
  * - Safe arithmetic operations to prevent overflow
@@ -5302,16 +5408,16 @@ public:
 
 /**
  * @brief Overflow-safe middle point calculation
- * 
+ *
  * Calculates the middle point between two integers using unsigned arithmetic
  * to prevent integer overflow. This matches Java's unsigned right shift (>>>)
  * operator behavior and is critical for array indexing safety.
- * 
+ *
  * The standard (low + high) / 2 calculation can overflow when low and high
  * are large integers. This implementation avoids overflow by using unsigned
  * arithmetic and right shift operations.
- * 
- * @param low Lower bound 
+ *
+ * @param low Lower bound
  * @param high Upper bound
  * @return Safe middle point without risk of overflow
  */
@@ -5322,7 +5428,7 @@ inline int safeMiddle(int low, int high) {
 // Bounds checking utility (matching Java's Objects.checkFromToIndex)
 inline void checkFromToIndex(int fromIndex, int toIndex, int length) {
     if (fromIndex < 0 || fromIndex > toIndex || toIndex > length) {
-        throw std::out_of_range("Index out of bounds: fromIndex=" + std::to_string(fromIndex) + 
+        throw std::out_of_range("Index out of bounds: fromIndex=" + std::to_string(fromIndex) +
                                ", toIndex=" + std::to_string(toIndex) + ", length=" + std::to_string(length));
     }
 }
@@ -5341,10 +5447,10 @@ inline bool checkEarlyTermination(T* a, int low, int high) {
     if (high - low <= 1) {
         return true; // Already sorted or single element
     }
-    
+
     // Advanced early termination checks (matching Java's sophisticated approach)
     int size = high - low;
-    
+
     // Check if array is already sorted (ascending)
     bool is_sorted = true;
     for (int i = low + 1; i < high && is_sorted; i++) {
@@ -5353,7 +5459,7 @@ inline bool checkEarlyTermination(T* a, int low, int high) {
         }
     }
     if (is_sorted) return true;
-    
+
     // Check if array is reverse sorted (can be quickly reversed)
     bool is_reverse_sorted = true;
     for (int i = low + 1; i < high && is_reverse_sorted; i++) {
@@ -5361,7 +5467,7 @@ inline bool checkEarlyTermination(T* a, int low, int high) {
             is_reverse_sorted = false;
         }
     }
-    
+
     if (is_reverse_sorted) {
         // Reverse the array (O(n/2) swaps)
         for (int i = low, j = high - 1; i < j; i++, j--) {
@@ -5371,7 +5477,7 @@ inline bool checkEarlyTermination(T* a, int low, int high) {
         }
         return true;
     }
-    
+
     // Check for constant array (all elements equal) - Java pattern
     if (size >= 4) {
         T first = a[low];
@@ -5392,30 +5498,30 @@ inline bool checkEarlyTermination(T* a, int low, int high) {
             if (all_equal) return true;
         }
     }
-    
+
     return false;
 }
 
 /**
  * @brief Public API methods with comprehensive validation and error handling
- * 
+ *
  * This section provides the main public interface for the dual-pivot quicksort
  * algorithm with comprehensive input validation, error handling, and performance
  * optimizations. All methods follow Java's DualPivotQuicksort API for consistency.
- * 
+ *
  * API Design Principles:
  * - Comprehensive input validation with descriptive error messages
  * - Early termination optimization for trivial and already-sorted cases
  * - Automatic parallelization for large arrays when beneficial
  * - Type-specific optimizations for primitive types
  * - Exception safety and resource management
- * 
+ *
  * Performance Optimizations:
  * - Early detection of sorted/reverse-sorted arrays
  * - Automatic algorithm selection based on array size and type
  * - Parallel processing for large arrays with configurable thread count
  * - Memory-efficient buffer management for merge operations
- * 
+ *
  * Error Handling:
  * - Null pointer validation with clear error messages
  * - Range checking to prevent out-of-bounds access
@@ -5429,11 +5535,11 @@ static void sort(int* a, int parallelism, int low, int high) {
     if (low < 0 || high < 0 || low > high) {
         throw std::out_of_range("Invalid range: low=" + std::to_string(low) + ", high=" + std::to_string(high));
     }
-    
+
     if (checkEarlyTermination(a, low, high)) {
         return;
     }
-    
+
     int size = high - low;
     if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
         int depth = getDepth(parallelism, size >> 12);
@@ -5451,11 +5557,11 @@ static void sort(long* a, int parallelism, int low, int high) {
     if (low < 0 || high < 0 || low > high) {
         throw std::out_of_range("Invalid range: low=" + std::to_string(low) + ", high=" + std::to_string(high));
     }
-    
+
     if (checkEarlyTermination(a, low, high)) {
         return;
     }
-    
+
     int size = high - low;
     if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
         int depth = getDepth(parallelism, size >> 12);
@@ -5473,11 +5579,11 @@ static void sort(float* a, int parallelism, int low, int high) {
     if (low < 0 || high < 0 || low > high) {
         throw std::out_of_range("Invalid range: low=" + std::to_string(low) + ", high=" + std::to_string(high));
     }
-    
+
     if (checkEarlyTermination(a, low, high)) {
         return;
     }
-    
+
     int size = high - low;
     if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
         int depth = getDepth(parallelism, size >> 12);
@@ -5495,11 +5601,11 @@ static void sort(double* a, int parallelism, int low, int high) {
     if (low < 0 || high < 0 || low > high) {
         throw std::out_of_range("Invalid range: low=" + std::to_string(low) + ", high=" + std::to_string(high));
     }
-    
+
     if (checkEarlyTermination(a, low, high)) {
         return;
     }
-    
+
     int size = high - low;
     if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
         int depth = getDepth(parallelism, size >> 12);
@@ -5518,11 +5624,11 @@ static void sort(signed char* a, int low, int high) {
     if (low < 0 || high < 0 || low > high) {
         throw std::out_of_range("Invalid range: low=" + std::to_string(low) + ", high=" + std::to_string(high));
     }
-    
+
     if (checkEarlyTermination(a, low, high)) {
         return;
     }
-    
+
     if (high - low >= MIN_BYTE_COUNTING_SORT_SIZE) {
         countingSort(a, low, high);
     } else {
@@ -5535,11 +5641,11 @@ static void sort(char* a, int low, int high) {
     if (low < 0 || high < 0 || low > high) {
         throw std::out_of_range("Invalid range: low=" + std::to_string(low) + ", high=" + std::to_string(high));
     }
-    
+
     if (checkEarlyTermination(a, low, high)) {
         return;
     }
-    
+
     if (high - low >= MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE) {
         countingSort(a, low, high);
     } else {
@@ -5552,11 +5658,11 @@ static void sort(short* a, int low, int high) {
     if (low < 0 || high < 0 || low > high) {
         throw std::out_of_range("Invalid range: low=" + std::to_string(low) + ", high=" + std::to_string(high));
     }
-    
+
     if (checkEarlyTermination(a, low, high)) {
         return;
     }
-    
+
     if (high - low >= MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE) {
         countingSort(a, low, high);
     } else {

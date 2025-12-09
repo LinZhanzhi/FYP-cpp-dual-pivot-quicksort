@@ -1,0 +1,2 @@
+Algorithm,Type,Pattern,Size,Time(ms)
+std_stable_sort,double,90% Unique,10000000,619.572

@@ -1,0 +1,2 @@
+Algorithm,Type,Pattern,Size,Time(ms)
+qsort,double,50% Unique,1000,0.021377

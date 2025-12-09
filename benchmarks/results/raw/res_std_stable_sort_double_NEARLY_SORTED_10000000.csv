@@ -1,0 +1,2 @@
+Algorithm,Type,Pattern,Size,Time(ms)
+std_stable_sort,double,Nearly Sorted,10000000,249.258
