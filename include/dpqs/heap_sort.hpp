@@ -5,6 +5,14 @@
 
 namespace dual_pivot {
 
+static void pushDown_int(int* a, int p, int value, int low, int high);
+static void pushDown_long(long* a, int p, long value, int low, int high);
+static void pushDown_float(float* a, int p, float value, int low, int high);
+static void pushDown_double(double* a, int p, double value, int low, int high);
+// static void pushDown_byte(signed char* a, int p, signed char value, int low, int high);
+// static void pushDown_char(char* a, int p, char value, int low, int high);
+// static void pushDown_short(short* a, int p, short value, int low, int high);
+
 template<typename T>
 void pushDown(T* a, int p, T value, int low, int high) {
     for (int k;;) {

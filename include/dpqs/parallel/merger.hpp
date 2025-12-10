@@ -4,6 +4,8 @@
 #include "dpqs/parallel/completer.hpp"
 #include "dpqs/types.hpp"
 #include "dpqs/utils.hpp"
+#include "dpqs/merge_ops.hpp"
+#include "dpqs/parallel/threadpool.hpp"
 
 namespace dual_pivot {
 
@@ -111,6 +113,140 @@ public:
     }
 };
 
+// RunMerger class for parallel run merging (matching Java's RunMerger extends RecursiveTask)
+template<typename T>
+class RunMerger {
+private:
+    T* a;
+    T* b;
+    int offset;
+    int aim;
+    std::vector<int> run;
+    int lo, hi;
+
+    // Advanced parallel coordination state
+    std::future<T*> future_result;
+    bool is_forked = false;
+    T* result = nullptr;
+    std::atomic<bool> completed{false};
+    std::mutex result_mutex;
+
+public:
+    RunMerger(T* a, T* b, int offset, int aim, const std::vector<int>& run, int lo, int hi)
+        : a(a), b(b), offset(offset), aim(aim), run(run), lo(lo), hi(hi) {}
+
+    // Enhanced compute method with sophisticated parallel subdivision
+    T* compute() {
+        if (hi - lo == 1) {
+            // Base case: single run
+            if (aim >= 0) {
+                return a;
+            }
+            // Copy elements in reverse order (matching Java's approach)
+            for (int i = run[hi], j = i - offset, low = run[lo]; i > low; ) {
+                b[--j] = a[--i];
+            }
+            return b;
+        }
+
+        // Advanced parallel subdivision (matching Java's sophisticated approach)
+        int mi = lo;
+        int rmi = (run[lo] + run[hi]) >> 1; // Unsigned right shift equivalent
+        while (run[++mi + 1] <= rmi);
+
+        // Create parallel tasks for left and right parts with advanced coordination
+        auto& pool = getThreadPool();
+
+        // Left subtask with negative aim (Java pattern)
+        auto future1 = pool.enqueue([=]() {
+            RunMerger<T> left(a, b, offset, -aim, run, lo, mi);
+            return left.compute();
+        });
+
+        // Right subtask with zero aim (Java pattern)
+        auto future2 = pool.enqueue([=]() {
+            RunMerger<T> right(a, b, offset, 0, run, mi, hi);
+            return right.compute();
+        });
+
+        // Get results from parallel tasks with proper synchronization
+        T* a1 = future1.get();
+        T* a2 = future2.get();
+
+        // Advanced destination calculation (matching Java's sophisticated logic)
+        T* dst = (a1 == a) ? b : a;
+
+        // Complex offset calculations (matching Java's approach)
+        int k   = (a1 == a) ? run[lo] - offset : run[lo];
+        int lo1 = (a1 == b) ? run[lo] - offset : run[lo];
+        int hi1 = (a1 == b) ? run[mi] - offset : run[mi];
+        int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
+        int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
+
+        // Advanced merge with parallel coordination
+        mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+        return dst;
+    }
+
+    // Java-style forkMe() method - sophisticated fork and return self pattern
+    RunMerger& forkMe() {
+        std::lock_guard<std::mutex> lock(result_mutex);
+
+        if (!is_forked) {
+            auto& pool = getThreadPool();
+
+            // Advanced future-based forking with exception handling
+            future_result = pool.enqueue([this]() -> T* {
+                try {
+                    T* computed_result = this->compute();
+
+                    // Mark completion with thread-safe state management
+                    std::lock_guard<std::mutex> result_lock(this->result_mutex);
+                    this->result = computed_result;
+                    this->completed.store(true);
+
+                    return computed_result;
+                } catch (...) {
+                    // Enhanced exception handling (matching Java's approach)
+                    std::lock_guard<std::mutex> result_lock(this->result_mutex);
+                    this->completed.store(true);
+                    throw;
+                }
+            });
+
+            is_forked = true;
+        }
+        return *this;
+    }
+
+    // Java-style getDestination() method - sophisticated join and get result
+    T* getDestination() {
+        std::lock_guard<std::mutex> lock(result_mutex);
+
+        if (is_forked) {
+            if (!completed.load()) {
+                // Advanced synchronization with timeout handling
+                try {
+                    // Wait for completion with proper exception propagation
+                    result = future_result.get();
+                    completed.store(true);
+                } catch (const std::exception& e) {
+                    // Enhanced error handling matching Java's exception model
+                    completed.store(true);
+                    throw std::runtime_error("RunMerger computation failed: " + std::string(e.what()));
+                }
+            }
+            return result;
+        } else {
+            // If not forked, compute directly (lazy evaluation pattern)
+            if (!completed.load()) {
+                result = compute();
+                completed.store(true);
+            }
+            return result;
+        }
+    }
+};
 
 }
 

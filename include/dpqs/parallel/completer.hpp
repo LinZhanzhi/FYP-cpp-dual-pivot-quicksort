@@ -2,6 +2,7 @@
 #define DPQS_PARALLEL_COMPLETER_HPP
 
 #include "dpqs/utils.hpp"
+#include "dpqs/parallel/threadpool.hpp"
 #include <atomic>
 #include <mutex>
 #include <exception>
@@ -130,6 +131,6 @@ public:
     }
 };
 
-} 
+}
 
 #endif // DPQS_PARALLEL_COMPLETER_HPP
