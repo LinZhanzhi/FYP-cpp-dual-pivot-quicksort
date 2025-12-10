@@ -35,7 +35,7 @@ We will split the monolithic file into a set of cohesive, single-responsibility 
 ### 2.3. Core Partitioning
 -   **`include/dpqs/partition.hpp`**:
     -   `partitionDualPivot`: The heart of the algorithm.
-    -   `partitionSinglePivot`: Fallback/comparison.
+    -   `partitionSinglePivot` (Fallback/comparison).
     -   *Future*: SIMD optimizations can be isolated here or in `partition_simd.hpp`.
 
 ### 2.4. Parallel Infrastructure
@@ -48,43 +48,28 @@ We will split the monolithic file into a set of cohesive, single-responsibility 
 
 ### 2.5. Type Handling (Legacy/Port Support)
 -   **`include/dpqs/types.hpp`**:
-    -   `ArrayVariant`, `ArrayPointer` (if strictly necessary).
-    -   *Goal*: Phase this out in favor of C++ templates if possible.
+    -   `ArrayVariant`, `ArrayPointer`.
 
-### 2.6. Main Entry Point
--   **`include/dual_pivot_quicksort.hpp`**:
-    -   Includes all the above.
-    -   Exposes the public `sort()` API.
+## 3. Execution Plan
 
-## 3. Execution Strategy
+### Phase 1: Mechanical Extraction (Low Risk)
+- [x] Create `include/dpqs/` directory.
+- [x] Extract `constants.hpp` (Thresholds).
+- [x] Extract `utils.hpp` (Macros, `checkNotNull`, `checkEarlyTermination`).
+- [x] Update `dual_pivot_quicksort.hpp` to include these new files.
+- [x] Verify compilation and basic functionality.
 
-### Phase 1: Mechanical Extraction (Safe)
-*Goal: Split files without changing logic to ensure nothing breaks.*
-1.  Create the directory structure `include/dpqs/`.
-2.  Move code block by block into new files.
-3.  Add necessary `#include` guards and dependencies to each new file.
-4.  Update `dual_pivot_quicksort.hpp` to just include the new files.
-5.  **Verify**: Run existing tests after every move.
+### Phase 2: Base Algorithms (Medium Risk)
+- [ ] Extract `insertion_sort.hpp`.
+- [ ] Extract `heap_sort.hpp`.
+- [ ] Verify.
 
-### Phase 2: C++ Modernization (Refactoring)
-*Goal: Make the code idiomatic C++.*
-1.  **Templatization**: Replace manual overloads (e.g., `sort_int`, `sort_long`) with templates where possible.
-2.  **Remove Java-isms**: Evaluate if `ArrayPointer` can be replaced by `std::span<T>` or simple `T*` + size.
-3.  **Namespace Cleanup**: Ensure everything is cleanly inside `namespace dual_pivot`.
+### Phase 3: Parallel Infrastructure (High Risk)
+- [ ] Extract `parallel/completer.hpp`.
+- [ ] Extract `parallel/merger.hpp`.
+- [ ] Extract `parallel/sorter.hpp`.
+- [ ] Verify (requires careful dependency management).
 
-### Phase 3: Optimization & SIMD (Performance)
-*Goal: Accelerate specific hotspots.*
-1.  Isolate `partitionDualPivot` in `partition.hpp`.
-2.  Create `partition_avx2.hpp` with intrinsics.
-3.  Use `if constexpr` or SFINAE to select the best implementation at compile time.
-
-## 4. Feasibility Assessment
--   **Feasibility**: High. The code is already structured into classes and functions, just physically located in one file.
--   **Necessity**: High. For an FYP, you need to show you understand the architecture. A modular design demonstrates this better than a 5000-line port.
--   **Risk**: Moderate. The main risk is breaking the complex dependencies between `Sorter`, `Merger`, and the recursive calls.
-    -   *Mitigation*: Strict adherence to "move, don't rewrite" in Phase 1. Run the benchmark suite constantly.
-
-## 5. Next Steps
-1.  Approve this plan.
-2.  Create the `include/dpqs` directory.
-3.  Begin Phase 1 with `utils.hpp` and `constants.hpp`.
+### Phase 4: Core Logic & Cleanup (Medium Risk)
+- [ ] Extract `partition.hpp`.
+- [ ] Clean up `dual_pivot_quicksort.hpp` to be just an entry point.
