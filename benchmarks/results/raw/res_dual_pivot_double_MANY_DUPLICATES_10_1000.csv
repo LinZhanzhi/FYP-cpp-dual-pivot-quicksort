@@ -1,2 +1,2 @@
 Algorithm,Type,Pattern,Size,Time(ms)
-dual_pivot,double,10% Unique,1000,0.026295
+dual_pivot,double,10% Unique,1000,0.054017

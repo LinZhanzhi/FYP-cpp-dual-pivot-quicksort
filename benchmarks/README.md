@@ -10,14 +10,13 @@
 ## Benchmark Runner (`benchmark_runner.cpp`)
 
 - **Single Unit Test**: This executable runs a single benchmark configuration (Algorithm + Type + Pattern + Size).
-- **Supported Algorithms**: Now supports `std_sort`, `dual_pivot`, `std_stable_sort`, and C standard `qsort`.
 - **CSV Output**: It outputs a single-line CSV file with the results (including the pattern name).
 - **CLI Arguments**: Accepts `--algorithm`, `--type`, `--pattern`, `--size`, and `--output` arguments.
 - **Fixes**: Fixed several compilation errors in `data_generator.hpp` (type mismatches in `std::min`) and `dual_pivot_quicksort.hpp` (template declaration issues) to ensure smooth compilation.
 
 ## Benchmark Manager (`benchmark_manager.py`)
 
-- **Automation**: A Python script that generates all combinations of algorithms (`std_sort`, `dual_pivot`, `std_stable_sort`, `qsort`), types, patterns, and sizes.
+- **Automation**: A Python script that generates all combinations of algorithms, types, patterns, and sizes.
 - **Resumable**: It checks if the result file for a specific combination already exists in `results/raw`. If it does, it skips that test. This allows you to stop and restart the benchmark process at any time without losing progress.
 - **Execution**: It calls the compiled `benchmark_runner` for each missing combination.
 
