@@ -30,6 +30,12 @@
 #define DUAL_PIVOT_QUICKSORT_HPP
 
 #include "dpqs/utils.hpp"
+
+#include "dpqs/types.hpp"
+#include "dpqs/parallel/completer.hpp"
+#include "dpqs/parallel/merger.hpp"
+#include "dpqs/parallel/sorter.hpp"
+
 #include "dpqs/insertion_sort.hpp"
 #include "dpqs/heap_sort.hpp"
 

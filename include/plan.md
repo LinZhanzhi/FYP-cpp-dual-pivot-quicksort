@@ -60,15 +60,15 @@ We will split the monolithic file into a set of cohesive, single-responsibility 
 - [x] Verify compilation and basic functionality.
 
 ### Phase 2: Base Algorithms (Medium Risk)
-- [ ] Extract `insertion_sort.hpp`.
-- [ ] Extract `heap_sort.hpp`.
-- [ ] Verify.
+- [x] Extract `insertion_sort.hpp`.
+- [x] Extract `heap_sort.hpp`.
+- [x] Verify.
 
 ### Phase 3: Parallel Infrastructure (High Risk)
-- [ ] Extract `parallel/completer.hpp`.
-- [ ] Extract `parallel/merger.hpp`.
-- [ ] Extract `parallel/sorter.hpp`.
-- [ ] Verify (requires careful dependency management).
+- [x] Extract `parallel/completer.hpp`.
+- [x] Extract `parallel/merger.hpp`.
+- [x] Extract `parallel/sorter.hpp`.
+- [x] Verify (requires careful dependency management).
 
 ### Phase 4: Core Logic & Cleanup (Medium Risk)
 - [ ] Extract `partition.hpp`.
