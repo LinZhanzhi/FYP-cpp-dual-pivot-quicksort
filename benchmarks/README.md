@@ -4,7 +4,6 @@
 
 - **src**: Contains the C++ source code for the single-unit benchmark runner.
 - **include**: Contains header files (`data_generator.hpp`, `timer.hpp`) and the `pattern/` directory.
-- **legacy**: Archived all previous benchmark `.cpp` files here to keep the workspace clean.
 - **results/raw**: Directory where individual CSV result files will be stored.
 
 ## Benchmark Runner (`benchmark_runner.cpp`)
@@ -23,15 +22,35 @@
 ## How to Use
 
 ### 1. Build the Runner
-I've verified that `g++` is available. Run the following command to compile the runner:
+First, compile the C++ benchmark runner. This is required for both the web interface and command-line usage.
 
 ```bash
+# Using the Makefile (Recommended)
+make runner
+
+# Or manually
 mkdir -p build
 g++ -std=c++17 -O3 -I include -I ../include src/benchmark_runner.cpp -o build/benchmark_runner
 ```
 
-### 2. Run the Benchmarks
-Start the manager script. It will automatically create the results directory and start running tests.
+### 2. Start the Web Interface (Recommended)
+The easiest way to manage benchmarks is through the web interface.
+
+1. Start the server:
+   ```bash
+   python3 server.py
+   ```
+2. Open your browser and navigate to:
+   ```
+   http://localhost:8000
+   ```
+3. From the web page, you can:
+   - View the status of all benchmark tests.
+   - Start, stop, or resume the benchmark process.
+   - See real-time results.
+
+### 3. Command Line Usage (Alternative)
+You can also run the benchmarks directly from the terminal.
 
 ```bash
 python3 benchmark_manager.py
@@ -40,7 +59,7 @@ python3 benchmark_manager.py
 - You can interrupt this script (Ctrl+C) at any time.
 - Run it again, and it will resume from where it left off.
 
-### 3. Analyze Results
+### 4. Analyze Results
 The results are stored as individual CSV files in `results/raw`. You can easily merge them into a single CSV file for analysis using a simple command like:
 
 ```bash

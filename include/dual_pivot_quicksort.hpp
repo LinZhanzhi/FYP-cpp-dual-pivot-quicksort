@@ -206,6 +206,10 @@ static void sort(short* a, int length) {
     }
     sort(a, 0, length);
 }
+
+template<typename RandomAccessIterator>
+void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last);
+
 template<typename Container>
 void sort(Container& container) {
     using ValueType = typename Container::value_type;

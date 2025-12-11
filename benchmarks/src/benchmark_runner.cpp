@@ -35,7 +35,7 @@ std::map<std::string, std::string> parse_args(int argc, char* argv[]) {
 }
 
 template <typename T>
-void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size_t size, const std::string& output_file, const std::string& type_name) {
+void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size_t size, const std::string& output_file, const std::string& type_name, int iterations) {
     auto data = benchmark_data::generate_data<T>(size, pattern);
 
     // Warmup
@@ -50,24 +50,33 @@ void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size
         dual_pivot::sort(warmup_data);
     }
 
-    // Benchmark
-    auto start = std::chrono::high_resolution_clock::now();
-    if (algo == "std_sort") {
-        std::sort(data.begin(), data.end());
-    } else if (algo == "std_stable_sort") {
-        std::stable_sort(data.begin(), data.end());
-    } else if (algo == "qsort") {
-        std::qsort(data.data(), data.size(), sizeof(T), compare<T>);
-    } else {
-        dual_pivot::sort(data);
+    std::vector<double> durations;
+    durations.reserve(iterations);
+
+    for (int i = 0; i < iterations; ++i) {
+        // Copy data for each iteration to ensure we are sorting the same unsorted data
+        auto test_data = data;
+
+        auto start = std::chrono::high_resolution_clock::now();
+        if (algo == "std_sort") {
+            std::sort(test_data.begin(), test_data.end());
+        } else if (algo == "std_stable_sort") {
+            std::stable_sort(test_data.begin(), test_data.end());
+        } else if (algo == "qsort") {
+            std::qsort(test_data.data(), test_data.size(), sizeof(T), compare<T>);
+        } else {
+            dual_pivot::sort(test_data);
+        }
+        auto end = std::chrono::high_resolution_clock::now();
+        durations.push_back(std::chrono::duration<double, std::milli>(end - start).count());
     }
-    auto end = std::chrono::high_resolution_clock::now();
-    double duration = std::chrono::duration<double, std::milli>(end - start).count();
 
     // Output
     std::ofstream out(output_file);
     out << "Algorithm,Type,Pattern,Size,Time(ms)" << std::endl;
-    out << algo << "," << type_name << "," << benchmark_data::pattern_name(pattern) << "," << size << "," << duration << std::endl;
+    for (double duration : durations) {
+        out << algo << "," << type_name << "," << benchmark_data::pattern_name(pattern) << "," << size << "," << duration << std::endl;
+    }
     out.close();
 }
 
@@ -82,6 +91,11 @@ int main(int argc, char* argv[]) {
     std::string pattern_str = args["pattern"];
     size_t size = std::stoull(args["size"]);
     std::string output = args["output"];
+    int iterations = 1;
+    if (args.find("iterations") != args.end()) {
+        iterations = std::stoi(args["iterations"]);
+    }
+
     benchmark_data::DataPattern pattern;
     if (pattern_str == "RANDOM") pattern = benchmark_data::DataPattern::RANDOM;
     else if (pattern_str == "NEARLY_SORTED") pattern = benchmark_data::DataPattern::NEARLY_SORTED;
@@ -96,11 +110,11 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     if (type == "int") {
-        run_test<int>(algo, pattern, size, output, "int");
+        run_test<int>(algo, pattern, size, output, "int", iterations);
     } else if (type == "long") {
-        run_test<long>(algo, pattern, size, output, "long");
+        run_test<long>(algo, pattern, size, output, "long", iterations);
     } else if (type == "double") {
-        run_test<double>(algo, pattern, size, output, "double");
+        run_test<double>(algo, pattern, size, output, "double", iterations);
     } else {
         std::cerr << "Unknown type: " << type << std::endl;
         return 1;
