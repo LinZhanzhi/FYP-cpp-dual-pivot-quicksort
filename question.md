@@ -4,8 +4,9 @@ report mean and variance ?
 
 array size range ?
 
-fitting curve to runtime graph to find
-
 what to include in the final report ?
 
 all tricks to optimize,
+
+
+explain why some pattern is easy or hard to sort
