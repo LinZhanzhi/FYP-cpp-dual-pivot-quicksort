@@ -3,64 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Benchmark Manager</title>
+    <title>Benchmark Manager & Visualization</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-gray-100 p-8">
     <div id="app" class="max-w-7xl mx-auto">
-        <div class="bg-white rounded-lg shadow p-6 mb-6">
-            <h1 class="text-2xl font-bold mb-4">Benchmark Manager</h1>
-            <div v-if="status.is_running" class="bg-blue-100 text-blue-800 p-4 rounded mb-4">
-                Running: {{ status.message }} ({{ status.current }}/{{ status.total }})
-            </div>
-            <div v-else class="bg-green-100 text-green-800 p-4 rounded mb-4">
-                Idle
-            </div>
-            <div class="grid grid-cols-4 gap-4 mb-4">
-                <div v-for="(options, key) in config" :key="key" class="bg-white p-4 rounded border shadow-sm">
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="font-bold text-gray-700 capitalize">{{ key }}</label>
-                        <button @click="toggleAll(key)" class="text-xs text-blue-600 hover:text-blue-800">Toggle All</button>
-                    </div>
-                    <div class="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
-                        <label v-for="opt in options" :key="opt" class="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded">
-                            <input type="checkbox" :value="opt" v-model="filters[key]" class="rounded text-blue-600 focus:ring-blue-500 border-gray-300">
-                            <span class="text-gray-700">{{ opt }}</span>
-                        </label>
+        <!-- Navigation -->
+        <div class="mb-6 border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8">
+                <button @click="activeTab = 'manage'" :class="[activeTab === 'manage' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
+                    Manage Tests
+                </button>
+                <button @click="activeTab = 'visualize'" :class="[activeTab === 'visualize' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
+                    Visualization
+                </button>
+            </nav>
+        </div>
+
+        <!-- Manage Tab -->
+        <div v-show="activeTab === 'manage'">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h1 class="text-2xl font-bold mb-4">Benchmark Manager</h1>
+                <div v-if="status.is_running" class="bg-blue-100 text-blue-800 p-4 rounded mb-4">
+                    Running: {{ status.message }} ({{ status.current }}/{{ status.total }})
+                </div>
+                <div v-else class="bg-green-100 text-green-800 p-4 rounded mb-4">
+                    Idle
+                </div>
+                <div class="grid grid-cols-4 gap-4 mb-4">
+                    <div v-for="(options, key) in config" :key="key" class="bg-white p-4 rounded border shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="font-bold text-gray-700 capitalize">{{ key }}</label>
+                            <button @click="toggleAll(key)" class="text-xs text-blue-600 hover:text-blue-800">Toggle All</button>
+                        </div>
+                        <div class="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
+                            <label v-for="opt in options" :key="opt" class="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded">
+                                <input type="checkbox" :value="opt" v-model="filters[key]" class="rounded text-blue-600 focus:ring-blue-500 border-gray-300">
+                                <span class="text-gray-700">{{ opt }}</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
+                <div class="flex gap-4 mb-4">
+                    <button @click="runFiltered" :disabled="status.is_running" class="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50">Run Filtered ({{ filteredTests.length }})</button>
+                    <button @click="runMissing" :disabled="status.is_running" class="bg-yellow-500 text-white px-4 py-2 rounded disabled:opacity-50">Run Missing ({{ missingTests.length }})</button>
+                </div>
             </div>
-            <div class="flex gap-4 mb-4">
-                <button @click="runFiltered" :disabled="status.is_running" class="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50">Run Filtered ({{ filteredTests.length }})</button>
-                <button @click="runMissing" :disabled="status.is_running" class="bg-yellow-500 text-white px-4 py-2 rounded disabled:opacity-50">Run Missing ({{ missingTests.length }})</button>
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Algorithm</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pattern</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Runtime</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th></tr></thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr v-for="test in filteredTests.slice(0, 100)" :key="test.id">
+                            <td class="px-6 py-4 whitespace-nowrap">{{ test.algo }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ test.type }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ test.pattern }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">{{ test.size }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap"><span :class="test.done ? 'text-green-600' : 'text-red-600'">{{ test.done ? 'Done' : 'Missing' }}</span></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ test.runtime }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ test.timestamp || '-' }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div v-if="test.done" class="flex space-x-2">
+                                    <button @click="deleteTest(test)" :disabled="status.is_running" class="text-red-600 hover:text-red-900 disabled:opacity-50">Delete</button>
+                                    <button @click="rerunTest(test)" :disabled="status.is_running" class="text-blue-600 hover:text-blue-900 disabled:opacity-50">Rerun</button>
+                                    <button @click="showDetails(test)" class="text-gray-600 hover:text-gray-900">Details</button>
+                                </div>
+                                <div v-else>
+                                    <button @click="runTest(test)" :disabled="status.is_running" class="text-green-600 hover:text-green-900 disabled:opacity-50">Run</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Algorithm</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pattern</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Runtime</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th></tr></thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <tr v-for="test in filteredTests.slice(0, 100)" :key="test.id">
-                        <td class="px-6 py-4 whitespace-nowrap">{{ test.algo }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ test.type }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ test.pattern }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ test.size }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap"><span :class="test.done ? 'text-green-600' : 'text-red-600'">{{ test.done ? 'Done' : 'Missing' }}</span></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ test.runtime }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ test.timestamp || '-' }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div v-if="test.done" class="flex space-x-2">
-                                <button @click="deleteTest(test)" :disabled="status.is_running" class="text-red-600 hover:text-red-900 disabled:opacity-50">Delete</button>
-                                <button @click="rerunTest(test)" :disabled="status.is_running" class="text-blue-600 hover:text-blue-900 disabled:opacity-50">Rerun</button>
-                                <button @click="showDetails(test)" class="text-gray-600 hover:text-gray-900">Details</button>
-                            </div>
-                            <div v-else>
-                                <button @click="runTest(test)" :disabled="status.is_running" class="text-green-600 hover:text-green-900 disabled:opacity-50">Run</button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+
+        <!-- Visualize Tab -->
+        <div v-show="activeTab === 'visualize'">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-xl font-bold mb-4">Plot Configuration</h2>
+                <div class="grid grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Algorithm</label>
+                        <select v-model="vizConfig.algo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+                            <option v-for="opt in config.algorithms" :key="opt" :value="opt">{{ opt }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Type</label>
+                        <select v-model="vizConfig.type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+                            <option v-for="opt in config.types" :key="opt" :value="opt">{{ opt }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Pattern</label>
+                        <select v-model="vizConfig.pattern" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+                            <option v-for="opt in config.patterns" :key="opt" :value="opt">{{ opt }}</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button @click="addPlot" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add Plot</button>
+                    </div>
+                </div>
+
+                <!-- Active Plots Legend -->
+                <div v-if="vizDatasets.length > 0" class="mb-4">
+                    <h3 class="text-sm font-medium text-gray-700 mb-2">Active Plots:</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <div v-for="(ds, index) in vizDatasets" :key="index" class="flex items-center bg-gray-100 rounded px-2 py-1 text-sm">
+                            <span class="w-3 h-3 rounded-full mr-2" :style="{ backgroundColor: ds.color }"></span>
+                            <span>{{ ds.label }}</span>
+                            <button @click="removePlot(index)" class="ml-2 text-gray-500 hover:text-red-600">&times;</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Canvas -->
+                <div class="relative h-[600px] w-full">
+                    <canvas id="benchmarkChart"></canvas>
+                </div>
+            </div>
         </div>
 
         <!-- Modal -->
@@ -81,15 +144,21 @@
         </div>
     </div>
 <script>
-    const { createApp, ref, computed, onMounted } = Vue
+    const { createApp, ref, computed, onMounted, watch, nextTick } = Vue
     createApp({
         setup() {
+            const activeTab = ref('manage')
             const config = ref({})
             const results = ref([])
             const status = ref({ is_running: false, message: "", current: 0, total: 0 })
             const filters = ref({ algorithms: [], types: [], patterns: [], sizes: [] })
             const showModal = ref(false)
             const detailsContent = ref("")
+
+            // Visualization State
+            const vizConfig = ref({ algo: '', type: '', pattern: '' })
+            const vizDatasets = ref([])
+            let chartInstance = null
 
             const fetchConfig = async () => {
                 const res = await fetch("/api/config")
@@ -101,6 +170,10 @@
                     patterns: [...data.patterns],
                     sizes: [...data.sizes]
                 }
+                // Set defaults for viz
+                if (data.algorithms.length) vizConfig.value.algo = data.algorithms[0]
+                if (data.types.length) vizConfig.value.type = data.types[0]
+                if (data.patterns.length) vizConfig.value.pattern = data.patterns[0]
             }
 
             const toggleAll = (key) => {
@@ -167,15 +240,181 @@
             const missingTests = computed(() => filteredTests.value.filter(t => !t.done))
             const runFiltered = () => runTests(filteredTests.value)
             const runMissing = () => runTests(missingTests.value)
+
+            // Visualization Logic
+            const getRandomColor = () => {
+                const letters = '0123456789ABCDEF';
+                let color = '#';
+                for (let i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+
+            const fitComplexity = (dataPoints) => {
+                if (dataPoints.length < 2) return null;
+                let n = dataPoints.length;
+                let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+                for (let p of dataPoints) {
+                    let val = p.x * Math.log(p.x); // X = n * log(n)
+                    sumX += val;
+                    sumY += p.y;
+                    sumXY += val * p.y;
+                    sumXX += val * val;
+                }
+                let denominator = (n * sumXX - sumX * sumX);
+                if (denominator === 0) return null;
+                let slope = (n * sumXY - sumX * sumY) / denominator;
+                let intercept = (sumY - slope * sumX) / n;
+                return { c: slope, b: intercept };
+            }
+
+            const addPlot = () => {
+                const { algo, type, pattern } = vizConfig.value
+                const label = `${algo} - ${type} - ${pattern}`
+
+                // Check if already added
+                if (vizDatasets.value.some(d => d.label === label)) {
+                    alert("This plot is already added.")
+                    return
+                }
+
+                // Filter data
+                const points = results.value
+                    .filter(r => r.algo === algo && r.type === type && r.pattern === pattern && r.done && r.runtime !== '-')
+                    .map(r => ({ x: parseInt(r.size), y: parseFloat(r.runtime.replace(' ms', '')) }))
+                    .sort((a, b) => a.x - b.x)
+
+                if (points.length === 0) {
+                    alert("No data found for this configuration.")
+                    return
+                }
+
+                const color = getRandomColor()
+                const fit = fitComplexity(points)
+
+                // Generate curve points
+                const curvePoints = []
+                if (fit) {
+                    const minX = points[0].x
+                    const maxX = points[points.length - 1].x
+                    const steps = 100
+                    const step = (maxX - minX) / steps
+                    for (let i = 0; i <= steps; i++) {
+                        let x = minX + i * step
+                        let y = fit.c * (x * Math.log(x)) + fit.b
+                        curvePoints.push({ x, y })
+                    }
+                }
+
+                vizDatasets.value.push({
+                    label,
+                    color,
+                    points,
+                    curvePoints,
+                    fit
+                })
+                updateChart()
+            }
+
+            const removePlot = (index) => {
+                vizDatasets.value.splice(index, 1)
+                updateChart()
+            }
+
+            const updateChart = () => {
+                if (!chartInstance) return
+
+                const datasets = []
+                vizDatasets.value.forEach(ds => {
+                    // Scatter points
+                    datasets.push({
+                        label: ds.label + ' (Points)',
+                        data: ds.points,
+                        backgroundColor: ds.color,
+                        type: 'scatter',
+                        order: 1
+                    })
+                    // Fitted curve
+                    if (ds.curvePoints.length) {
+                        datasets.push({
+                            label: ds.label + ' (Fit)',
+                            data: ds.curvePoints,
+                            borderColor: ds.color,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            type: 'line',
+                            fill: false,
+                            order: 2,
+                            tension: 0.4
+                        })
+                    }
+                })
+
+                chartInstance.data.datasets = datasets
+                chartInstance.update()
+            }
+
+            const initChart = () => {
+                const ctx = document.getElementById('benchmarkChart')
+                if (!ctx) return
+
+                chartInstance = new Chart(ctx, {
+                    type: 'scatter',
+                    data: { datasets: [] },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                position: 'bottom',
+                                title: { display: true, text: 'Array Size' }
+                            },
+                            y: {
+                                title: { display: true, text: 'Runtime (ms)' }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += `(${context.parsed.x}, ${context.parsed.y.toFixed(2)} ms)`;
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                })
+            }
+
+            watch(activeTab, (newTab) => {
+                if (newTab === 'visualize') {
+                    nextTick(() => {
+                        if (!chartInstance) initChart()
+                    })
+                }
+            })
+
             onMounted(() => {
                 fetchConfig()
                 fetchResults()
                 fetchStatus()
             })
+
             return {
-                config, results, status, filters, filteredTests, missingTests,
+                activeTab, config, results, status, filters, filteredTests, missingTests,
                 showModal, detailsContent,
-                runFiltered, runMissing, toggleAll, deleteTest, runTest, rerunTest, showDetails
+                runFiltered, runMissing, toggleAll, deleteTest, runTest, rerunTest, showDetails,
+                // Viz
+                vizConfig, vizDatasets, addPlot, removePlot
             }
         }
     }).mount("#app")
