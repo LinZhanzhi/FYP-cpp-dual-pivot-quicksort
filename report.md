@@ -44,11 +44,7 @@ This report outlines the progress made on the Final Year Project regarding the i
 -   **Literature Review**: A deeper dive into the theoretical foundations of Dual-Pivot Quicksort is required.
 -   **Modeling**: Work will focus on understanding the mathematical modeling of the algorithm's complexity and behavior to correlate theoretical expectations with empirical results.
 
-### 4.4. Publication Goals
--   **Symposium Paper**: Aim to draft and submit a paper to a relevant symposium this year.
--   **Feasibility**: Based on the current progress of implementation and the planned improvements to the benchmarking protocol, producing a high-quality paper within the timeframe is deemed achievable.
-
-### 4.5. Optimization and Tuning Strategy
+### 4.4. Optimization and Tuning Strategy
 -   **SIMD Acceleration**: Plan to investigate the C++ implementation to identify hotspots suitable for SIMD (Single Instruction, Multiple Data) instructions to enhance performance.
 -   **Threshold Tuning**: Considering fine-tuning the array size thresholds (e.g., for switching to Insertion Sort) to maximize performance.
 -   **Generalization vs. Overfitting**: Acknowledging the risk that aggressive fine-tuning might overfit the algorithm to the specific architecture of the development workstation. Future testing will aim to verify performance stability across different machine configurations to ensure general applicability.
