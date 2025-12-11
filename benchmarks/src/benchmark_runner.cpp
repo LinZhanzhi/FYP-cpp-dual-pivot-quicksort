@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <iomanip>
 #include <cstdlib>
+#include <numeric>
+#include <cmath>
 #include "dual_pivot_quicksort.hpp"
 #include "timer.hpp"
 #include "data_generator.hpp"
@@ -71,12 +73,47 @@ void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size
         durations.push_back(std::chrono::duration<double, std::milli>(end - start).count());
     }
 
+    // Calculate Statistics
+    double sum = std::accumulate(durations.begin(), durations.end(), 0.0);
+    double mean = sum / durations.size();
+
+    double sq_sum = 0.0;
+    for (double d : durations) {
+        sq_sum += (d - mean) * (d - mean);
+    }
+    double stdev = (durations.size() > 1) ? std::sqrt(sq_sum / (durations.size() - 1)) : 0.0;
+
+    // Filter Outliers (Mean +/- 2*StdDev)
+    std::vector<double> filtered;
+    double lower_bound = mean - 2 * stdev;
+    double upper_bound = mean + 2 * stdev;
+
+    for (double d : durations) {
+        if (d >= lower_bound && d <= upper_bound) {
+            filtered.push_back(d);
+        }
+    }
+
+    // Calculate Representative Value (Mean of filtered data)
+    double representative_value = 0.0;
+    if (!filtered.empty()) {
+        representative_value = std::accumulate(filtered.begin(), filtered.end(), 0.0) / filtered.size();
+    } else {
+        representative_value = mean; // Fallback
+    }
+
     // Output
     std::ofstream out(output_file);
-    out << "Algorithm,Type,Pattern,Size,Time(ms)" << std::endl;
-    for (double duration : durations) {
-        out << algo << "," << type_name << "," << benchmark_data::pattern_name(pattern) << "," << size << "," << duration << std::endl;
+    out << "Algorithm,Type,Pattern,Size,Iteration,Time(ms)" << std::endl;
+
+    // Write all raw samples
+    for (size_t i = 0; i < durations.size(); ++i) {
+        out << algo << "," << type_name << "," << benchmark_data::pattern_name(pattern) << "," << size << "," << (i + 1) << "," << durations[i] << std::endl;
     }
+
+    // Write Representative Value as the last line
+    out << algo << "," << type_name << "," << benchmark_data::pattern_name(pattern) << "," << size << ",Representative," << representative_value << std::endl;
+
     out.close();
 }
 

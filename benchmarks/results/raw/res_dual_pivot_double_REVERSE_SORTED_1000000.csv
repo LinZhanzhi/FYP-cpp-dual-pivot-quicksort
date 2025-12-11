@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-dual_pivot,double,Reverse Sorted,1000000,2.16701
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+dual_pivot,double,Reverse Sorted,1000000,1,3.15452
+dual_pivot,double,Reverse Sorted,1000000,2,2.81304
+dual_pivot,double,Reverse Sorted,1000000,3,2.70181
+dual_pivot,double,Reverse Sorted,1000000,4,2.10565
+dual_pivot,double,Reverse Sorted,1000000,5,1.86746
+dual_pivot,double,Reverse Sorted,1000000,6,2.06864
+dual_pivot,double,Reverse Sorted,1000000,7,2.59579
+dual_pivot,double,Reverse Sorted,1000000,8,2.6164
+dual_pivot,double,Reverse Sorted,1000000,9,2.83265
+dual_pivot,double,Reverse Sorted,1000000,10,2.58986
+dual_pivot,double,Reverse Sorted,1000000,11,3.20677
+dual_pivot,double,Reverse Sorted,1000000,12,2.60881
+dual_pivot,double,Reverse Sorted,1000000,13,2.572
+dual_pivot,double,Reverse Sorted,1000000,14,2.30973
+dual_pivot,double,Reverse Sorted,1000000,15,2.39884
+dual_pivot,double,Reverse Sorted,1000000,16,2.32935
+dual_pivot,double,Reverse Sorted,1000000,17,2.51651
+dual_pivot,double,Reverse Sorted,1000000,18,2.7031
+dual_pivot,double,Reverse Sorted,1000000,19,2.4577
+dual_pivot,double,Reverse Sorted,1000000,20,2.26665
+dual_pivot,double,Reverse Sorted,1000000,21,2.20073
+dual_pivot,double,Reverse Sorted,1000000,22,2.19254
+dual_pivot,double,Reverse Sorted,1000000,23,2.1857
+dual_pivot,double,Reverse Sorted,1000000,24,2.17951
+dual_pivot,double,Reverse Sorted,1000000,25,2.18966
+dual_pivot,double,Reverse Sorted,1000000,26,2.18169
+dual_pivot,double,Reverse Sorted,1000000,27,2.20446
+dual_pivot,double,Reverse Sorted,1000000,28,2.22616
+dual_pivot,double,Reverse Sorted,1000000,29,2.27146
+dual_pivot,double,Reverse Sorted,1000000,30,2.20027
+dual_pivot,double,Reverse Sorted,1000000,Representative,2.37093

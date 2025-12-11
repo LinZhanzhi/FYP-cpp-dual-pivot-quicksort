@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-qsort,double,50% Unique,1000,0.021377
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+qsort,double,50% Unique,1000,1,0.044344
+qsort,double,50% Unique,1000,2,0.038567
+qsort,double,50% Unique,1000,3,0.035766
+qsort,double,50% Unique,1000,4,0.034685
+qsort,double,50% Unique,1000,5,0.033574
+qsort,double,50% Unique,1000,6,0.033192
+qsort,double,50% Unique,1000,7,0.033124
+qsort,double,50% Unique,1000,8,0.041612
+qsort,double,50% Unique,1000,9,0.033472
+qsort,double,50% Unique,1000,10,0.062993
+qsort,double,50% Unique,1000,11,0.034309
+qsort,double,50% Unique,1000,12,0.033537
+qsort,double,50% Unique,1000,13,0.033587
+qsort,double,50% Unique,1000,14,0.03381
+qsort,double,50% Unique,1000,15,0.033721
+qsort,double,50% Unique,1000,16,0.034239
+qsort,double,50% Unique,1000,17,0.033867
+qsort,double,50% Unique,1000,18,0.033155
+qsort,double,50% Unique,1000,19,0.032962
+qsort,double,50% Unique,1000,20,0.033922
+qsort,double,50% Unique,1000,21,0.032407
+qsort,double,50% Unique,1000,22,0.033022
+qsort,double,50% Unique,1000,23,0.032887
+qsort,double,50% Unique,1000,24,0.033644
+qsort,double,50% Unique,1000,25,0.032172
+qsort,double,50% Unique,1000,26,0.032236
+qsort,double,50% Unique,1000,27,0.032257
+qsort,double,50% Unique,1000,28,0.032098
+qsort,double,50% Unique,1000,29,0.032045
+qsort,double,50% Unique,1000,30,0.032106
+qsort,double,50% Unique,1000,Representative,0.0341489

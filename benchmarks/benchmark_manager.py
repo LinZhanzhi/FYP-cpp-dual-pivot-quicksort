@@ -3,10 +3,18 @@ import os
 import itertools
 import sys
 
+# Get the directory where the script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Configuration
-BUILD_DIR = "build"
+BUILD_DIR = os.path.join(SCRIPT_DIR, "build")
 RUNNER = os.path.join(BUILD_DIR, "benchmark_runner")
-RESULTS_DIR = "results/raw"
+RESULTS_DIR = os.path.join(SCRIPT_DIR, "results", "raw")
+
+# WSL Paths (Hardcoded for this environment)
+WSL_BASE_DIR = "/home/lzz725/FYP/benchmarks"
+WSL_RUNNER = f"{WSL_BASE_DIR}/build/benchmark_runner"
+WSL_RESULTS_DIR = f"{WSL_BASE_DIR}/results/raw"
 
 ALGORITHMS = ["std_sort", "dual_pivot", "std_stable_sort", "qsort"]
 TYPES = ["int", "double"]
@@ -31,16 +39,32 @@ def get_output_filename(algo, type_, pattern, size):
 
 def run_single_test(algo, type_, pattern, size):
     ensure_directories()
-    output_file = get_output_filename(algo, type_, pattern, size)
 
-    cmd = [
-        RUNNER,
-        "--algorithm", algo,
-        "--type", type_,
-        "--pattern", pattern,
-        "--size", str(size),
-        "--output", output_file
-    ]
+    if sys.platform == "win32":
+        # Use WSL paths and command
+        output_file_wsl = f"{WSL_RESULTS_DIR}/res_{algo}_{type_}_{pattern}_{size}.csv"
+        cmd = [
+            "wsl",
+            WSL_RUNNER,
+            "--algorithm", algo,
+            "--type", type_,
+            "--pattern", pattern,
+            "--size", str(size),
+            "--output", output_file_wsl,
+            "--iterations", "30"
+        ]
+    else:
+        # Native Linux/WSL execution
+        output_file = get_output_filename(algo, type_, pattern, size)
+        cmd = [
+            RUNNER,
+            "--algorithm", algo,
+            "--type", type_,
+            "--pattern", pattern,
+            "--size", str(size),
+            "--output", output_file,
+            "--iterations", "30"
+        ]
 
     try:
         subprocess.run(cmd, check=True)
@@ -71,7 +95,8 @@ def run_benchmark():
             "--type", type_,
             "--pattern", pattern,
             "--size", str(size),
-            "--output", output_file
+            "--output", output_file,
+            "--iterations", "30"
         ]
 
         try:

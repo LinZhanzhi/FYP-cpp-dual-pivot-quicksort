@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-dual_pivot,int,1,100000,1.6408
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+dual_pivot,int,Nearly Sorted,100000,1,1.91984
+dual_pivot,int,Nearly Sorted,100000,2,2.03492
+dual_pivot,int,Nearly Sorted,100000,3,1.92697
+dual_pivot,int,Nearly Sorted,100000,4,2.51247
+dual_pivot,int,Nearly Sorted,100000,5,2.56728
+dual_pivot,int,Nearly Sorted,100000,6,2.01767
+dual_pivot,int,Nearly Sorted,100000,7,2.01195
+dual_pivot,int,Nearly Sorted,100000,8,1.952
+dual_pivot,int,Nearly Sorted,100000,9,1.98552
+dual_pivot,int,Nearly Sorted,100000,10,1.93791
+dual_pivot,int,Nearly Sorted,100000,11,1.97165
+dual_pivot,int,Nearly Sorted,100000,12,2.04012
+dual_pivot,int,Nearly Sorted,100000,13,1.99613
+dual_pivot,int,Nearly Sorted,100000,14,1.99096
+dual_pivot,int,Nearly Sorted,100000,15,2.02169
+dual_pivot,int,Nearly Sorted,100000,16,1.95727
+dual_pivot,int,Nearly Sorted,100000,17,2.01195
+dual_pivot,int,Nearly Sorted,100000,18,1.99262
+dual_pivot,int,Nearly Sorted,100000,19,2.03402
+dual_pivot,int,Nearly Sorted,100000,20,2.17564
+dual_pivot,int,Nearly Sorted,100000,21,2.04688
+dual_pivot,int,Nearly Sorted,100000,22,1.98866
+dual_pivot,int,Nearly Sorted,100000,23,2.07303
+dual_pivot,int,Nearly Sorted,100000,24,2.01487
+dual_pivot,int,Nearly Sorted,100000,25,2.0112
+dual_pivot,int,Nearly Sorted,100000,26,2.08711
+dual_pivot,int,Nearly Sorted,100000,27,2.32608
+dual_pivot,int,Nearly Sorted,100000,28,2.28795
+dual_pivot,int,Nearly Sorted,100000,29,2.22499
+dual_pivot,int,Nearly Sorted,100000,30,2.17773
+dual_pivot,int,Nearly Sorted,100000,Representative,2.04348

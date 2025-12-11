@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-qsort,double,Reverse Sorted,10000,0.018651
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+qsort,double,Reverse Sorted,10000,1,0.223803
+qsort,double,Reverse Sorted,10000,2,0.194384
+qsort,double,Reverse Sorted,10000,3,0.167365
+qsort,double,Reverse Sorted,10000,4,0.168052
+qsort,double,Reverse Sorted,10000,5,0.165831
+qsort,double,Reverse Sorted,10000,6,0.16686
+qsort,double,Reverse Sorted,10000,7,0.16364
+qsort,double,Reverse Sorted,10000,8,0.163662
+qsort,double,Reverse Sorted,10000,9,0.16375
+qsort,double,Reverse Sorted,10000,10,0.212233
+qsort,double,Reverse Sorted,10000,11,0.175882
+qsort,double,Reverse Sorted,10000,12,0.182569
+qsort,double,Reverse Sorted,10000,13,0.173712
+qsort,double,Reverse Sorted,10000,14,0.173751
+qsort,double,Reverse Sorted,10000,15,0.172046
+qsort,double,Reverse Sorted,10000,16,0.16566
+qsort,double,Reverse Sorted,10000,17,0.165705
+qsort,double,Reverse Sorted,10000,18,0.166098
+qsort,double,Reverse Sorted,10000,19,0.164267
+qsort,double,Reverse Sorted,10000,20,0.164441
+qsort,double,Reverse Sorted,10000,21,0.163771
+qsort,double,Reverse Sorted,10000,22,0.163174
+qsort,double,Reverse Sorted,10000,23,0.167883
+qsort,double,Reverse Sorted,10000,24,0.167366
+qsort,double,Reverse Sorted,10000,25,0.166639
+qsort,double,Reverse Sorted,10000,26,0.167138
+qsort,double,Reverse Sorted,10000,27,0.168473
+qsort,double,Reverse Sorted,10000,28,0.166246
+qsort,double,Reverse Sorted,10000,29,0.163376
+qsort,double,Reverse Sorted,10000,30,0.16464
+qsort,double,Reverse Sorted,10000,Representative,0.168442

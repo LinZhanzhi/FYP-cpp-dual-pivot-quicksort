@@ -53,6 +53,54 @@ class BenchmarkHandler(http.server.SimpleHTTPRequestHandler):
                 results.append({"id": f"{algo}_{type_}_{pattern}_{size}", "algo": algo, "type": type_, "pattern": pattern, "size": size, "done": done, "timestamp": timestamp, "runtime": runtime})
             self.wfile.write(json.dumps(results).encode())
             return
+        if self.path.startswith("/api/details"):
+            from urllib.parse import urlparse, parse_qs
+            query = parse_qs(urlparse(self.path).query)
+            test_id = query.get("id", [None])[0]
+
+            if test_id:
+                # ID format: algo_type_pattern_size
+                try:
+                    # Reconstruct filename from ID
+                    # This is a bit fragile if ID format changes, but consistent with current logic
+                    parts = test_id.split('_')
+                    # Size is the last part, Pattern is the one before it...
+                    # Wait, pattern can have underscores (MANY_DUPLICATES_10).
+                    # Algo can have underscores (std_sort).
+                    # Type is simple.
+                    # Let's rely on the fact that we can reconstruct it if we know the components.
+                    # Actually, it's safer to search for the file or pass components in query.
+                    # But let's try to parse.
+                    # Better: Client sends components.
+                    pass
+                except Exception:
+                    pass
+
+            # Alternative: Client sends components in query string
+            algo = query.get("algo", [None])[0]
+            type_ = query.get("type", [None])[0]
+            pattern = query.get("pattern", [None])[0]
+            size = query.get("size", [None])[0]
+
+            if algo and type_ and pattern and size:
+                filename = benchmark_manager.get_output_filename(algo, type_, pattern, int(size))
+                if os.path.exists(filename):
+                    try:
+                        with open(filename, 'r') as f:
+                            content = f.read()
+                        self.send_response(200)
+                        self.send_header("Content-type", "text/csv")
+                        self.end_headers()
+                        self.wfile.write(content.encode())
+                        return
+                    except Exception as e:
+                        self.send_response(500)
+                        self.wfile.write(str(e).encode())
+                        return
+
+            self.send_response(404)
+            self.wfile.write(b"Not found")
+            return
         if self.path == "/api/status":
             self.send_response(200)
             self.send_header("Content-type", "application/json")

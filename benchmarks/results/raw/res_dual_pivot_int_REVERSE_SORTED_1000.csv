@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-dual_pivot,int,2,1000,0.000576
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+dual_pivot,int,Reverse Sorted,1000,1,0.000655
+dual_pivot,int,Reverse Sorted,1000,2,0.000512
+dual_pivot,int,Reverse Sorted,1000,3,0.000483
+dual_pivot,int,Reverse Sorted,1000,4,0.000474
+dual_pivot,int,Reverse Sorted,1000,5,0.000471
+dual_pivot,int,Reverse Sorted,1000,6,0.000472
+dual_pivot,int,Reverse Sorted,1000,7,0.000481
+dual_pivot,int,Reverse Sorted,1000,8,0.00047
+dual_pivot,int,Reverse Sorted,1000,9,0.000471
+dual_pivot,int,Reverse Sorted,1000,10,0.00047
+dual_pivot,int,Reverse Sorted,1000,11,0.000471
+dual_pivot,int,Reverse Sorted,1000,12,0.000469
+dual_pivot,int,Reverse Sorted,1000,13,0.000469
+dual_pivot,int,Reverse Sorted,1000,14,0.000468
+dual_pivot,int,Reverse Sorted,1000,15,0.000469
+dual_pivot,int,Reverse Sorted,1000,16,0.00047
+dual_pivot,int,Reverse Sorted,1000,17,0.00047
+dual_pivot,int,Reverse Sorted,1000,18,0.00047
+dual_pivot,int,Reverse Sorted,1000,19,0.000468
+dual_pivot,int,Reverse Sorted,1000,20,0.00047
+dual_pivot,int,Reverse Sorted,1000,21,0.00047
+dual_pivot,int,Reverse Sorted,1000,22,0.000467
+dual_pivot,int,Reverse Sorted,1000,23,0.00047
+dual_pivot,int,Reverse Sorted,1000,24,0.00047
+dual_pivot,int,Reverse Sorted,1000,25,0.000467
+dual_pivot,int,Reverse Sorted,1000,26,0.000468
+dual_pivot,int,Reverse Sorted,1000,27,0.000469
+dual_pivot,int,Reverse Sorted,1000,28,0.000469
+dual_pivot,int,Reverse Sorted,1000,29,0.000468
+dual_pivot,int,Reverse Sorted,1000,30,0.000468
+dual_pivot,int,Reverse Sorted,1000,Representative,0.000471862

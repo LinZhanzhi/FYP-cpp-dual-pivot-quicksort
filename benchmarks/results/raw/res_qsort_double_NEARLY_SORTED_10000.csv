@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-qsort,double,Nearly Sorted,10000,0.169605
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+qsort,double,Nearly Sorted,10000,1,0.353473
+qsort,double,Nearly Sorted,10000,2,0.341771
+qsort,double,Nearly Sorted,10000,3,0.354129
+qsort,double,Nearly Sorted,10000,4,0.347929
+qsort,double,Nearly Sorted,10000,5,0.335031
+qsort,double,Nearly Sorted,10000,6,0.336364
+qsort,double,Nearly Sorted,10000,7,0.318276
+qsort,double,Nearly Sorted,10000,8,0.318076
+qsort,double,Nearly Sorted,10000,9,0.317197
+qsort,double,Nearly Sorted,10000,10,0.317921
+qsort,double,Nearly Sorted,10000,11,0.333841
+qsort,double,Nearly Sorted,10000,12,0.34657
+qsort,double,Nearly Sorted,10000,13,0.342384
+qsort,double,Nearly Sorted,10000,14,0.336512
+qsort,double,Nearly Sorted,10000,15,0.366138
+qsort,double,Nearly Sorted,10000,16,0.325928
+qsort,double,Nearly Sorted,10000,17,0.317443
+qsort,double,Nearly Sorted,10000,18,0.325721
+qsort,double,Nearly Sorted,10000,19,0.317922
+qsort,double,Nearly Sorted,10000,20,0.317666
+qsort,double,Nearly Sorted,10000,21,0.31761
+qsort,double,Nearly Sorted,10000,22,0.31621
+qsort,double,Nearly Sorted,10000,23,0.333373
+qsort,double,Nearly Sorted,10000,24,0.353009
+qsort,double,Nearly Sorted,10000,25,0.343082
+qsort,double,Nearly Sorted,10000,26,0.342731
+qsort,double,Nearly Sorted,10000,27,0.345114
+qsort,double,Nearly Sorted,10000,28,0.344602
+qsort,double,Nearly Sorted,10000,29,0.335225
+qsort,double,Nearly Sorted,10000,30,0.337219
+qsort,double,Nearly Sorted,10000,Representative,0.333529

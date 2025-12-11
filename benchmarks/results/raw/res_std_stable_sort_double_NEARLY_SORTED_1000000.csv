@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-std_stable_sort,double,Nearly Sorted,1000000,22.7242
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+std_stable_sort,double,Nearly Sorted,1000000,1,22.695
+std_stable_sort,double,Nearly Sorted,1000000,2,22.4992
+std_stable_sort,double,Nearly Sorted,1000000,3,21.0666
+std_stable_sort,double,Nearly Sorted,1000000,4,21.9173
+std_stable_sort,double,Nearly Sorted,1000000,5,21.0651
+std_stable_sort,double,Nearly Sorted,1000000,6,21.5709
+std_stable_sort,double,Nearly Sorted,1000000,7,21.8732
+std_stable_sort,double,Nearly Sorted,1000000,8,21.9885
+std_stable_sort,double,Nearly Sorted,1000000,9,21.9449
+std_stable_sort,double,Nearly Sorted,1000000,10,21.8646
+std_stable_sort,double,Nearly Sorted,1000000,11,22.3336
+std_stable_sort,double,Nearly Sorted,1000000,12,21.6048
+std_stable_sort,double,Nearly Sorted,1000000,13,21.4892
+std_stable_sort,double,Nearly Sorted,1000000,14,20.6662
+std_stable_sort,double,Nearly Sorted,1000000,15,20.7542
+std_stable_sort,double,Nearly Sorted,1000000,16,21.116
+std_stable_sort,double,Nearly Sorted,1000000,17,22.563
+std_stable_sort,double,Nearly Sorted,1000000,18,21.0557
+std_stable_sort,double,Nearly Sorted,1000000,19,21.4208
+std_stable_sort,double,Nearly Sorted,1000000,20,21.6309
+std_stable_sort,double,Nearly Sorted,1000000,21,22.408
+std_stable_sort,double,Nearly Sorted,1000000,22,21.5752
+std_stable_sort,double,Nearly Sorted,1000000,23,21.3165
+std_stable_sort,double,Nearly Sorted,1000000,24,22.0196
+std_stable_sort,double,Nearly Sorted,1000000,25,21.9654
+std_stable_sort,double,Nearly Sorted,1000000,26,21.7111
+std_stable_sort,double,Nearly Sorted,1000000,27,22.1735
+std_stable_sort,double,Nearly Sorted,1000000,28,22.2479
+std_stable_sort,double,Nearly Sorted,1000000,29,23.2677
+std_stable_sort,double,Nearly Sorted,1000000,30,22.3639
+std_stable_sort,double,Nearly Sorted,1000000,Representative,21.7552

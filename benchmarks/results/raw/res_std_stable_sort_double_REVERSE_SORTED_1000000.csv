@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-std_stable_sort,double,Reverse Sorted,1000000,1.77744
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+std_stable_sort,double,Reverse Sorted,1000000,1,10.9989
+std_stable_sort,double,Reverse Sorted,1000000,2,10.7065
+std_stable_sort,double,Reverse Sorted,1000000,3,9.67424
+std_stable_sort,double,Reverse Sorted,1000000,4,9.64853
+std_stable_sort,double,Reverse Sorted,1000000,5,9.73454
+std_stable_sort,double,Reverse Sorted,1000000,6,9.58975
+std_stable_sort,double,Reverse Sorted,1000000,7,9.66564
+std_stable_sort,double,Reverse Sorted,1000000,8,9.69894
+std_stable_sort,double,Reverse Sorted,1000000,9,9.63532
+std_stable_sort,double,Reverse Sorted,1000000,10,9.63953
+std_stable_sort,double,Reverse Sorted,1000000,11,9.74554
+std_stable_sort,double,Reverse Sorted,1000000,12,9.81108
+std_stable_sort,double,Reverse Sorted,1000000,13,10.0176
+std_stable_sort,double,Reverse Sorted,1000000,14,9.90093
+std_stable_sort,double,Reverse Sorted,1000000,15,9.89521
+std_stable_sort,double,Reverse Sorted,1000000,16,9.9044
+std_stable_sort,double,Reverse Sorted,1000000,17,9.93235
+std_stable_sort,double,Reverse Sorted,1000000,18,9.87638
+std_stable_sort,double,Reverse Sorted,1000000,19,9.91551
+std_stable_sort,double,Reverse Sorted,1000000,20,9.99833
+std_stable_sort,double,Reverse Sorted,1000000,21,9.97734
+std_stable_sort,double,Reverse Sorted,1000000,22,9.96189
+std_stable_sort,double,Reverse Sorted,1000000,23,9.90348
+std_stable_sort,double,Reverse Sorted,1000000,24,9.86628
+std_stable_sort,double,Reverse Sorted,1000000,25,9.65184
+std_stable_sort,double,Reverse Sorted,1000000,26,9.60083
+std_stable_sort,double,Reverse Sorted,1000000,27,9.67992
+std_stable_sort,double,Reverse Sorted,1000000,28,9.65694
+std_stable_sort,double,Reverse Sorted,1000000,29,9.62667
+std_stable_sort,double,Reverse Sorted,1000000,30,9.68937
+std_stable_sort,double,Reverse Sorted,1000000,Representative,9.78209

@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-dual_pivot,double,Organ Pipe,1000,0.002062
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+dual_pivot,double,Organ Pipe,1000,1,0.00395
+dual_pivot,double,Organ Pipe,1000,2,0.00185
+dual_pivot,double,Organ Pipe,1000,3,0.001765
+dual_pivot,double,Organ Pipe,1000,4,0.001731
+dual_pivot,double,Organ Pipe,1000,5,0.001705
+dual_pivot,double,Organ Pipe,1000,6,0.001703
+dual_pivot,double,Organ Pipe,1000,7,0.001721
+dual_pivot,double,Organ Pipe,1000,8,0.001686
+dual_pivot,double,Organ Pipe,1000,9,0.001693
+dual_pivot,double,Organ Pipe,1000,10,0.001691
+dual_pivot,double,Organ Pipe,1000,11,0.001697
+dual_pivot,double,Organ Pipe,1000,12,0.001695
+dual_pivot,double,Organ Pipe,1000,13,0.001684
+dual_pivot,double,Organ Pipe,1000,14,0.001689
+dual_pivot,double,Organ Pipe,1000,15,0.001705
+dual_pivot,double,Organ Pipe,1000,16,0.001687
+dual_pivot,double,Organ Pipe,1000,17,0.001697
+dual_pivot,double,Organ Pipe,1000,18,0.001692
+dual_pivot,double,Organ Pipe,1000,19,0.001689
+dual_pivot,double,Organ Pipe,1000,20,0.001684
+dual_pivot,double,Organ Pipe,1000,21,0.001687
+dual_pivot,double,Organ Pipe,1000,22,0.001683
+dual_pivot,double,Organ Pipe,1000,23,0.001686
+dual_pivot,double,Organ Pipe,1000,24,0.001685
+dual_pivot,double,Organ Pipe,1000,25,0.001683
+dual_pivot,double,Organ Pipe,1000,26,0.001691
+dual_pivot,double,Organ Pipe,1000,27,0.001688
+dual_pivot,double,Organ Pipe,1000,28,0.001688
+dual_pivot,double,Organ Pipe,1000,29,0.001688
+dual_pivot,double,Organ Pipe,1000,30,0.001693
+dual_pivot,double,Organ Pipe,1000,Representative,0.00170124

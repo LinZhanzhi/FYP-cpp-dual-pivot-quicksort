@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-qsort,int,Organ Pipe,100000,0.154513
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+qsort,int,Organ Pipe,100000,1,1.96883
+qsort,int,Organ Pipe,100000,2,2.0303
+qsort,int,Organ Pipe,100000,3,1.95468
+qsort,int,Organ Pipe,100000,4,1.97997
+qsort,int,Organ Pipe,100000,5,1.97814
+qsort,int,Organ Pipe,100000,6,1.97753
+qsort,int,Organ Pipe,100000,7,2.06311
+qsort,int,Organ Pipe,100000,8,1.94641
+qsort,int,Organ Pipe,100000,9,1.91529
+qsort,int,Organ Pipe,100000,10,2.05334
+qsort,int,Organ Pipe,100000,11,1.97328
+qsort,int,Organ Pipe,100000,12,1.98768
+qsort,int,Organ Pipe,100000,13,1.96759
+qsort,int,Organ Pipe,100000,14,2.00426
+qsort,int,Organ Pipe,100000,15,1.95186
+qsort,int,Organ Pipe,100000,16,2.13843
+qsort,int,Organ Pipe,100000,17,1.91992
+qsort,int,Organ Pipe,100000,18,1.97189
+qsort,int,Organ Pipe,100000,19,1.92555
+qsort,int,Organ Pipe,100000,20,1.96662
+qsort,int,Organ Pipe,100000,21,1.91507
+qsort,int,Organ Pipe,100000,22,1.97665
+qsort,int,Organ Pipe,100000,23,1.92352
+qsort,int,Organ Pipe,100000,24,1.92291
+qsort,int,Organ Pipe,100000,25,1.93009
+qsort,int,Organ Pipe,100000,26,1.92978
+qsort,int,Organ Pipe,100000,27,1.9184
+qsort,int,Organ Pipe,100000,28,1.94707
+qsort,int,Organ Pipe,100000,29,1.9122
+qsort,int,Organ Pipe,100000,30,1.93096
+qsort,int,Organ Pipe,100000,Representative,1.9601

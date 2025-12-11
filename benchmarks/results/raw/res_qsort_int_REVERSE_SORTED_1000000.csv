@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-qsort,int,Reverse Sorted,1000000,0.850027
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+qsort,int,Reverse Sorted,1000000,1,24.3928
+qsort,int,Reverse Sorted,1000000,2,24.0869
+qsort,int,Reverse Sorted,1000000,3,24.2749
+qsort,int,Reverse Sorted,1000000,4,27.0875
+qsort,int,Reverse Sorted,1000000,5,27.631
+qsort,int,Reverse Sorted,1000000,6,27.8049
+qsort,int,Reverse Sorted,1000000,7,26.7971
+qsort,int,Reverse Sorted,1000000,8,26.21
+qsort,int,Reverse Sorted,1000000,9,25.5161
+qsort,int,Reverse Sorted,1000000,10,25.3667
+qsort,int,Reverse Sorted,1000000,11,26.3006
+qsort,int,Reverse Sorted,1000000,12,25.0072
+qsort,int,Reverse Sorted,1000000,13,24.237
+qsort,int,Reverse Sorted,1000000,14,24.2809
+qsort,int,Reverse Sorted,1000000,15,24.8951
+qsort,int,Reverse Sorted,1000000,16,27.5999
+qsort,int,Reverse Sorted,1000000,17,28.1138
+qsort,int,Reverse Sorted,1000000,18,26.7898
+qsort,int,Reverse Sorted,1000000,19,25.2281
+qsort,int,Reverse Sorted,1000000,20,24.7985
+qsort,int,Reverse Sorted,1000000,21,23.8516
+qsort,int,Reverse Sorted,1000000,22,24.0036
+qsort,int,Reverse Sorted,1000000,23,23.8314
+qsort,int,Reverse Sorted,1000000,24,23.8846
+qsort,int,Reverse Sorted,1000000,25,24.0828
+qsort,int,Reverse Sorted,1000000,26,24.2623
+qsort,int,Reverse Sorted,1000000,27,23.7959
+qsort,int,Reverse Sorted,1000000,28,23.8425
+qsort,int,Reverse Sorted,1000000,29,23.6691
+qsort,int,Reverse Sorted,1000000,30,23.6963
+qsort,int,Reverse Sorted,1000000,Representative,25.0767

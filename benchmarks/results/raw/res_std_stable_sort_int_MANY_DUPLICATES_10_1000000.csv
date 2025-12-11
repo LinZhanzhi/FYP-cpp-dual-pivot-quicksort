@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-std_stable_sort,int,10% Unique,1000000,42.4773
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+std_stable_sort,int,10% Unique,1000000,1,54.6976
+std_stable_sort,int,10% Unique,1000000,2,53.5258
+std_stable_sort,int,10% Unique,1000000,3,54.2972
+std_stable_sort,int,10% Unique,1000000,4,54.1489
+std_stable_sort,int,10% Unique,1000000,5,55.3933
+std_stable_sort,int,10% Unique,1000000,6,62.3194
+std_stable_sort,int,10% Unique,1000000,7,59.4318
+std_stable_sort,int,10% Unique,1000000,8,60.0367
+std_stable_sort,int,10% Unique,1000000,9,58.7352
+std_stable_sort,int,10% Unique,1000000,10,59.1659
+std_stable_sort,int,10% Unique,1000000,11,57.8217
+std_stable_sort,int,10% Unique,1000000,12,54.9665
+std_stable_sort,int,10% Unique,1000000,13,54.8546
+std_stable_sort,int,10% Unique,1000000,14,55.3902
+std_stable_sort,int,10% Unique,1000000,15,54.4561
+std_stable_sort,int,10% Unique,1000000,16,53.7825
+std_stable_sort,int,10% Unique,1000000,17,55.5104
+std_stable_sort,int,10% Unique,1000000,18,57.0013
+std_stable_sort,int,10% Unique,1000000,19,54.5054
+std_stable_sort,int,10% Unique,1000000,20,55.3915
+std_stable_sort,int,10% Unique,1000000,21,55.3922
+std_stable_sort,int,10% Unique,1000000,22,56.6577
+std_stable_sort,int,10% Unique,1000000,23,56.9526
+std_stable_sort,int,10% Unique,1000000,24,54.3749
+std_stable_sort,int,10% Unique,1000000,25,52.8551
+std_stable_sort,int,10% Unique,1000000,26,53.1871
+std_stable_sort,int,10% Unique,1000000,27,54.2014
+std_stable_sort,int,10% Unique,1000000,28,56.0763
+std_stable_sort,int,10% Unique,1000000,29,54.6782
+std_stable_sort,int,10% Unique,1000000,30,54.5392
+std_stable_sort,int,10% Unique,1000000,Representative,55.5872

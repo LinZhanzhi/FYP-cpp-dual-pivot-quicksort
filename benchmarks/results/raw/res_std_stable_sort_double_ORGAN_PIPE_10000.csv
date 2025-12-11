@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-std_stable_sort,double,Organ Pipe,10000,0.019502
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+std_stable_sort,double,Organ Pipe,10000,1,0.074722
+std_stable_sort,double,Organ Pipe,10000,2,0.060472
+std_stable_sort,double,Organ Pipe,10000,3,0.061026
+std_stable_sort,double,Organ Pipe,10000,4,0.057887
+std_stable_sort,double,Organ Pipe,10000,5,0.051602
+std_stable_sort,double,Organ Pipe,10000,6,0.05266
+std_stable_sort,double,Organ Pipe,10000,7,0.052352
+std_stable_sort,double,Organ Pipe,10000,8,0.051536
+std_stable_sort,double,Organ Pipe,10000,9,0.052485
+std_stable_sort,double,Organ Pipe,10000,10,0.053082
+std_stable_sort,double,Organ Pipe,10000,11,0.052289
+std_stable_sort,double,Organ Pipe,10000,12,0.070506
+std_stable_sort,double,Organ Pipe,10000,13,0.055665
+std_stable_sort,double,Organ Pipe,10000,14,0.055822
+std_stable_sort,double,Organ Pipe,10000,15,0.052693
+std_stable_sort,double,Organ Pipe,10000,16,0.0536
+std_stable_sort,double,Organ Pipe,10000,17,0.052609
+std_stable_sort,double,Organ Pipe,10000,18,0.052649
+std_stable_sort,double,Organ Pipe,10000,19,0.052605
+std_stable_sort,double,Organ Pipe,10000,20,0.053376
+std_stable_sort,double,Organ Pipe,10000,21,0.052392
+std_stable_sort,double,Organ Pipe,10000,22,0.053786
+std_stable_sort,double,Organ Pipe,10000,23,0.053528
+std_stable_sort,double,Organ Pipe,10000,24,0.053474
+std_stable_sort,double,Organ Pipe,10000,25,0.052583
+std_stable_sort,double,Organ Pipe,10000,26,0.052631
+std_stable_sort,double,Organ Pipe,10000,27,0.052523
+std_stable_sort,double,Organ Pipe,10000,28,0.054317
+std_stable_sort,double,Organ Pipe,10000,29,0.052408
+std_stable_sort,double,Organ Pipe,10000,30,0.052643
+std_stable_sort,double,Organ Pipe,10000,Representative,0.0537391

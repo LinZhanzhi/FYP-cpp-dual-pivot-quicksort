@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-dual_pivot,double,10% Unique,1000000,71.382
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+dual_pivot,double,10% Unique,1000000,1,46.3363
+dual_pivot,double,10% Unique,1000000,2,46.819
+dual_pivot,double,10% Unique,1000000,3,46.879
+dual_pivot,double,10% Unique,1000000,4,45.8961
+dual_pivot,double,10% Unique,1000000,5,46.1524
+dual_pivot,double,10% Unique,1000000,6,47.1713
+dual_pivot,double,10% Unique,1000000,7,47.0441
+dual_pivot,double,10% Unique,1000000,8,46.4838
+dual_pivot,double,10% Unique,1000000,9,46.4926
+dual_pivot,double,10% Unique,1000000,10,46.3219
+dual_pivot,double,10% Unique,1000000,11,47.1246
+dual_pivot,double,10% Unique,1000000,12,47.7776
+dual_pivot,double,10% Unique,1000000,13,51.4205
+dual_pivot,double,10% Unique,1000000,14,48.3651
+dual_pivot,double,10% Unique,1000000,15,46.3297
+dual_pivot,double,10% Unique,1000000,16,46.725
+dual_pivot,double,10% Unique,1000000,17,51.7197
+dual_pivot,double,10% Unique,1000000,18,52.0854
+dual_pivot,double,10% Unique,1000000,19,51.5634
+dual_pivot,double,10% Unique,1000000,20,48.2254
+dual_pivot,double,10% Unique,1000000,21,47.0102
+dual_pivot,double,10% Unique,1000000,22,46.6306
+dual_pivot,double,10% Unique,1000000,23,46.3397
+dual_pivot,double,10% Unique,1000000,24,46.0565
+dual_pivot,double,10% Unique,1000000,25,48.3413
+dual_pivot,double,10% Unique,1000000,26,47.5523
+dual_pivot,double,10% Unique,1000000,27,46.5319
+dual_pivot,double,10% Unique,1000000,28,46.461
+dual_pivot,double,10% Unique,1000000,29,48.2242
+dual_pivot,double,10% Unique,1000000,30,47.7838
+dual_pivot,double,10% Unique,1000000,Representative,46.9644

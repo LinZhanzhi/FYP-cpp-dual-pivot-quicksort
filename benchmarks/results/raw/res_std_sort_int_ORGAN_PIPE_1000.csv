@@ -1,2 +1,32 @@
-Algorithm,Type,Pattern,Size,Time(ms)
-std_sort,int,6,1000,0.016594
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+std_sort,int,Organ Pipe,1000,1,0.017053
+std_sort,int,Organ Pipe,1000,2,0.012726
+std_sort,int,Organ Pipe,1000,3,0.010507
+std_sort,int,Organ Pipe,1000,4,0.010216
+std_sort,int,Organ Pipe,1000,5,0.009119
+std_sort,int,Organ Pipe,1000,6,0.008162
+std_sort,int,Organ Pipe,1000,7,0.007439
+std_sort,int,Organ Pipe,1000,8,0.007243
+std_sort,int,Organ Pipe,1000,9,0.007042
+std_sort,int,Organ Pipe,1000,10,0.006901
+std_sort,int,Organ Pipe,1000,11,0.006763
+std_sort,int,Organ Pipe,1000,12,0.006775
+std_sort,int,Organ Pipe,1000,13,0.00672
+std_sort,int,Organ Pipe,1000,14,0.006791
+std_sort,int,Organ Pipe,1000,15,0.006632
+std_sort,int,Organ Pipe,1000,16,0.00669
+std_sort,int,Organ Pipe,1000,17,0.006614
+std_sort,int,Organ Pipe,1000,18,0.006691
+std_sort,int,Organ Pipe,1000,19,0.006586
+std_sort,int,Organ Pipe,1000,20,0.006865
+std_sort,int,Organ Pipe,1000,21,0.006685
+std_sort,int,Organ Pipe,1000,22,0.05145
+std_sort,int,Organ Pipe,1000,23,0.007651
+std_sort,int,Organ Pipe,1000,24,0.007143
+std_sort,int,Organ Pipe,1000,25,0.006933
+std_sort,int,Organ Pipe,1000,26,0.006999
+std_sort,int,Organ Pipe,1000,27,0.006907
+std_sort,int,Organ Pipe,1000,28,0.006988
+std_sort,int,Organ Pipe,1000,29,0.006764
+std_sort,int,Organ Pipe,1000,30,0.006889
+std_sort,int,Organ Pipe,1000,Representative,0.00781014
