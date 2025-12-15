@@ -8,3 +8,4 @@ include_directories(include)
 include_directories(../include)
 
 add_executable(benchmark_runner src/benchmark_runner.cpp)
+add_executable(interactive_runner src/interactive_runner.cpp)

@@ -6,6 +6,7 @@ import os
 import sys
 import time
 import datetime
+import subprocess
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import benchmark_manager
@@ -130,6 +131,87 @@ class BenchmarkHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(200)
             self.end_headers()
             self.wfile.write(b"Started")
+            return
+        if self.path == "/api/playground/run":
+            content_length = int(self.headers["Content-Length"])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data)
+            size = data.get("size")
+            pattern = data.get("pattern")
+            type_ = data.get("type", "int")
+
+            if not size or not pattern:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b"Missing size or pattern")
+                return
+
+            # Run the interactive runner
+            runner_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "build", "interactive_runner")
+
+            action = data.get("action", "run") # run, generate, sort
+
+            cmd = [runner_path]
+
+            if action == "generate":
+                cmd.extend(["--generate", "--size", str(size), "--pattern", pattern, "--type", type_])
+            elif action == "sort":
+                input_data = data.get("data")
+                if not input_data:
+                    self.send_response(400)
+                    self.end_headers()
+                    self.wfile.write(b"Missing data for sort")
+                    return
+
+                # Use temp file to avoid argument length limits
+                import tempfile
+
+                # Ensure data is a string
+                data_str = str(input_data)
+                # Clean up brackets if present (though frontend should send string now)
+                data_str = data_str.replace("[", "").replace("]", "")
+
+                with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as tmp:
+                    tmp.write(data_str)
+                    tmp_path = tmp.name
+
+                try:
+                    cmd.extend(["--sort", "--data-file", tmp_path, "--type", type_])
+                    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                    self.send_response(200)
+                    self.send_header("Content-type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(result.stdout.encode())
+                except subprocess.CalledProcessError as e:
+                    self.send_response(500)
+                    self.end_headers()
+                    self.wfile.write(f"Error running benchmark: {e.stderr}".encode())
+                except Exception as e:
+                    self.send_response(500)
+                    self.end_headers()
+                    self.wfile.write(f"Error: {str(e)}".encode())
+                finally:
+                    if os.path.exists(tmp_path):
+                        os.remove(tmp_path)
+                return
+            else:
+                # Legacy/Default
+                cmd.extend(["--size", str(size), "--pattern", pattern, "--type", type_])
+
+            try:
+                result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
+                self.wfile.write(result.stdout.encode())
+            except subprocess.CalledProcessError as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(f"Error running benchmark: {e.stderr}".encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(f"Error: {str(e)}".encode())
             return
         if self.path == "/api/delete":
             content_length = int(self.headers["Content-Length"])
