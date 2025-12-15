@@ -125,7 +125,7 @@ class BenchmarkHandler(http.server.SimpleHTTPRequestHandler):
                 runner_status["current"] = 0
                 runner_status["total"] = len(tests)
                 runner_status["message"] = "Starting..."
-            thread = threading.Thread(target=run_tests_background, args=(tests,))
+            thread = threading.Thread(target=run_tests_background, args=(tests,), daemon=True)
             thread.start()
             self.send_response(200)
             self.end_headers()
@@ -185,4 +185,7 @@ if __name__ == "__main__":
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), BenchmarkHandler) as httpd:
         print(f"Serving at http://localhost:{PORT}")
-        httpd.serve_forever()
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("\nServer stopped by user.")
