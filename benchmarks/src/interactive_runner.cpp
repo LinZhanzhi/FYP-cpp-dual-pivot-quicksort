@@ -93,32 +93,12 @@ double run_algo(const std::string& algo, const std::vector<T>& original_data, in
         durations.push_back(std::chrono::duration<double, std::milli>(end - start).count());
     }
 
-    // Calculate Statistics (Mean)
-    double sum = std::accumulate(durations.begin(), durations.end(), 0.0);
-    double mean = sum / durations.size();
-
-    // StdDev
-    double sq_sum = 0.0;
-    for (double d : durations) {
-        sq_sum += (d - mean) * (d - mean);
-    }
-    double stdev = (durations.size() > 1) ? std::sqrt(sq_sum / (durations.size() - 1)) : 0.0;
-
-    // Filter Outliers
-    std::vector<double> filtered;
-    double lower_bound = mean - 2 * stdev;
-    double upper_bound = mean + 2 * stdev;
-
-    for (double d : durations) {
-        if (d >= lower_bound && d <= upper_bound) {
-            filtered.push_back(d);
-        }
-    }
-
-    if (!filtered.empty()) {
-        return std::accumulate(filtered.begin(), filtered.end(), 0.0) / filtered.size();
-    }
-    return mean;
+    // Calculate Statistics (Minimum Estimator)
+    // Based on "Robust benchmarking in noisy environments" (Chen et al.),
+    // the minimum execution time is the most robust estimator for the true runtime
+    // because noise is additive.
+    double min_duration = *std::min_element(durations.begin(), durations.end());
+    return min_duration;
 }
 
 template <typename T>
