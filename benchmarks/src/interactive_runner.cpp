@@ -3,6 +3,7 @@
 #include <string>
 #include <map>
 #include <chrono>
+#include <thread>
 #include <algorithm>
 #include <numeric>
 #include <cmath>
@@ -91,6 +92,9 @@ double run_algo(const std::string& algo, const std::vector<T>& original_data, in
 
         auto end = std::chrono::high_resolution_clock::now();
         durations.push_back(std::chrono::duration<double, std::milli>(end - start).count());
+
+        // Sleep for 10ms to allow system noise to pass and ensure diverse sampling
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     // Calculate Statistics (Minimum Estimator)

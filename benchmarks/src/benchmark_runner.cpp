@@ -4,6 +4,7 @@
 #include <map>
 #include <fstream>
 #include <chrono>
+#include <thread>
 #include <algorithm>
 #include <iomanip>
 #include <cstdlib>
@@ -71,6 +72,9 @@ void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size
         }
         auto end = std::chrono::high_resolution_clock::now();
         durations.push_back(std::chrono::duration<double, std::milli>(end - start).count());
+
+        // Sleep for 10ms to allow system noise to pass and ensure diverse sampling
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     // Calculate Representative Value (Minimum Estimator)
