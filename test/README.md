@@ -34,3 +34,24 @@ g++ -std=c++17 -Iinclude test/test_heap_sort.cpp -o test_heap_sort
 - **Generic Template**: Tested with `int` and `double`.
 - **Specialized Functions**: `heapSort_int`, `heapSort_long`, `heapSort_float`, `heapSort_double`.
 - **Scenarios**: Random arrays, sorted arrays, reverse sorted arrays, arrays with duplicates, partial ranges.
+
+## Float Sort Test (`test_float_sort.cpp`)
+
+This test verifies the correctness of the Float Sort implementation in `include/dpqs/float_sort.hpp`. It specifically targets floating-point edge cases.
+
+### How to Run
+
+From the project root directory:
+
+```bash
+g++ -std=c++17 -Iinclude test/test_float_sort.cpp -o test_float_sort
+./test_float_sort
+```
+
+### Coverage
+- **Types**: `float`, `double`.
+- **Scenarios**:
+    - **NaN Handling**: Verifies that `NaN` values are moved to the end of the array.
+    - **Signed Zeros**: Verifies that `-0.0` is placed before `+0.0`.
+    - **Mixed Values**: Arrays containing negative numbers, positive numbers, zeros, and NaNs.
+

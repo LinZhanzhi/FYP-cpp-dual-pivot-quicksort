@@ -10,103 +10,183 @@
 
 namespace dual_pivot {
 
+/**
+ * @brief Checks if a floating-point value is NaN (Not a Number).
+ *
+ * @tparam T The floating-point type.
+ * @param value The value to check.
+ * @return true if the value is NaN, false otherwise.
+ */
 template<typename T>
-bool isNaN(T x) { return x != x; }
+bool is_nan(T value) { return value != value; }
 
+/**
+ * @brief Checks if a floating-point value is negative zero (-0.0).
+ *
+ * @tparam T The floating-point type.
+ * @param value The value to check.
+ * @return true if the value is -0.0, false otherwise.
+ */
 template<typename T>
-bool isNegativeZero(T x) {
-    if (x != 0) return false;
-    if constexpr (std::is_same_v<T, float>) {
-        return std::signbit(x);
-    } else {
-        return std::signbit(x);
-    }
+bool is_negative_zero(T value) {
+    if (value != 0) return false;
+    return std::signbit(value);
 }
 
+/**
+ * @brief Checks if a floating-point value is positive zero (+0.0).
+ *
+ * @tparam T The floating-point type.
+ * @param value The value to check.
+ * @return true if the value is +0.0, false otherwise.
+ */
 template<typename T>
-bool isPositiveZero(T x) {
-    return x == 0 && !isNegativeZero(x);
+bool is_positive_zero(T value) {
+    return value == 0 && !is_negative_zero(value);
 }
 
-inline float intBitsToFloat(unsigned int x) {
+/**
+ * @brief Reinterprets the bits of an unsigned int as a float.
+ *
+ * Used to construct specific float values (like -0.0) directly from bit patterns.
+ *
+ * @param bits The bit pattern.
+ * @return The float value corresponding to the bit pattern.
+ */
+inline float bits_to_float(unsigned int bits) {
     float f;
-    std::memcpy(&f, &x, sizeof(float));
+    std::memcpy(&f, &bits, sizeof(float));
     return f;
 }
 
-inline double longBitsToDouble(unsigned long long x) {
+/**
+ * @brief Reinterprets the bits of an unsigned long long as a double.
+ *
+ * Used to construct specific double values (like -0.0) directly from bit patterns.
+ *
+ * @param bits The bit pattern.
+ * @return The double value corresponding to the bit pattern.
+ */
+inline double bits_to_double(unsigned long long bits) {
     double d;
-    std::memcpy(&d, &x, sizeof(double));
+    std::memcpy(&d, &bits, sizeof(double));
     return d;
 }
 
+/**
+ * @brief Finds the insertion point for zeros in a sorted array containing negative numbers.
+ *
+ * Performs a binary search to find the first index where a non-negative value could exist.
+ * This is used to place restored negative zeros (-0.0) correctly after the negative numbers.
+ *
+ * @tparam T The floating-point type.
+ * @param array The sorted array.
+ * @param start_index The inclusive start index of the range.
+ * @param end_index The inclusive end index of the range.
+ * @return The index where zeros should begin.
+ */
 template<typename T>
-int findZeroPosition(T* a, int low, int high) {
-    int left = low;
-    int right = high;
-    while (left <= right) {
-        int mid = (left + right) / 2;
-        if (a[mid] < 0) {
-            left = mid + 1;
+int find_zero_insertion_point(T* array, int start_index, int end_index) {
+    int search_left = start_index;
+    int search_right = end_index;
+    while (search_left <= search_right) {
+        int search_mid = (search_left + search_right) / 2;
+        if (array[search_mid] < 0) {
+            search_left = search_mid + 1;
         } else {
-            right = mid - 1;
+            search_right = search_mid - 1;
         }
     }
-    return left;
+    return search_left;
 }
 
+/**
+ * @brief Pre-processes and sorts a range of floating-point numbers.
+ *
+ * This function handles special floating-point cases:
+ * 1. NaNs are moved to the end of the array and excluded from the sort range.
+ * 2. Negative zeros (-0.0) are converted to positive zeros (+0.0) to ensure they
+ *    are treated as equal during sorting.
+ * 3. The array is sorted using the sequential sort implementation.
+ * 4. Negative zeros are restored to their correct positions (immediately before positive zeros).
+ *
+ * @tparam T The floating-point type (float or double).
+ * @param array The array to sort.
+ * @param start_index The inclusive start index of the range.
+ * @param end_index The exclusive end index of the range.
+ */
 template<typename T>
 typename std::enable_if<std::is_floating_point<T>::value, void>::type
-sort_float_specialized(T* a, int low, int hi) {
-    int numNegativeZero = 0;
-    int actualHigh = hi;
+process_and_sort_floats(T* array, int start_index, int end_index) {
+    int negative_zero_count = 0;
+    int effective_end_index = end_index;
 
-    for (int k = actualHigh - 1; k >= low; k--) {
-        T ak = a[k];
+    // Phase 1: Pre-processing
+    // Move NaNs to the end and normalize -0.0 to +0.0
+    for (int k = effective_end_index - 1; k >= start_index; k--) {
+        T current_value = array[k];
 
-        if (isNaN(ak)) {
-            a[k] = a[--actualHigh];
-            a[actualHigh] = ak;
-        } else if (isNegativeZero(ak)) {
-            numNegativeZero++;
-            a[k] = T(0);
+        if (is_nan(current_value)) {
+            // Move NaN to the end of the active range
+            array[k] = array[--effective_end_index];
+            array[effective_end_index] = current_value;
+        } else if (is_negative_zero(current_value)) {
+            // Count -0.0 and convert to +0.0 for sorting
+            negative_zero_count++;
+            array[k] = T(0);
         }
     }
 
-    if (actualHigh > low) {
+    // Phase 2: Sorting
+    // Sort the range excluding NaNs
+    if (effective_end_index > start_index) {
         if constexpr (std::is_same_v<T, float>) {
-            sort_float_sequential(nullptr, a, 0, low, actualHigh);
+            sort_float_sequential(nullptr, array, 0, start_index, effective_end_index);
         } else if constexpr (std::is_same_v<T, double>) {
-            sort_double_sequential(nullptr, a, 0, low, actualHigh);
+            sort_double_sequential(nullptr, array, 0, start_index, effective_end_index);
         }
     }
 
-    if (numNegativeZero > 0) {
-        int left = findZeroPosition(a, low, actualHigh - 1);
+    // Phase 3: Post-processing
+    // Restore -0.0 values. They should be placed before +0.0.
+    if (negative_zero_count > 0) {
+        // Find where the zeros begin (after the last negative number)
+        int insertion_index = find_zero_insertion_point(array, start_index, effective_end_index - 1);
 
-        for (int i = 0; i < numNegativeZero && left < actualHigh; i++, left++) {
+        // Replace the first 'negative_zero_count' zeros with -0.0
+        for (int i = 0; i < negative_zero_count && insertion_index < effective_end_index; i++, insertion_index++) {
             if constexpr (std::is_same_v<T, float>) {
-                if (isPositiveZero(a[left])) {
-                    a[left] = intBitsToFloat(0x80000000U);
+                if (is_positive_zero(array[insertion_index])) {
+                    array[insertion_index] = bits_to_float(0x80000000U);
                 }
             } else if constexpr (std::is_same_v<T, double>) {
-                if (isPositiveZero(a[left])) {
-                    a[left] = longBitsToDouble(0x8000000000000000ULL);
+                if (is_positive_zero(array[insertion_index])) {
+                    array[insertion_index] = bits_to_double(0x8000000000000000ULL);
                 }
             }
         }
     }
 }
 
+/**
+ * @brief Entry point for sorting floating-point arrays.
+ *
+ * Delegates to the specialized floating-point processor.
+ *
+ * @tparam T The floating-point type.
+ * @param array The array to sort.
+ * @param start_index The inclusive start index.
+ * @param end_index The exclusive end index.
+ */
 template<typename T>
 #if __cplusplus >= 202002L
 requires FloatingPoint<T>
-void sort_specialized(T* a, int low, int high) {
+void sort_specialized(T* array, int start_index, int end_index) {
 #else
 typename std::enable_if<std::is_floating_point<T>::value, void>::type
-sort_specialized(T* a, int low, int high) {
+sort_specialized(T* array, int start_index, int end_index) {
 #endif
-    sort_float_specialized(a, low, high);
+    process_and_sort_floats(array, start_index, end_index);
 }
 
 } // namespace dual_pivot
