@@ -23,27 +23,27 @@ bool is_sorted(const std::vector<T>& arr, int start, int end) {
 
 // --- Wrappers for Heap Sort Functions ---
 
-// Wrapper to call the generic template heapSort
+// Wrapper to call the generic template heap_sort
 template <typename T>
 void run_generic_heap_sort(std::vector<T>& arr, int start, int end) {
-    heapSort(arr.data(), start, end);
+    heap_sort(arr.data(), start, end);
 }
 
 // Wrappers for static specialized functions
 void run_int_heap_sort(std::vector<int>& arr, int start, int end) {
-    heapSort_int(arr.data(), start, end);
+    heap_sort(arr.data(), start, end);
 }
 
 void run_long_heap_sort(std::vector<long>& arr, int start, int end) {
-    heapSort_long(arr.data(), start, end);
+    heap_sort(arr.data(), start, end);
 }
 
 void run_float_heap_sort(std::vector<float>& arr, int start, int end) {
-    heapSort_float(arr.data(), start, end);
+    heap_sort(arr.data(), start, end);
 }
 
 void run_double_heap_sort(std::vector<double>& arr, int start, int end) {
-    heapSort_double(arr.data(), start, end);
+    heap_sort(arr.data(), start, end);
 }
 
 // --- Test Runner ---
@@ -51,10 +51,10 @@ void run_double_heap_sort(std::vector<double>& arr, int start, int end) {
 template <typename T, typename Func>
 void test_scenario(const std::string& name, int size, int start, int end, Func sort_func, const std::string& type_name) {
     std::cout << "Testing " << name << " for " << type_name << " (size " << size << ", range [" << start << ", " << end << "))... ";
-    
+
     std::vector<T> arr(size);
     std::mt19937 gen(42); // Fixed seed for reproducibility
-    
+
     if (name == "random") {
         if constexpr (std::is_floating_point_v<T>) {
             std::uniform_real_distribution<T> dist(-10000.0, 10000.0);
@@ -73,7 +73,7 @@ void test_scenario(const std::string& name, int size, int start, int end, Func s
     }
 
     std::vector<T> copy = arr;
-    
+
     // Run the sort
     sort_func(arr, start, end);
 
@@ -92,16 +92,16 @@ void test_scenario(const std::string& name, int size, int start, int end, Func s
         // Verify 3: Check permutation (sort copy and compare)
         std::vector<T> sorted_copy = copy;
         std::sort(sorted_copy.begin() + start, sorted_copy.begin() + end);
-        
+
         bool match = true;
         for(int i=start; i<end; ++i) {
             // For floating point, exact match might be tricky due to precision, but for sort it should be exact if values are preserved
             if (arr[i] != sorted_copy[i]) {
-                match = false; 
+                match = false;
                 break;
             }
         }
-        
+
         if (match) std::cout << "Passed." << std::endl;
         else std::cout << "Failed: Elements mismatch (permutation check)!" << std::endl;
     } else {

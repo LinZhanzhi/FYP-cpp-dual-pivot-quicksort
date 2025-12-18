@@ -2,7 +2,6 @@
 #define DPQS_COUNTING_SORT_HPP
 
 #include "dpqs/utils.hpp"
-#include "dpqs/core_sort.hpp"
 #include <vector>
 #include <type_traits>
 
@@ -21,11 +20,11 @@ namespace dual_pivot {
  */
 template<typename T>
 #if __cplusplus >= 202002L
-requires (Integral<T> && sizeof(T) == 1)
-void countingSort(T* array, int start_index, int end_index) {
+requires (std::is_integral_v<T> && sizeof(T) == 1)
+void counting_sort(T* array, int start_index, int end_index) {
 #else
 typename std::enable_if<std::is_integral<T>::value && sizeof(T) == 1, void>::type
-countingSort(T* array, int start_index, int end_index) {
+counting_sort(T* array, int start_index, int end_index) {
 #endif
     // Calculate total number of possible values (e.g., 2^8 = 256 for 1-byte types)
     static constexpr int NUM_VALUES = 1 << (8 * sizeof(T));
@@ -34,7 +33,6 @@ countingSort(T* array, int start_index, int end_index) {
     // Example for signed char (1 byte): Range is [-128, 127].
     // We need to map -128 to index 0.
     // OFFSET = 1 << (8*1 - 1) = 1 << 7 = 128.
-    // Mapping: -128 + 128 = 0, 0 + 128 = 128, 127 + 128 = 255.
     static constexpr int OFFSET = std::is_signed<T>::value ? (1 << (8 * sizeof(T) - 1)) : 0;
 
     std::vector<int> frequency_count(NUM_VALUES, 0);
@@ -55,10 +53,6 @@ countingSort(T* array, int start_index, int end_index) {
     if (size > NUM_VALUES / 2) {
         // Case 1: Dense Array.
         // We iterate BACKWARDS (255 -> 0) and fill from the END of the array.
-        // Why?
-        // 1. Loop overhead: Decrementing to 0 (`--i >= 0`) is often faster in assembly (ZF flag).
-        // 2. No explicit `if (count > 0)` check: Since it's dense, we assume most counts > 0.
-        //    The `while` loop handles the 0 case naturally, avoiding branch misprediction penalties.
         int write_index = end_index;
         for (int i = NUM_VALUES; --i >= 0; ) {
             T value = static_cast<T>(i - OFFSET);
@@ -70,9 +64,6 @@ countingSort(T* array, int start_index, int end_index) {
     } else {
         // Case 2: Sparse Array.
         // We iterate FORWARDS (0 -> 255) and fill from the START.
-        // Why?
-        // 1. Explicit `if (count > 0)` check: Since it's sparse, many buckets are 0.
-        //    The branch predictor will learn to skip the body, making it very fast.
         int write_index = start_index;
         for (int i = 0; i < NUM_VALUES; i++) {
             if (frequency_count[i] > 0) {
@@ -99,11 +90,11 @@ countingSort(T* array, int start_index, int end_index) {
  */
 template<typename T>
 #if __cplusplus >= 202002L
-requires (Integral<T> && sizeof(T) == 2)
-void countingSort(T* array, int start_index, int end_index) {
+requires (std::is_integral_v<T> && sizeof(T) == 2)
+void counting_sort(T* array, int start_index, int end_index) {
 #else
 typename std::enable_if<std::is_integral<T>::value && sizeof(T) == 2, void>::type
-countingSort(T* array, int start_index, int end_index) {
+counting_sort(T* array, int start_index, int end_index) {
 #endif
     // Total number of unique values for a 2-byte type (2^16 = 65536).
     static constexpr int NUM_VALUES = 1 << 16;
@@ -147,48 +138,6 @@ countingSort(T* array, int start_index, int end_index) {
             }
         }
     }
-}
-
-/**
- * @brief Fallback sort for types that are not 1 or 2 bytes (e.g., custom types).
- *
- * Delegates to the main Dual-Pivot Quicksort implementation.
- *
- * @tparam T The type of elements.
- * @param array The array to sort.
- * @param start_index The inclusive start index.
- * @param end_index The exclusive end index.
- */
-template<typename T>
-#if __cplusplus >= 202002L
-requires (!Integral<T> && !FloatingPoint<T>)
-void sort_specialized(T* array, int start_index, int end_index) {
-#else
-typename std::enable_if<!std::is_integral<T>::value && !std::is_floating_point<T>::value, void>::type
-sort_specialized(T* array, int start_index, int end_index) {
-#endif
-    sort(array, 0, start_index, end_index);
-}
-
-/**
- * @brief Fallback sort for larger integral types (e.g., int, long).
- *
- * Delegates to the main Dual-Pivot Quicksort implementation.
- *
- * @tparam T The type of elements.
- * @param array The array to sort.
- * @param start_index The inclusive start index.
- * @param end_index The exclusive end index.
- */
-template<typename T>
-#if __cplusplus >= 202002L
-requires (Integral<T> && sizeof(T) > 2)
-void sort_specialized(T* array, int start_index, int end_index) {
-#else
-typename std::enable_if<std::is_integral<T>::value && (sizeof(T) > 2), void>::type
-sort_specialized(T* array, int start_index, int end_index) {
-#endif
-    sort(array, 0, start_index, end_index);
 }
 
 } // namespace dual_pivot

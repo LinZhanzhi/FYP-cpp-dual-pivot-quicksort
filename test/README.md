@@ -114,3 +114,44 @@ g++ -std=c++17 -Iinclude test/test_merge_ops.cpp -o test_merge_ops -pthread
 
 
 
+
+## Run Merger Test (`test_run_merger.cpp`)
+
+This test verifies the correctness of the Run Merger implementation in `include/dpqs/run_merger.hpp`. It checks if the algorithm correctly identifies and merges sorted runs in an array.
+
+### How to Run
+
+From the project root directory:
+
+```bash
+g++ -std=c++17 -Iinclude test/test_run_merger.cpp -o test_run_merger
+./test_run_merger
+```
+
+### Coverage
+- **Function**: `try_merge_runs`.
+- **Scenarios**:
+    - Small arrays (should be skipped).
+    - Large arrays with distinct runs (should be merged).
+    - Random arrays (should be skipped).
+    - Descending runs (should be reversed and merged).
+
+## Sequential Sorters Test (`test_sequential_sorters.cpp`)
+
+This test verifies the correctness of the Sequential Sorters implementation in `include/dpqs/sequential_sorters.hpp`. It checks the main recursive Dual-Pivot Quicksort logic for different types.
+
+### How to Run
+
+From the project root directory:
+
+```bash
+g++ -std=c++17 -Iinclude test/test_sequential_sorters.cpp -o test_sequential_sorters
+./test_sequential_sorters
+```
+
+### Coverage
+- **Functions**: `sort_int_sequential`, `sort_double_sequential`.
+- **Scenarios**:
+    - Random integer arrays.
+    - Random double arrays.
+    - Verifies that the full sorting pipeline (Insertion -> Run Merge -> Quick Sort -> Heap Sort) works together.

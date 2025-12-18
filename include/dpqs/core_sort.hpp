@@ -27,7 +27,7 @@ void sort(T* a, int bits, int low, int high) {
         }
 
         if ((bits == 0 || (size > MIN_TRY_MERGE_SIZE && (bits & 1) > 0))
-                && tryMergeRuns(a, low, size)) {
+                && try_merge_runs(a, low, size)) {
             return;
         }
 

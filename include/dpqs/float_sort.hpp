@@ -2,7 +2,6 @@
 #define DPQS_FLOAT_SORT_HPP
 
 #include "dpqs/utils.hpp"
-#include "dpqs/core_sort.hpp"
 #include "dpqs/sequential_sorters.hpp"
 #include <cmath>
 #include <cstring>
@@ -117,7 +116,7 @@ int find_zero_insertion_point(T* array, int start_index, int end_index) {
  */
 template<typename T>
 typename std::enable_if<std::is_floating_point<T>::value, void>::type
-process_and_sort_floats(T* array, int start_index, int end_index) {
+sort_floats(T* array, int start_index, int end_index) {
     int negative_zero_count = 0;
     int effective_end_index = end_index;
 
@@ -166,27 +165,6 @@ process_and_sort_floats(T* array, int start_index, int end_index) {
             }
         }
     }
-}
-
-/**
- * @brief Entry point for sorting floating-point arrays.
- *
- * Delegates to the specialized floating-point processor.
- *
- * @tparam T The floating-point type.
- * @param array The array to sort.
- * @param start_index The inclusive start index.
- * @param end_index The exclusive end index.
- */
-template<typename T>
-#if __cplusplus >= 202002L
-requires FloatingPoint<T>
-void sort_specialized(T* array, int start_index, int end_index) {
-#else
-typename std::enable_if<std::is_floating_point<T>::value, void>::type
-sort_specialized(T* array, int start_index, int end_index) {
-#endif
-    process_and_sort_floats(array, start_index, end_index);
 }
 
 } // namespace dual_pivot

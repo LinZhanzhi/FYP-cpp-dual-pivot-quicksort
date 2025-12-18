@@ -17,7 +17,7 @@ void verify_sort(std::vector<T>& arr, int start, int end) {
     std::vector<T> copy = arr;
 
     // Run the algorithm
-    countingSort(arr.data(), start, end);
+    counting_sort(arr.data(), start, end);
 
     // Run std::sort on the copy for verification
     std::sort(copy.begin() + start, copy.begin() + end);

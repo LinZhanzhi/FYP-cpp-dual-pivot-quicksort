@@ -11,10 +11,10 @@
 #include "../include/dpqs/float_sort.hpp"
 
 // Mocking the sequential sorters if they are not fully linked or to isolate float_sort logic.
-// However, since we include float_sort.hpp which includes sequential_sorters.hpp, 
-// we rely on the actual implementation if it compiles. 
+// However, since we include float_sort.hpp which includes sequential_sorters.hpp,
+// we rely on the actual implementation if it compiles.
 // If linking fails, we might need to define them here, but let's try to use the real ones first.
-// The user mentioned "although the sequential sorter is not implemented in it", 
+// The user mentioned "although the sequential sorter is not implemented in it",
 // which might mean the *definitions* are missing or empty in the header?
 // Let's check if we need to provide definitions.
 // Based on the grep, they are defined as 'inline void ...' in the header, so they should be fine.
@@ -32,7 +32,7 @@ bool is_sorted(const std::vector<T>& arr, int start, int end) {
         // "Move NaNs to the end of the active range" -> array[k] = array[--effective_end_index];
         // Then it sorts [start_index, effective_end_index).
         // So NaNs are at [effective_end_index, end_index).
-        
+
         // This helper checks strict ordering for the sorted part.
         if (arr[i] > arr[i + 1]) return false;
     }
@@ -59,21 +59,21 @@ void test_float_sort_logic(const std::string& type_name) {
 
     const int size = 20;
     std::vector<T> arr(size);
-    
+
     // Construct a tricky array:
     // - NaNs
     // - Negative Zeros
     // - Positive Zeros
     // - Negative Numbers
     // - Positive Numbers
-    
+
     T nan = std::numeric_limits<T>::quiet_NaN();
     T pos_zero = 0.0;
     T neg_zero = -0.0;
-    
+
     // Fill array
     arr = {
-        T(5.0), T(-3.0), nan, neg_zero, T(2.0), 
+        T(5.0), T(-3.0), nan, neg_zero, T(2.0),
         pos_zero, T(-10.0), nan, neg_zero, T(0.0),
         T(1.0), T(-1.0), T(3.14), nan, T(-0.0),
         T(100.0), T(-100.0), T(0.0), T(-0.0), nan
@@ -85,10 +85,10 @@ void test_float_sort_logic(const std::string& type_name) {
     // 3. -0.0 comes before +0.0.
 
     // Run the sort
-    sort_specialized(arr.data(), 0, size);
+    sort_floats(arr.data(), 0, size);
 
     // Verification
-    
+
     // 1. Check NaNs
     int nan_count = 0;
     for (T val : arr) {
@@ -113,7 +113,7 @@ void test_float_sort_logic(const std::string& type_name) {
             std::cout << "Failed: Array not sorted at index " << i << " (" << arr[i] << " > " << arr[i+1] << ")" << std::endl;
         }
     }
-    
+
     // 3. Check Negative Zero placement
     // Find zeros
     bool seen_pos_zero = false;

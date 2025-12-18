@@ -9,6 +9,9 @@
 #include "dpqs/parallel/completer.hpp"
 #include "dpqs/parallel/sorter.hpp"
 #include "dpqs/utils.hpp"
+#include "dpqs/partition.hpp"
+#include "dpqs/insertion_sort.hpp"
+#include "dpqs/heap_sort.hpp"
 
 namespace dual_pivot {
 
@@ -30,7 +33,7 @@ void parallelMergeSort(T* a, T* b, int low, int size, int offset, int depth) {
         parallel_merge_parts(a, low, b, low, low + half, b, low + half, low + size);
     } else {
         std::copy(a + low, a + low + size, b + low - offset);
-        sort(b, depth, low - offset, low - offset + size);
+        sort_sequential<T>(nullptr, b, depth, low - offset, low - offset + size);
         std::copy(b + low - offset, b + low - offset + size, a + low);
     }
 }
@@ -55,12 +58,12 @@ void parallelQuickSort(T* a, int bits, int low, int high) {
             }
 
             if ((bits == 0 || (size > MIN_TRY_MERGE_SIZE && (bits & 1) > 0))
-                    && tryMergeRuns(a, low, size)) {
+                    && try_merge_runs(a, low, size, true)) {
                 return;
             }
 
             if ((bits += DELTA) > MAX_RECURSION_DEPTH) {
-                heapSort(a, low, high);
+                heap_sort(a, low, high);
                 return;
             }
 
@@ -70,27 +73,9 @@ void parallelQuickSort(T* a, int bits, int low, int high) {
             int e3 = (e1 + e5) >> 1;
             int e2 = (e1 + e3) >> 1;
             int e4 = (e3 + e5) >> 1;
-            T a3 = a[e3];
 
-            if (a[e5] < a[e2]) { T t = a[e5]; a[e5] = a[e2]; a[e2] = t; }
-            if (a[e4] < a[e1]) { T t = a[e4]; a[e4] = a[e1]; a[e1] = t; }
-            if (a[e5] < a[e4]) { T t = a[e5]; a[e5] = a[e4]; a[e4] = t; }
-            if (a[e2] < a[e1]) { T t = a[e2]; a[e2] = a[e1]; a[e1] = t; }
-            if (a[e4] < a[e2]) { T t = a[e4]; a[e4] = a[e2]; a[e2] = t; }
-
-            if (a3 < a[e2]) {
-                if (a3 < a[e1]) {
-                    a[e3] = a[e2]; a[e2] = a[e1]; a[e1] = a3;
-                } else {
-                    a[e3] = a[e2]; a[e2] = a3;
-                }
-            } else if (a3 > a[e4]) {
-                if (a3 > a[e5]) {
-                    a[e3] = a[e4]; a[e4] = a[e5]; a[e5] = a3;
-                } else {
-                    a[e3] = a[e4]; a[e4] = a3;
-                }
-            }
+            // Sort 5-element sample
+            sort5_network(a, e1, e2, e3, e4, e5);
 
             int lower, upper;
 
@@ -107,7 +92,7 @@ void parallelQuickSort(T* a, int bits, int low, int high) {
                 future2.get();
 
             } else {
-                auto pivotIndices = partitionSinglePivot(a, low, high, e3, e3);
+                auto pivotIndices = partition_single_pivot(a, low, high, e3, e3);
                 lower = pivotIndices.first;
                 upper = pivotIndices.second;
 
@@ -119,7 +104,7 @@ void parallelQuickSort(T* a, int bits, int low, int high) {
             high = lower;
         }
     } else {
-        sort(a, bits, low, high);
+        sort_sequential<T>(nullptr, a, bits, low, high);
     }
 }
 
@@ -137,7 +122,7 @@ void parallelSort(T* a, int parallelism, int low, int high) {
             parallelQuickSort(a, depth, low, high);
         }
     } else {
-        sort(a, 0, low, high);
+        sort_sequential<T>(nullptr, a, 0, low, high);
     }
 }
 
@@ -151,82 +136,15 @@ private:
     int size;
     int offset;
     int depth;
-    bool owns_buffer;
 
 public:
     AdvancedSorter(AdvancedSorter* parent, T* a, T* b, int low, int size, int offset, int depth)
-        : Sorter<T>(parent, a, b, low, size, offset, depth), parent(parent), a(a), b(b),
-          low(low), size(size), offset(offset), depth(depth), owns_buffer(false) {
-
-        if (b == nullptr && depth >= 0) {
-            this->b = BufferManager<T>::getBuffer(size, this->offset);
-            owns_buffer = true;
-        }
-    }
-
-    ~AdvancedSorter() {
-        if (owns_buffer && b != nullptr) {
-            BufferManager<T>::returnBuffer(b, size, offset);
-        }
-    }
+        : Sorter<T>(parent, a, b, low, size, offset, depth),
+          parent(parent), a(a), b(b), low(low), size(size), offset(offset), depth(depth) {}
 
     void compute() override {
-        if (depth < 0) {
-            this->setPendingCount(2);
-            int half = size >> 1;
-
-            auto* left = new AdvancedSorter(this, b, a, low, half, offset, depth + 1);
-            auto* right = new AdvancedSorter(this, b, a, low + half, size - half, offset, depth + 1);
-
-            left->fork();
-            right->compute();
-        } else {
-            if constexpr (std::is_same_v<T, int>) {
-                sort_int_sequential(this, a, depth, low, low + size);
-            } else if constexpr (std::is_same_v<T, long>) {
-                sort_long_sequential(this, a, depth, low, low + size);
-            } else if constexpr (std::is_same_v<T, float>) {
-                sort_float_sequential(this, a, depth, low, low + size);
-            } else if constexpr (std::is_same_v<T, double>) {
-                sort_double_sequential(this, a, depth, low, low + size);
-            } else {
-                parallelQuickSort(a, depth, low, low + size);
-            }
-        }
-        this->tryComplete();
+        Sorter<T>::compute();
     }
-
-    void onCompletion(CountedCompleter<T>* caller) override {
-        if (depth < 0) {
-            int mi = low + (size >> 1);
-            bool src = (depth & 1) == 0;
-
-            T* dst = src ? a : b;
-            int k = src ? (low - offset) : low;
-
-            auto* merger = new Merger<T>(nullptr,
-                dst, k,
-                b, src ? (low - offset) : low, src ? (mi - offset) : mi,
-                b, src ? (mi - offset) : mi, src ? (low + size - offset) : (low + size)
-            );
-            merger->invoke();
-            delete merger;
-        }
-    }
-
-    void forkSorter(int depth, int low, int high) {
-        this->addToPendingCount(1);
-        T* localA = this->a;
-        auto* child = new AdvancedSorter(this, localA, b, low, high - low, offset, depth);
-        child->fork();
-    }
-
-    void setPendingCount(int count) {
-        this->pending.store(count);
-    }
-
-    T* getBuffer() { return b; }
-    int getOffset() { return offset; }
 };
 
 } // namespace dual_pivot

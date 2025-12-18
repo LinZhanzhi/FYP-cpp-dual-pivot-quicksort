@@ -36,7 +36,7 @@ namespace dual_pivot {
 
 // Forward declarations for run merging functions
 template<typename T>
-T* mergeRuns(T* a, T* b, int offset, int aim,
+T* merge_runs(T* a, T* b, int offset, int aim,
              const std::vector<int>& run, int lo, int hi);
 
 template<typename T>
@@ -77,7 +77,7 @@ void merge_parts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2
  * @return false if run detection failed (caller should use different algorithm)
  */
 template<typename T>
-bool tryMergeRuns(T* a, int low, int size, bool parallel = false) {
+bool try_merge_runs(T* a, int low, int size, bool parallel = false) {
     // Run array stores start indices of sorted subsequences
     // Only constructed if initial analysis shows promising run structure
     // run[i] holds the starting index of the i-th run
@@ -159,14 +159,14 @@ bool tryMergeRuns(T* a, int low, int size, bool parallel = false) {
             }
         } else {
             // Use sequential merging
-            mergeRuns(a, b.data(), low, 1, run, 0, count);
+            merge_runs(a, b.data(), low, 1, run, 0, count);
         }
     }
     return true;
 }
 
 template<typename T>
-T* mergeRuns(T* a, T* b, int offset, int aim,
+T* merge_runs(T* a, T* b, int offset, int aim,
              const std::vector<int>& run, int lo, int hi) {
 
     if (hi - lo == 1) {
@@ -185,8 +185,8 @@ T* mergeRuns(T* a, T* b, int offset, int aim,
     while (run[++mi + 1] <= rmi);
 
     // Merge the left and right parts
-    T* a1 = mergeRuns(a, b, offset, -aim, run, lo, mi);
-    T* a2 = mergeRuns(a, b, offset, 0, run, mi, hi);
+    T* a1 = merge_runs(a, b, offset, -aim, run, lo, mi);
+    T* a2 = merge_runs(a, b, offset, 0, run, mi, hi);
 
     T* dst = (a1 == a) ? b : a;
 
