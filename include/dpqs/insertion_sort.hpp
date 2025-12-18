@@ -182,27 +182,7 @@ static void insertionSort_double(double* a, int low, int high) {
     }
 }
 
-static void countingSort(char* a, int low, int high) {
-    static constexpr int NUM_CHAR_VALUES = 1 << 16; // Full Unicode range
-    std::vector<int> count(NUM_CHAR_VALUES, 0);
 
-    // Direct unsigned access for characters (matching Java's approach)
-    for (int i = high; i > low; ) {
-        ++count[static_cast<unsigned char>(a[--i])];
-    }
-
-    // Optimized placement for character ranges
-    int index = low;
-    for (int i = 0; i < NUM_CHAR_VALUES; i++) {
-        if (count[i] > 0) {
-            int cnt = count[i];
-            char value = static_cast<char>(i);
-            while (cnt-- > 0) {
-                a[index++] = value;
-            }
-        }
-    }
-}
 
 } // namespace dual_pivot
 
