@@ -95,7 +95,7 @@ void parallelQuickSort(T* a, int bits, int low, int high) {
             int lower, upper;
 
             if (a[e1] < a[e2] && a[e2] < a[e3] && a[e3] < a[e4] && a[e4] < a[e5]) {
-                auto pivotIndices = partitionDualPivot(a, low, high, e1, e5);
+                auto pivotIndices = partition_dual_pivot(a, low, high, e1, e5);
                 lower = pivotIndices.first;
                 upper = pivotIndices.second;
 

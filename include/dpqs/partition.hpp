@@ -41,7 +41,7 @@ namespace dual_pivot {
  * @return std::pair<int, int> containing (lower, upper) partition boundaries
  */
 template<typename T>
-FORCE_INLINE std::pair<int, int> partitionDualPivot(T* a, int low, int high, int pivotIndex1, int pivotIndex2) {
+FORCE_INLINE std::pair<int, int> partition_dual_pivot(T* a, int low, int high, int pivotIndex1, int pivotIndex2) {
     // Phase 6: Optimized dual pivot partitioning with prefetching
     int end = high - 1;
     int lower = low;
@@ -152,7 +152,7 @@ FORCE_INLINE std::pair<int, int> partitionDualPivot(T* a, int low, int high, int
 }
 
 template<typename T>
-std::pair<int, int> partitionSinglePivot(T* a, int low, int high, int pivotIndex1, int) {
+std::pair<int, int> partition_single_pivot(T* a, int low, int high, int pivotIndex1, int) {
     int end = high - 1;
     int lower = low;
     int upper = end;

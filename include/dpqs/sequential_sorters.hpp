@@ -38,20 +38,20 @@ FORCE_INLINE void sort5Network(T* a, int e1, int e2, int e3, int e4, int e5) {
 
 // Forward declarations
 void mixed_insertion_sort_int(int* a, int low, int high);
-std::pair<int, int> partitionDualPivot_int(int* a, int low, int high, int pivotIndex1, int pivotIndex2);
-std::pair<int, int> partitionSinglePivot_int(int* a, int low, int high, int pivotIndex1, int);
+std::pair<int, int> partition_dual_pivot_int(int* a, int low, int high, int pivotIndex1, int pivotIndex2);
+std::pair<int, int> partition_single_pivot_int(int* a, int low, int high, int pivotIndex1, int);
 void mixed_insertion_sort_long(long* a, int low, int high);
 void mixed_insertion_sort_float(float* a, int low, int high);
-std::pair<int, int> partitionDualPivot_float(float* a, int low, int high, int pivotIndex1, int pivotIndex2);
-std::pair<int, int> partitionSinglePivot_float(float* a, int low, int high, int pivotIndex1, int);
+std::pair<int, int> partition_dual_pivot_float(float* a, int low, int high, int pivotIndex1, int pivotIndex2);
+std::pair<int, int> partition_single_pivot_float(float* a, int low, int high, int pivotIndex1, int);
 void mixed_insertion_sort_double(double* a, int low, int high);
-std::pair<int, int> partitionDualPivot_double(double* a, int low, int high, int pivotIndex1, int pivotIndex2);
-std::pair<int, int> partitionSinglePivot_double(double* a, int low, int high, int pivotIndex1, int);
+std::pair<int, int> partition_dual_pivot_double(double* a, int low, int high, int pivotIndex1, int pivotIndex2);
+std::pair<int, int> partition_single_pivot_double(double* a, int low, int high, int pivotIndex1, int);
 void mixed_insertion_sort_byte(signed char* a, int low, int high);
 void mixed_insertion_sort_char(char* a, int low, int high);
 void mixed_insertion_sort_short(short* a, int low, int high);
-std::pair<int, int> partitionDualPivot_long(long* a, int low, int high, int pivotIndex1, int pivotIndex2);
-std::pair<int, int> partitionSinglePivot_long(long* a, int low, int high, int pivotIndex1, int);
+std::pair<int, int> partition_dual_pivot_long(long* a, int low, int high, int pivotIndex1, int pivotIndex2);
+std::pair<int, int> partition_single_pivot_long(long* a, int low, int high, int pivotIndex1, int);
 bool tryMergeRuns_int(Sorter<int>* sorter, int* a, int low, int size);
 bool tryMergeRuns_long(Sorter<long>* sorter, long* a, int low, int size);
 bool tryMergeRuns_float(Sorter<float>* sorter, float* a, int low, int size);
@@ -146,7 +146,7 @@ inline void mixed_insertion_sort_int(int* a, int low, int high) {
     }
 }
 
-inline std::pair<int, int> partitionDualPivot_int(int* a, int low, int high, int pivotIndex1, int pivotIndex2) {
+inline std::pair<int, int> partition_dual_pivot_int(int* a, int low, int high, int pivotIndex1, int pivotIndex2) {
     int end = high - 1;
     int lower = low;
     int upper = end;
@@ -197,7 +197,7 @@ inline std::pair<int, int> partitionDualPivot_int(int* a, int low, int high, int
     return std::make_pair(lower, upper);
 }
 
-inline std::pair<int, int> partitionSinglePivot_int(int* a, int low, int high, int pivotIndex1, int) {
+inline std::pair<int, int> partition_single_pivot_int(int* a, int low, int high, int pivotIndex1, int) {
     int end = high - 1;
     int lower = low;
     int upper = end;
@@ -374,7 +374,7 @@ inline void mixed_insertion_sort_float(float* a, int low, int high) {
     }
 }
 
-inline std::pair<int, int> partitionDualPivot_float(float* a, int low, int high, int pivotIndex1, int pivotIndex2) {
+inline std::pair<int, int> partition_dual_pivot_float(float* a, int low, int high, int pivotIndex1, int pivotIndex2) {
     int end = high - 1;
     int lower = low;
     int upper = end;
@@ -425,7 +425,7 @@ inline std::pair<int, int> partitionDualPivot_float(float* a, int low, int high,
     return std::make_pair(lower, upper);
 }
 
-inline std::pair<int, int> partitionSinglePivot_float(float* a, int low, int high, int pivotIndex1, int) {
+inline std::pair<int, int> partition_single_pivot_float(float* a, int low, int high, int pivotIndex1, int) {
     int end = high - 1;
     int lower = low;
     int upper = end;
@@ -529,7 +529,7 @@ inline void mixed_insertion_sort_double(double* a, int low, int high) {
     }
 }
 
-inline std::pair<int, int> partitionDualPivot_double(double* a, int low, int high, int pivotIndex1, int pivotIndex2) {
+inline std::pair<int, int> partition_dual_pivot_double(double* a, int low, int high, int pivotIndex1, int pivotIndex2) {
     int end = high - 1;
     int lower = low;
     int upper = end;
@@ -580,7 +580,7 @@ inline std::pair<int, int> partitionDualPivot_double(double* a, int low, int hig
     return std::make_pair(lower, upper);
 }
 
-inline std::pair<int, int> partitionSinglePivot_double(double* a, int low, int high, int pivotIndex1, int) {
+inline std::pair<int, int> partition_single_pivot_double(double* a, int low, int high, int pivotIndex1, int) {
     int end = high - 1;
     int lower = low;
     int upper = end;
@@ -833,7 +833,7 @@ inline void mixed_insertion_sort_short(short* a, int low, int high) {
     }
 }
 
-inline std::pair<int, int> partitionDualPivot_long(long* a, int low, int high, int pivotIndex1, int pivotIndex2) {
+inline std::pair<int, int> partition_dual_pivot_long(long* a, int low, int high, int pivotIndex1, int pivotIndex2) {
     int end = high - 1;
     int lower = low;
     int upper = end;
@@ -884,7 +884,7 @@ inline std::pair<int, int> partitionDualPivot_long(long* a, int low, int high, i
     return std::make_pair(lower, upper);
 }
 
-inline std::pair<int, int> partitionSinglePivot_long(long* a, int low, int high, int pivotIndex1, int) {
+inline std::pair<int, int> partition_single_pivot_long(long* a, int low, int high, int pivotIndex1, int) {
     int end = high - 1;
     int lower = low;
     int upper = end;
@@ -1595,7 +1595,7 @@ inline void sort_int_sequential(Sorter<int>* sorter, int* a, int bits, int low, 
 
         // Dual-pivot partitioning
         if (a[e1] < a[e2] && a[e2] < a[e3] && a[e3] < a[e4] && a[e4] < a[e5]) {
-            auto pivotIndices = partition_intrinsic(a, low, high, e1, e5, partitionDualPivot_int);
+            auto pivotIndices = partition_intrinsic(a, low, high, e1, e5, partition_dual_pivot_int);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
 
@@ -1609,7 +1609,7 @@ inline void sort_int_sequential(Sorter<int>* sorter, int* a, int bits, int low, 
             }
         } else {
             // Single-pivot partitioning
-            auto pivotIndices = partition_intrinsic(a, low, high, e3, e3, partitionSinglePivot_int);
+            auto pivotIndices = partition_intrinsic(a, low, high, e3, e3, partition_single_pivot_int);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
 
@@ -1661,7 +1661,7 @@ inline void sort_long_sequential(Sorter<long>* sorter, long* a, int bits, int lo
         int lower, upper;
 
         if (a[e1] < a[e2] && a[e2] < a[e3] && a[e3] < a[e4] && a[e4] < a[e5]) {
-            auto pivotIndices = partitionDualPivot_long(a, low, high, e1, e5);
+            auto pivotIndices = partition_dual_pivot_long(a, low, high, e1, e5);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
 
@@ -1673,7 +1673,7 @@ inline void sort_long_sequential(Sorter<long>* sorter, long* a, int bits, int lo
                 sort_long_sequential(sorter, a, bits | 1, upper + 1, high);
             }
         } else {
-            auto pivotIndices = partitionSinglePivot_long(a, low, high, e3, e3);
+            auto pivotIndices = partition_single_pivot_long(a, low, high, e3, e3);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
 
@@ -1725,7 +1725,7 @@ inline void sort_float_sequential(Sorter<float>* sorter, float* a, int bits, int
         int lower, upper;
 
         if (a[e1] < a[e2] && a[e2] < a[e3] && a[e3] < a[e4] && a[e4] < a[e5]) {
-            auto pivotIndices = partitionDualPivot_float(a, low, high, e1, e5);
+            auto pivotIndices = partition_dual_pivot_float(a, low, high, e1, e5);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
 
@@ -1737,7 +1737,7 @@ inline void sort_float_sequential(Sorter<float>* sorter, float* a, int bits, int
                 sort_float_sequential(sorter, a, bits | 1, upper + 1, high);
             }
         } else {
-            auto pivotIndices = partitionSinglePivot_float(a, low, high, e3, e3);
+            auto pivotIndices = partition_single_pivot_float(a, low, high, e3, e3);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
 
@@ -1789,7 +1789,7 @@ inline void sort_double_sequential(Sorter<double>* sorter, double* a, int bits, 
         int lower, upper;
 
         if (a[e1] < a[e2] && a[e2] < a[e3] && a[e3] < a[e4] && a[e4] < a[e5]) {
-            auto pivotIndices = partitionDualPivot_double(a, low, high, e1, e5);
+            auto pivotIndices = partition_dual_pivot_double(a, low, high, e1, e5);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
 
@@ -1801,7 +1801,7 @@ inline void sort_double_sequential(Sorter<double>* sorter, double* a, int bits, 
                 sort_double_sequential(sorter, a, bits | 1, upper + 1, high);
             }
         } else {
-            auto pivotIndices = partitionSinglePivot_double(a, low, high, e3, e3);
+            auto pivotIndices = partition_single_pivot_double(a, low, high, e3, e3);
             lower = pivotIndices.first;
             upper = pivotIndices.second;
 

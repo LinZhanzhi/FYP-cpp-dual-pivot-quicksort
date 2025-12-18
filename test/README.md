@@ -73,4 +73,24 @@ g++ -std=c++17 -Iinclude test/test_insertion_sort.cpp -o test_insertion_sort
 - **Specialized Functions**: `insertion_sort_int`, `insertion_sort_long`, `insertion_sort_float`, `insertion_sort_double`.
 - **Scenarios**: Random arrays of various types (`int`, `long`, `float`, `double`).
 
+## Partition Test (`test_partition.cpp`)
+
+This test verifies the correctness of the Partitioning implementation in `include/dpqs/partition.hpp`.
+
+### How to Run
+
+From the project root directory:
+
+```bash
+g++ -std=c++17 -Iinclude test/test_partition.cpp -o test_partition
+./test_partition
+```
+
+### Coverage
+- **Functions**: `partition_dual_pivot`, `partition_single_pivot`.
+- **Scenarios**:
+    - **Dual Pivot**: Verifies 3-way partitioning around two pivots (P1, P2). Checks regions `< P1`, `P1 <= x <= P2`, and `> P2`.
+    - **Single Pivot**: Verifies 3-way partitioning around one pivot. Checks regions `< P`, `== P`, and `> P`.
+
+
 
