@@ -26,13 +26,13 @@ public:
     void compute() override {
         // Runtime type dispatch for merging operations (matching Java's approach)
         if (dst.isIntArray()) {
-            mergeParts(dst.asIntArray(), k, a1.asIntArray(), lo1, hi1, a2.asIntArray(), lo2, hi2);
+            merge_parts(dst.asIntArray(), k, a1.asIntArray(), lo1, hi1, a2.asIntArray(), lo2, hi2);
         } else if (dst.isLongArray()) {
-            mergeParts(dst.asLongArray(), k, a1.asLongArray(), lo1, hi1, a2.asLongArray(), lo2, hi2);
+            merge_parts(dst.asLongArray(), k, a1.asLongArray(), lo1, hi1, a2.asLongArray(), lo2, hi2);
         } else if (dst.isFloatArray()) {
-            mergeParts(dst.asFloatArray(), k, a1.asFloatArray(), lo1, hi1, a2.asFloatArray(), lo2, hi2);
+            merge_parts(dst.asFloatArray(), k, a1.asFloatArray(), lo1, hi1, a2.asFloatArray(), lo2, hi2);
         } else if (dst.isDoubleArray()) {
-            mergeParts(dst.asDoubleArray(), k, a1.asDoubleArray(), lo1, hi1, a2.asDoubleArray(), lo2, hi2);
+            merge_parts(dst.asDoubleArray(), k, a1.asDoubleArray(), lo1, hi1, a2.asDoubleArray(), lo2, hi2);
         } else {
             throw std::runtime_error("Unknown array type in GenericMerger::compute()");
         }
@@ -105,10 +105,10 @@ public:
         // Use parallel merge with subdivision for large parts
         if (hi1 - lo1 >= MIN_PARALLEL_MERGE_PARTS_SIZE && hi2 - lo2 >= MIN_PARALLEL_MERGE_PARTS_SIZE) {
             // Parallel merge with binary search partitioning
-            parallelMergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+            parallel_merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
         } else {
             // Sequential merge for small parts
-            mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+            merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
         }
     }
 };
@@ -184,7 +184,7 @@ public:
         int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
         // Advanced merge with parallel coordination
-        mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+        merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
         return dst;
     }
 

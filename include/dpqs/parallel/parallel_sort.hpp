@@ -27,7 +27,7 @@ void parallelMergeSort(T* a, T* b, int low, int size, int offset, int depth) {
         future1.get();
         future2.get();
 
-        parallelMergeParts(a, low, b, low, low + half, b, low + half, low + size);
+        parallel_merge_parts(a, low, b, low, low + half, b, low + half, low + size);
     } else {
         std::copy(a + low, a + low + size, b + low - offset);
         sort(b, depth, low - offset, low - offset + size);

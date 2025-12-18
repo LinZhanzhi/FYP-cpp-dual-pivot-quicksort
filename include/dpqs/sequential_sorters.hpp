@@ -1193,7 +1193,7 @@ inline int* mergeRuns_int(int* a, int* b, int offset, int aim, bool parallel, co
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
-    mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+    merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
 
@@ -1223,7 +1223,7 @@ inline long* mergeRuns_long(long* a, long* b, int offset, int aim, bool parallel
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
-    mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+    merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
 
@@ -1253,7 +1253,7 @@ inline float* mergeRuns_float(float* a, float* b, int offset, int aim, bool para
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
-    mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+    merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
 
@@ -1283,7 +1283,7 @@ inline double* mergeRuns_double(double* a, double* b, int offset, int aim, bool 
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
-    mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+    merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
 
@@ -1487,7 +1487,7 @@ inline signed char* mergeRuns_byte(signed char* a, signed char* b, int offset, i
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
-    mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+    merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
 
@@ -1517,7 +1517,7 @@ inline char* mergeRuns_char(char* a, char* b, int offset, int aim, bool parallel
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
-    mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+    merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
 
@@ -1547,7 +1547,7 @@ inline short* mergeRuns_short(short* a, short* b, int offset, int aim, bool para
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
-    mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+    merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
 

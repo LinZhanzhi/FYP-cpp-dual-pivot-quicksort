@@ -40,7 +40,7 @@ T* mergeRuns(T* a, T* b, int offset, int aim,
              const std::vector<int>& run, int lo, int hi);
 
 template<typename T>
-void mergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2);
+void merge_parts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2);
 
 /**
  * @brief Attempts to detect and merge sorted runs for optimized sorting
@@ -196,7 +196,7 @@ T* mergeRuns(T* a, T* b, int offset, int aim,
     int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
-    mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+    merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;
 }
 

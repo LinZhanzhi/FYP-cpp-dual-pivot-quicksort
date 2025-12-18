@@ -92,5 +92,25 @@ g++ -std=c++17 -Iinclude test/test_partition.cpp -o test_partition
     - **Dual Pivot**: Verifies 3-way partitioning around two pivots (P1, P2). Checks regions `< P1`, `P1 <= x <= P2`, and `> P2`.
     - **Single Pivot**: Verifies 3-way partitioning around one pivot. Checks regions `< P`, `== P`, and `> P`.
 
+## Merge Ops Test (`test_merge_ops.cpp`)
+
+This test verifies the correctness of the Merge Operations implementation in `include/dpqs/merge_ops.hpp`.
+
+### How to Run
+
+From the project root directory:
+
+```bash
+g++ -std=c++17 -Iinclude test/test_merge_ops.cpp -o test_merge_ops -pthread
+./test_merge_ops
+```
+
+### Coverage
+- **Functions**: `merge_parts`, `parallel_merge_parts`.
+- **Scenarios**:
+    - **Sequential Merge**: Merging two sorted arrays into a destination array.
+    - **Parallel Merge**: Merging large sorted arrays using parallel divide-and-conquer.
+
+
 
 

@@ -41,7 +41,7 @@ namespace dual_pivot {
  * @param hi2 Ending index of second segment (exclusive)
  */
 template<typename T>
-void mergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2) {
+void merge_parts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2) {
     // Phase 1: Main merge loop - process both arrays while they have elements
     // Uses branch-free comparison for better performance on modern CPUs
     while (lo1 < hi1 && lo2 < hi2) {
@@ -103,7 +103,7 @@ void mergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2)
  * @param hi2 Ending index of second segment (exclusive)
  */
 template<typename T>
-void parallelMergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2) {
+void parallel_merge_parts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2) {
     // Check if both segments are large enough for parallel processing
     if (hi1 - lo1 >= MIN_PARALLEL_MERGE_PARTS_SIZE && hi2 - lo2 >= MIN_PARALLEL_MERGE_PARTS_SIZE) {
         // Ensure first array is larger for optimal partitioning
@@ -128,18 +128,18 @@ void parallelMergeParts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, 
         // Launch parallel task for right partition
         auto& pool = getThreadPool();
         auto future = pool.enqueue([=] {
-            parallelMergeParts(dst, k + d, a1, mi1, hi1, a2, mi2, hi2);
+            parallel_merge_parts(dst, k + d, a1, mi1, hi1, a2, mi2, hi2);
         });
 
         // Process left partition in current thread
-        parallelMergeParts(dst, k, a1, lo1, mi1, a2, lo2, mi2);
+        parallel_merge_parts(dst, k, a1, lo1, mi1, a2, lo2, mi2);
 
         // Wait for right partition to complete
         future.get();
     } else {
         // Fall back to sequential merge for small segments
         // This avoids thread creation overhead for small workloads
-        mergeParts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+        merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     }
 }
 
