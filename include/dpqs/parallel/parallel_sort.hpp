@@ -45,12 +45,12 @@ void parallelQuickSort(T* a, int bits, int low, int high) {
             size = high - low;
 
             if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
-                mixedInsertionSort(a, low, high);
+                mixed_insertion_sort(a, low, high);
                 return;
             }
 
             if (size < MAX_INSERTION_SORT_SIZE) {
-                insertionSort(a, low, high);
+                insertion_sort(a, low, high);
                 return;
             }
 

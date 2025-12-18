@@ -37,19 +37,19 @@ FORCE_INLINE void sort5Network(T* a, int e1, int e2, int e3, int e4, int e5) {
 }
 
 // Forward declarations
-void mixedInsertionSort_int(int* a, int low, int high);
+void mixed_insertion_sort_int(int* a, int low, int high);
 std::pair<int, int> partitionDualPivot_int(int* a, int low, int high, int pivotIndex1, int pivotIndex2);
 std::pair<int, int> partitionSinglePivot_int(int* a, int low, int high, int pivotIndex1, int);
-void mixedInsertionSort_long(long* a, int low, int high);
-void mixedInsertionSort_float(float* a, int low, int high);
+void mixed_insertion_sort_long(long* a, int low, int high);
+void mixed_insertion_sort_float(float* a, int low, int high);
 std::pair<int, int> partitionDualPivot_float(float* a, int low, int high, int pivotIndex1, int pivotIndex2);
 std::pair<int, int> partitionSinglePivot_float(float* a, int low, int high, int pivotIndex1, int);
-void mixedInsertionSort_double(double* a, int low, int high);
+void mixed_insertion_sort_double(double* a, int low, int high);
 std::pair<int, int> partitionDualPivot_double(double* a, int low, int high, int pivotIndex1, int pivotIndex2);
 std::pair<int, int> partitionSinglePivot_double(double* a, int low, int high, int pivotIndex1, int);
-void mixedInsertionSort_byte(signed char* a, int low, int high);
-void mixedInsertionSort_char(char* a, int low, int high);
-void mixedInsertionSort_short(short* a, int low, int high);
+void mixed_insertion_sort_byte(signed char* a, int low, int high);
+void mixed_insertion_sort_char(char* a, int low, int high);
+void mixed_insertion_sort_short(short* a, int low, int high);
 std::pair<int, int> partitionDualPivot_long(long* a, int low, int high, int pivotIndex1, int pivotIndex2);
 std::pair<int, int> partitionSinglePivot_long(long* a, int low, int high, int pivotIndex1, int);
 bool tryMergeRuns_int(Sorter<int>* sorter, int* a, int low, int size);
@@ -73,7 +73,7 @@ void sort_double_sequential(Sorter<double>* sorter, double* a, int bits, int low
 
 // Definitions
 
-inline void mixedInsertionSort_int(int* a, int low, int high) {
+inline void mixed_insertion_sort_int(int* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
 
@@ -231,7 +231,7 @@ inline std::pair<int, int> partitionSinglePivot_int(int* a, int low, int high, i
     return std::make_pair(lower, upper);
 }
 
-inline void mixedInsertionSort_long(long* a, int low, int high) {
+inline void mixed_insertion_sort_long(long* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
 
@@ -301,7 +301,7 @@ inline void mixedInsertionSort_long(long* a, int low, int high) {
     }
 }
 
-inline void mixedInsertionSort_float(float* a, int low, int high) {
+inline void mixed_insertion_sort_float(float* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
 
@@ -459,7 +459,7 @@ inline std::pair<int, int> partitionSinglePivot_float(float* a, int low, int hig
     return std::make_pair(lower, upper);
 }
 
-inline void mixedInsertionSort_double(double* a, int low, int high) {
+inline void mixed_insertion_sort_double(double* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
 
@@ -614,7 +614,7 @@ inline std::pair<int, int> partitionSinglePivot_double(double* a, int low, int h
     return std::make_pair(lower, upper);
 }
 
-inline void mixedInsertionSort_byte(signed char* a, int low, int high) {
+inline void mixed_insertion_sort_byte(signed char* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
 
@@ -687,7 +687,7 @@ inline void mixedInsertionSort_byte(signed char* a, int low, int high) {
     }
 }
 
-inline void mixedInsertionSort_char(char* a, int low, int high) {
+inline void mixed_insertion_sort_char(char* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
 
@@ -760,7 +760,7 @@ inline void mixedInsertionSort_char(char* a, int low, int high) {
     }
 }
 
-inline void mixedInsertionSort_short(short* a, int low, int high) {
+inline void mixed_insertion_sort_short(short* a, int low, int high) {
     int size = high - low;
     int end = high - 3 * ((size >> 5) << 3);
 
@@ -1558,7 +1558,7 @@ inline void sort_int_sequential(Sorter<int>* sorter, int* a, int bits, int low, 
 
         // Use mixed insertion sort on small non-leftmost parts
         if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
-            sort_intrinsic(a, low, high, mixedInsertionSort_int);
+            sort_intrinsic(a, low, high, mixed_insertion_sort_int);
             return;
         }
 
@@ -1630,7 +1630,7 @@ inline void sort_long_sequential(Sorter<long>* sorter, long* a, int bits, int lo
         int size = high - low;
 
         if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
-            sort_intrinsic(a, low, high, mixedInsertionSort_long);
+            sort_intrinsic(a, low, high, mixed_insertion_sort_long);
             return;
         }
 
@@ -1694,7 +1694,7 @@ inline void sort_float_sequential(Sorter<float>* sorter, float* a, int bits, int
         int size = high - low;
 
         if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
-            sort_intrinsic(a, low, high, mixedInsertionSort_float);
+            sort_intrinsic(a, low, high, mixed_insertion_sort_float);
             return;
         }
 
@@ -1758,7 +1758,7 @@ inline void sort_double_sequential(Sorter<double>* sorter, double* a, int bits, 
         int size = high - low;
 
         if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
-            sort_intrinsic(a, low, high, mixedInsertionSort_double);
+            sort_intrinsic(a, low, high, mixed_insertion_sort_double);
             return;
         }
 

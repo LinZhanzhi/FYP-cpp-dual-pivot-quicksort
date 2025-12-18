@@ -55,3 +55,22 @@ g++ -std=c++17 -Iinclude test/test_float_sort.cpp -o test_float_sort
     - **Signed Zeros**: Verifies that `-0.0` is placed before `+0.0`.
     - **Mixed Values**: Arrays containing negative numbers, positive numbers, zeros, and NaNs.
 
+## Insertion Sort Test (`test_insertion_sort.cpp`)
+
+This test verifies the correctness of the Insertion Sort implementation in `include/dpqs/insertion_sort.hpp`.
+
+### How to Run
+
+From the project root directory:
+
+```bash
+g++ -std=c++17 -Iinclude test/test_insertion_sort.cpp -o test_insertion_sort
+./test_insertion_sort
+```
+
+### Coverage
+- **Templates**: `insertion_sort`, `mixed_insertion_sort`.
+- **Specialized Functions**: `insertion_sort_int`, `insertion_sort_long`, `insertion_sort_float`, `insertion_sort_double`.
+- **Scenarios**: Random arrays of various types (`int`, `long`, `float`, `double`).
+
+
