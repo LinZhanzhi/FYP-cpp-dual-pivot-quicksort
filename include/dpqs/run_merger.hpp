@@ -128,6 +128,7 @@ bool try_merge_runs(T* a, int low, int size, bool parallel = false) {
 
             run.reserve(((size >> 10) | 0x7F) & 0x3FF);
             run.push_back(low);
+            run.push_back(last = k);
 
         } else if (a[last - 1] > a[last]) {
             if (count > (k - low) >> MIN_FIRST_RUNS_FACTOR) {
@@ -140,8 +141,10 @@ bool try_merge_runs(T* a, int low, int size, bool parallel = false) {
                 // Array is not highly structured.
                 return false;
             }
+            run.push_back(last = k);
+        } else {
+            run.back() = last = k;
         }
-        run.push_back(last = k);
     }
 
     // Merge runs of highly structured array

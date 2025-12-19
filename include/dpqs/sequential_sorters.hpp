@@ -80,8 +80,7 @@ void sort_sequential(Sorter<T>* sorter, T* a, int bits, int low, int high) {
         }
 
         // Try merge runs for nearly sorted data
-        if ((bits == 0 || (size > MIN_TRY_MERGE_SIZE && (bits & 1) > 0))
-                && try_merge_runs(a, low, size, sorter != nullptr)) {
+        if (size > MIN_TRY_MERGE_SIZE && try_merge_runs(a, low, size, sorter != nullptr)) {
             return;
         }
 
@@ -127,9 +126,9 @@ void sort_sequential(Sorter<T>* sorter, T* a, int bits, int low, int high) {
             upper = pivotIndices.second;
 
             if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
-                sorter->forkSorter(bits | 1, upper, high);
+                sorter->forkSorter(bits | 1, upper + 1, high);
             } else {
-                sort_sequential(sorter, a, bits | 1, upper, high);
+                sort_sequential(sorter, a, bits | 1, upper + 1, high);
             }
         }
 

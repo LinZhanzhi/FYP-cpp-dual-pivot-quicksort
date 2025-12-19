@@ -2,7 +2,6 @@
 #define DPQS_PARTITION_HPP
 
 #include <utility>
-#include <immintrin.h>
 #include "dpqs/utils.hpp"
 
 namespace dual_pivot {
@@ -42,152 +41,70 @@ namespace dual_pivot {
  */
 template<typename T>
 FORCE_INLINE std::pair<int, int> partition_dual_pivot(T* a, int low, int high, int pivotIndex1, int pivotIndex2) {
-    // Phase 6: Optimized dual pivot partitioning with prefetching
-    int end = high - 1;
-    int lower = low;
-    int upper = end;
+    // Move pivots to ends
+    std::swap(a[low], a[pivotIndex1]);
+    std::swap(a[high - 1], a[pivotIndex2]);
 
-    // Extract pivot values
-    int e1 = pivotIndex1;
-    int e5 = pivotIndex2;
-    T pivot1 = a[e1];  // P1 - smaller pivot
-    T pivot2 = a[e5];  // P2 - larger pivot (P1 ≤ P2)
+    T pivot1 = a[low];
+    T pivot2 = a[high - 1];
 
-    // Move pivots to the boundaries for partitioning
-    // The first and last elements are moved to positions formerly occupied by pivots
-    a[e1] = a[lower];
-    a[e5] = a[upper];
+    int lt = low + 1;
+    int gt = high - 2;
+    int i = lt;
 
-    // Skip elements that are already in correct positions
-    // This optimization reduces unnecessary work for partially sorted data
-    // Added bounds checks for safety, though sentinels should prevent OOB
-    while (lower < end && a[++lower] < pivot1);
-    while (upper > low && a[--upper] > pivot2);
-
-    // Backward 3-interval partitioning with cache optimization
-    // Process from right to left for better cache utilization
-    (void)--lower; // Mark lower as used (avoid compiler warning)
-    for (int k = ++upper; --k > lower; ) {
-
-        // SIMD Optimization: Skip elements that belong in the middle partition
-        // We look for a block of 8 elements where pivot1 <= x <= pivot2
-        // This significantly speeds up processing of random data where most elements
-        // fall into the middle partition.
-#ifdef __AVX2__
-        if constexpr (std::is_same_v<T, int>) {
-            // Ensure we have at least 8 elements to process (k down to k-7)
-            // and we don't cross the lower boundary
-            while (k > lower + 8) {
-                // Load 8 elements ending at k (indices k-7 to k)
-                // Note: _mm256_loadu_si256 loads 256 bits (8 ints)
-                // We load from &a[k-7] to get elements a[k-7]...a[k]
-                __m256i v = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&a[k - 7]));
-
-                // Broadcast pivots
-                __m256i p1 = _mm256_set1_epi32(pivot1);
-                __m256i p2 = _mm256_set1_epi32(pivot2);
-
-                // Check if any element is < pivot1
-                // _mm256_cmpgt_epi32(a, b) returns 0xFFFFFFFF if a > b
-                // We want v < p1, which is p1 > v
-                __m256i lt_p1 = _mm256_cmpgt_epi32(p1, v);
-
-                // Check if any element is > pivot2
-                // We want v > p2
-                __m256i gt_p2 = _mm256_cmpgt_epi32(v, p2);
-
-                // Combine conditions: if any element is outside [pivot1, pivot2]
-                __m256i outside = _mm256_or_si256(lt_p1, gt_p2);
-
-                // If all bits are zero, then all elements are in range [pivot1, pivot2]
-                if (_mm256_testz_si256(outside, outside)) {
-                    // All 8 elements are in the middle partition, skip them!
-                    k -= 8;
-                } else {
-                    // Block contains elements that need moving, process one by one
-                    break;
-                }
-            }
+    while (i <= gt) {
+        if (a[i] < pivot1) {
+            std::swap(a[i], a[lt]);
+            lt++;
+            i++;
+        } else if (a[i] > pivot2) {
+            std::swap(a[i], a[gt]);
+            gt--;
+        } else {
+            i++;
         }
-#endif
-
-        T ak = a[k];
-
-        // Prefetch elements ahead for better cache utilization
-        // This addresses the "memory wall" problem where CPU speed >> memory speed
-        if (LIKELY(k > lower + 1)) {
-            PREFETCH_READ(&a[k - 1]);
-        }
-
-        if (UNLIKELY(ak < pivot1)) {
-            // Element belongs in left partition (< P1)
-            while (lower < k) {
-                if (LIKELY(a[++lower] >= pivot1)) {
-                    if (UNLIKELY(a[lower] > pivot2)) {
-                        // Found element > P2, move it to right partition
-                        a[k] = a[--upper];
-                        a[upper] = a[lower];
-                    } else {
-                        // Found element in middle partition
-                        a[k] = a[lower];
-                    }
-                    a[lower] = ak;
-                    break;
-                }
-            }
-        } else if (UNLIKELY(ak > pivot2)) {
-            // Element belongs in right partition (> P2)
-            a[k] = a[--upper];
-            a[upper] = ak;
-        }
-        // Elements with P1 ≤ ak ≤ P2 stay in place (middle partition)
     }
 
-    // Swap the pivots into their final positions
-    a[low] = a[lower];
-    a[lower] = pivot1;  // P1 to its final position
-    a[end] = a[upper];
-    a[upper] = pivot2;  // P2 to its final position
+    --lt;
+    ++gt;
+    std::swap(a[low], a[lt]);
+    std::swap(a[high - 1], a[gt]);
 
-    return std::make_pair(lower, upper);
+    return std::make_pair(lt, gt);
 }
 
 template<typename T>
 std::pair<int, int> partition_single_pivot(T* a, int low, int high, int pivotIndex1, int) {
-    int end = high - 1;
-    int lower = low;
-    int upper = end;
-    int e3 = pivotIndex1;
-    T pivot = a[e3];
+    int lt = low;
+    int gt = high;
+    T pivot = a[pivotIndex1];
 
-    // The first element to be sorted is moved to the location formerly occupied by the pivot
-    a[e3] = a[lower];
+    // Move pivot to start
+    std::swap(a[low], a[pivotIndex1]);
 
-    // Traditional 3-way (Dutch National Flag) partitioning
-    for (int k = ++upper; --k > lower; ) {
-        T ak = a[k];
-
-        if (ak != pivot) {
-            a[k] = pivot;
-
-            if (ak < pivot) { // Move a[k] to the left side
-                while (lower < end && a[++lower] < pivot); // Added bounds check
-
-                if (a[lower] > pivot) {
-                    a[--upper] = a[lower];
-                }
-                a[lower] = ak;
-            } else { // ak > pivot - Move a[k] to the right side
-                a[--upper] = ak;
-            }
+    int i = low + 1;
+    while (i < gt) {
+        if (a[i] < pivot) {
+            std::swap(a[lt++], a[i++]);
+        } else if (a[i] > pivot) {
+            std::swap(a[i], a[--gt]);
+        } else {
+            i++;
         }
     }
 
-    // The first element is moved to the pivot position
-    a[low] = a[lower];
-    a[lower] = pivot;
+    // lt points to the first element equal to pivot (because we swapped pivot to a[lt] initially and incremented lt?
+    // No, initially a[low] is pivot. lt=low.
+    // If a[i] < pivot, swap(a[lt], a[i]). a[lt] becomes small. lt increments.
+    // So a[lt-1] is small. a[lt] is pivot (or equal).
+    // So lt is the start of equal range.
 
-    return std::make_pair(lower, upper);
+    // gt points to the first element > pivot.
+    // So equal range is [lt, gt).
+    // We need to return inclusive boundaries [lower, upper].
+    // So return (lt, gt - 1).
+
+    return std::make_pair(lt, gt - 1);
 }
 
 } // namespace dual_pivot

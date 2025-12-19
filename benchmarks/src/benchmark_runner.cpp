@@ -49,8 +49,18 @@ void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size
         std::stable_sort(warmup_data.begin(), warmup_data.end());
     } else if (algo == "qsort") {
         std::qsort(warmup_data.data(), warmup_data.size(), sizeof(T), compare<T>);
+    } else if (algo == "dual_pivot_parallel") {
+        dual_pivot::sort(warmup_data);
+    } else if (algo == "dual_pivot_sequential") {
+        dual_pivot::sort(warmup_data, 1);
     } else {
         dual_pivot::sort(warmup_data);
+    }
+
+    // Correctness Check
+    if (!std::is_sorted(warmup_data.begin(), warmup_data.end())) {
+        std::cerr << "Error: Algorithm " << algo << " failed to sort the array correctly." << std::endl;
+        std::exit(1);
     }
 
     std::vector<double> durations;
@@ -67,6 +77,10 @@ void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size
             std::stable_sort(test_data.begin(), test_data.end());
         } else if (algo == "qsort") {
             std::qsort(test_data.data(), test_data.size(), sizeof(T), compare<T>);
+        } else if (algo == "dual_pivot_parallel") {
+            dual_pivot::sort(test_data);
+        } else if (algo == "dual_pivot_sequential") {
+            dual_pivot::sort(test_data, 1);
         } else {
             dual_pivot::sort(test_data);
         }

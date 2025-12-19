@@ -1886,47 +1886,7 @@ FORCE_INLINE std::pair<int, int> partitionDualPivot(T* a, int low, int high, int
     (void)--lower; // Mark lower as used (avoid compiler warning)
     for (int k = ++upper; --k > lower; ) {
 
-        // SIMD Optimization: Skip elements that belong in the middle partition
-        // We look for a block of 8 elements where pivot1 <= x <= pivot2
-        // This significantly speeds up processing of random data where most elements
-        // fall into the middle partition.
-#ifdef __AVX2__
-        if constexpr (std::is_same_v<T, int>) {
-            // Ensure we have at least 8 elements to process (k down to k-7)
-            // and we don't cross the lower boundary
-            while (k > lower + 8) {
-                // Load 8 elements ending at k (indices k-7 to k)
-                // Note: _mm256_loadu_si256 loads 256 bits (8 ints)
-                // We load from &a[k-7] to get elements a[k-7]...a[k]
-                __m256i v = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&a[k - 7]));
-
-                // Broadcast pivots
-                __m256i p1 = _mm256_set1_epi32(pivot1);
-                __m256i p2 = _mm256_set1_epi32(pivot2);
-
-                // Check if any element is < pivot1
-                // _mm256_cmpgt_epi32(a, b) returns 0xFFFFFFFF if a > b
-                // We want v < p1, which is p1 > v
-                __m256i lt_p1 = _mm256_cmpgt_epi32(p1, v);
-
-                // Check if any element is > pivot2
-                // We want v > p2
-                __m256i gt_p2 = _mm256_cmpgt_epi32(v, p2);
-
-                // Combine conditions: if any element is outside [pivot1, pivot2]
-                __m256i outside = _mm256_or_si256(lt_p1, gt_p2);
-
-                // If all bits are zero, then all elements are in range [pivot1, pivot2]
-                if (_mm256_testz_si256(outside, outside)) {
-                    // All 8 elements are in the middle partition, skip them!
-                    k -= 8;
-                } else {
-                    // Block contains elements that need moving, process one by one
-                    break;
-                }
-            }
-        }
-#endif
+        // SIMD optimizations removed: fall back to scalar processing
 
         T ak = a[k];
 

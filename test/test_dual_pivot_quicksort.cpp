@@ -150,6 +150,7 @@ int main() {
     run_test<int>("Int Reverse Sorted", generate_reverse_sorted<int>(1000));
     run_test<int>("Int All Duplicates", generate_duplicates<int>(1000, 7));
     run_test<int>("Int Sawtooth", generate_sawtooth<int>(1000, 50));
+    run_test<int>("Int Sawtooth Large", generate_sawtooth<int>(5012, 501));
 
     // -------------------------------------------------------------------------
     // 2. Large Integer Tests (Parallelism Check)

@@ -16,7 +16,7 @@ WSL_BASE_DIR = "/home/lzz725/FYP/benchmarks"
 WSL_RUNNER = f"{WSL_BASE_DIR}/build/benchmark_runner"
 WSL_RESULTS_DIR = f"{WSL_BASE_DIR}/results/raw"
 
-ALGORITHMS = ["std_sort", "dual_pivot", "std_stable_sort", "qsort"]
+ALGORITHMS = ["dual_pivot_parallel", "dual_pivot_sequential"]
 TYPES = ["int", "double"]
 PATTERNS = [
     "RANDOM", "NEARLY_SORTED", "REVERSE_SORTED",
@@ -74,6 +74,16 @@ def run_single_test(algo, type_, pattern, size):
 
 def run_benchmark():
     ensure_directories()
+
+    # Cleanup old dual_pivot results to force rerun
+    print("Cleaning up old dual_pivot results...")
+    if os.path.exists(RESULTS_DIR):
+        for f in os.listdir(RESULTS_DIR):
+            if f.startswith("res_dual_pivot"):
+                try:
+                    os.remove(os.path.join(RESULTS_DIR, f))
+                except OSError as e:
+                    print(f"Error removing {f}: {e}")
 
     combinations = list(itertools.product(ALGORITHMS, TYPES, PATTERNS, SIZES))
     total = len(combinations)
