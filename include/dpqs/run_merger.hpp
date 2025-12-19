@@ -153,8 +153,11 @@ bool try_merge_runs(T* a, int low, int size, bool parallel = false) {
 
         if (parallel && count >= MIN_RUN_COUNT) {
             // Use parallel run merging for large run counts
-            RunMerger<T> merger(a, b.data(), low, 1, run, 0, count);
-            T* result = merger.compute();
+            auto* merger = new RunMerger<T>(nullptr, a, b.data(), low, 1, run, 0, count);
+            merger->invoke();
+            merger->wait();
+            T* result = merger->result;
+            delete merger;
 
             // Copy back to main array if needed
             if (result != a) {

@@ -6,6 +6,7 @@
 #include "dpqs/types.hpp"
 #include "dpqs/utils.hpp"
 #include "dpqs/parallel/threadpool.hpp"
+#include <vector>
 
 namespace dual_pivot {
 
@@ -50,6 +51,7 @@ private:
     int size;                    ///< Number of elements to sort
     int offset;                  ///< Buffer offset for reuse optimization
     int depth;                   ///< Recursion depth for algorithm selection
+    std::vector<GenericSorter*> children;
 
 public:
     /**
@@ -66,6 +68,12 @@ public:
         : CountedCompleter<void>(parent), parent(parent), a(a), b(b),
           low(low), size(size), offset(offset), depth(depth) {}
 
+    ~GenericSorter() {
+        for (auto* child : children) {
+            delete child;
+        }
+    }
+
     /**
      * @brief Main computation method - performs type dispatch and sorting
      *
@@ -74,9 +82,11 @@ public:
      * Currently simplified to avoid forward declaration circular dependencies.
      */
     void compute() override {
+        this->addToPendingCount(1);
         // TODO: Implement full runtime type dispatch here
         // Will dispatch to appropriate type-specific sorter based on a.data type
         // For now, just complete the task to avoid compilation issues
+        this->addToPendingCount(-1);
         tryComplete();
     }
 
@@ -101,6 +111,7 @@ public:
         // Helps compiler with register allocation and reduces memory accesses
         ArrayPointer localA = this->a;
         auto* child = new GenericSorter(this, localA, b, low, high - low, offset, depth);
+        children.push_back(child);
         child->fork();
     }
 
@@ -149,6 +160,7 @@ private:
     int size;                    ///< Number of elements to sort
     int offset;                  ///< Buffer offset for reuse optimization
     int depth;                   ///< Recursion depth for algorithm selection
+    std::vector<Sorter*> children; ///< Children tasks to manage memory
 
 public:
     /**
@@ -164,6 +176,12 @@ public:
     Sorter(Sorter* parent, T* a, T* b, int low, int size, int offset, int depth)
         : CountedCompleter<T>(parent), parent(parent), a(a), b(b),
           low(low), size(size), offset(offset), depth(depth) {}
+
+    ~Sorter() {
+        for (auto* child : children) {
+            delete child;
+        }
+    }
 
     /**
      * @brief Main computation method for parallel sorting
@@ -182,6 +200,7 @@ public:
      * - Integration with type-specific Sorter coordination
      */
     void compute() override {
+        this->addToPendingCount(1); // Hold pending count while running
         if (depth < 0) {
             // Use parallel merge sort for highly parallel scenarios
             // this->setPendingCount(2); // Removed to avoid deadlock
@@ -193,6 +212,9 @@ public:
             auto* left = new Sorter(this, b_adjusted, a, low, half, offset, depth + 1);
             auto* right = new Sorter(this, b_adjusted, a, low + half, size - half, offset, depth + 1);
 
+            children.push_back(left);
+            children.push_back(right);
+
             left->fork();
             right->compute();
         } else {
@@ -200,6 +222,7 @@ public:
             // which handles forking if a sorter is provided
             sort_sequential(this, a, depth, low, low + size);
         }
+        this->addToPendingCount(-1); // Release hold
         this->tryComplete();
     }
 
@@ -243,6 +266,7 @@ public:
     void forkSorter(int depth, int low, int high) {
         // this->addToPendingCount(1); // Removed: Constructor already increments pending count
         auto* child = new Sorter(this, a, b, low, high - low, offset, depth);
+        children.push_back(child);
         child->fork();
     }
 

@@ -62,21 +62,21 @@ public:
                 curr->completed = true;
                 curr->completion_cv.notify_all(); // Notify waiters
 
+                try {
+                    curr->onCompletion(curr);
+                } catch (...) {
+                    curr->completeExceptionally(std::current_exception());
+                    return;
+                }
+
                 CountedCompleter* parent = curr->parent;
 
                 if (parent) {
-                    try {
-                        curr->onCompletion(curr);
-
-                        // Advanced pending count management with atomic operations
-                        int prevPending = parent->pending.fetch_sub(1);
-                        if (prevPending == 1) {
-                            curr = parent;
-                            continue;  // Propagate completion to parent
-                        }
-                    } catch (...) {
-                        curr->completeExceptionally(std::current_exception());
-                        return;
+                    // Advanced pending count management with atomic operations
+                    int prevPending = parent->pending.fetch_sub(1);
+                    if (prevPending == 1) {
+                        curr = parent;
+                        continue;  // Propagate completion to parent
                     }
                 }
                 break;

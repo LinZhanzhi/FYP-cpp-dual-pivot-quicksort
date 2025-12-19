@@ -16,7 +16,7 @@ WSL_BASE_DIR = "/home/lzz725/FYP/benchmarks"
 WSL_RUNNER = f"{WSL_BASE_DIR}/build/benchmark_runner"
 WSL_RESULTS_DIR = f"{WSL_BASE_DIR}/results/raw"
 
-ALGORITHMS = ["dual_pivot_parallel", "dual_pivot_sequential"]
+ALGORITHMS = ["std_sort", "std_stable_sort", "qsort", "dual_pivot_parallel", "dual_pivot_sequential"]
 TYPES = ["int", "double"]
 PATTERNS = [
     "RANDOM", "NEARLY_SORTED", "REVERSE_SORTED",
@@ -29,6 +29,12 @@ SIZES = [
     100000, 125893, 158489, 199526, 251189, 316228, 398107, 501187, 630957, 794328,
     1000000
 ]
+
+# Debug: Run only failing cases
+# ALGORITHMS = ["dual_pivot_parallel"]
+# TYPES = ["int", "double"]
+# PATTERNS = ["RANDOM", "NEARLY_SORTED", "MANY_DUPLICATES_10", "MANY_DUPLICATES_50", "MANY_DUPLICATES_90"]
+# SIZES = [7943, 50119, 79433, 125893, 251189, 316228, 398107, 794328, 1000000]
 
 def ensure_directories():
     if not os.path.exists(RESULTS_DIR):

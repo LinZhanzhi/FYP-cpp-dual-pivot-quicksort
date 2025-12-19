@@ -109,12 +109,13 @@ void sort_sequential(Sorter<T>* sorter, T* a, int bits, int low, int high) {
             lower = pivotIndices.first;
             upper = pivotIndices.second;
 
+            // Verify partitioning
             // Fork parallel tasks if sorter available
             if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
-                sorter->addToPendingCount(1); // Prevent premature completion
+                // sorter->addToPendingCount(1); // Prevent premature completion
                 sorter->forkSorter(bits | 1, lower + 1, upper);
                 sorter->forkSorter(bits | 1, upper + 1, high);
-                sorter->addToPendingCount(-1); // Release hold
+                // sorter->addToPendingCount(-1); // Release hold
             } else {
                 sort_sequential(sorter, a, bits | 1, lower + 1, upper);
                 sort_sequential(sorter, a, bits | 1, upper + 1, high);
