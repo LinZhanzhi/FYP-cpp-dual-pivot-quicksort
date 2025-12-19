@@ -3,7 +3,6 @@
 
 #include "dpqs/utils.hpp"
 #include "dpqs/types.hpp"
-#include "dpqs/core_sort.hpp"
 #include "dpqs/parallel/parallel_sort.hpp"
 #include "dpqs/sequential_sorters.hpp"
 #include "dpqs/counting_sort.hpp"
@@ -17,17 +16,31 @@
 
 namespace dual_pivot {
 
-// Forward declarations
-template<typename RandomAccessIterator>
-void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last);
-
 // -----------------------------------------------------------------------------
-// Public API: Type-specific overloads
+// Core Generic Sort Implementation
 // -----------------------------------------------------------------------------
 
-static void sort(int* a, int parallelism, int low, int high) {
+/**
+ * @brief Main entry point for Dual-Pivot Quicksort.
+ *
+ * This generic function handles all supported data types and execution modes (sequential/parallel).
+ * It automatically dispatches to the most appropriate sorting strategy:
+ * - Counting Sort for small integral types (char, short).
+ * - Parallel Dual-Pivot Quicksort for large arrays of other types.
+ * - Sequential Dual-Pivot Quicksort for smaller arrays or when parallelism is disabled.
+ * - Specialized handling for floating-point types (NaNs, -0.0).
+ *
+ * @tparam T The element type.
+ * @param a Pointer to the array.
+ * @param parallelism Number of threads to use (0 or 1 for sequential).
+ * @param low Starting index (inclusive).
+ * @param high Ending index (exclusive).
+ */
+template<typename T>
+void sort(T* a, int parallelism, int low, int high) {
+    if (low >= high) return;
     checkNotNull(a, "array");
-    if (low < 0 || high < 0 || low > high) {
+    if (low < 0 || high < 0) {
         throw std::out_of_range("Invalid range");
     }
 
@@ -36,131 +49,37 @@ static void sort(int* a, int parallelism, int low, int high) {
     }
 
     int size = high - low;
-    if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
-        int depth = getDepth(parallelism, size >> 12);
-        std::vector<int> b(depth == 0 ? 0 : size);
-        auto* sorter = new AdvancedSorter<int>(nullptr, a, depth == 0 ? nullptr : b.data(), low, size, low, depth);
-        sorter->invoke();
-        delete sorter;
-    } else {
-        sort_sequential<int>(nullptr, a, 0, low, high);
-    }
-}
 
-static void sort(long* a, int parallelism, int low, int high) {
-    checkNotNull(a, "array");
-    if (low < 0 || high < 0 || low > high) {
-        throw std::out_of_range("Invalid range");
-    }
+    // Case 1: Small integral types (1 or 2 bytes) -> Counting Sort
+    if constexpr (std::is_integral_v<T> && sizeof(T) <= 2) {
+        // Use smaller threshold for 1-byte types (smaller frequency array overhead)
+        int threshold = (sizeof(T) == 1) ? MIN_BYTE_COUNTING_SORT_SIZE : MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE;
 
-    if (checkEarlyTermination(a, low, high)) {
+        if (size >= threshold) {
+            counting_sort(a, low, high);
+        } else {
+            // Fallback to sequential sort (which handles insertion sort for small arrays)
+            sort_sequential<T>(nullptr, a, 0, low, high);
+        }
         return;
     }
 
-    int size = high - low;
+    // Case 2: Parallel Sort (for types > 2 bytes)
     if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
         int depth = getDepth(parallelism, size >> 12);
-        std::vector<long> b(depth == 0 ? 0 : size);
-        auto* sorter = new AdvancedSorter<long>(nullptr, a, depth == 0 ? nullptr : b.data(), low, size, low, depth);
+        std::vector<T> b(depth == 0 ? 0 : size);
+        auto* sorter = new AdvancedSorter<T>(nullptr, a, depth == 0 ? nullptr : b.data(), low, size, low, depth);
         sorter->invoke();
+        sorter->wait();
         delete sorter;
-    } else {
-        sort_sequential<long>(nullptr, a, 0, low, high);
-    }
-}
-
-static void sort(float* a, int parallelism, int low, int high) {
-    checkNotNull(a, "array");
-    if (low < 0 || high < 0 || low > high) {
-        throw std::out_of_range("Invalid range");
-    }
-
-    if (checkEarlyTermination(a, low, high)) {
         return;
     }
 
-    int size = high - low;
-    if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
-        int depth = getDepth(parallelism, size >> 12);
-        std::vector<float> b(depth == 0 ? 0 : size);
-        auto* sorter = new AdvancedSorter<float>(nullptr, a, depth == 0 ? nullptr : b.data(), low, size, low, depth);
-        sorter->invoke();
-        delete sorter;
-    } else {
+    // Case 3: Sequential Sort (fallback)
+    if constexpr (std::is_floating_point_v<T>) {
         sort_floats(a, low, high);
-    }
-}
-
-static void sort(double* a, int parallelism, int low, int high) {
-    checkNotNull(a, "array");
-    if (low < 0 || high < 0 || low > high) {
-        throw std::out_of_range("Invalid range");
-    }
-
-    if (checkEarlyTermination(a, low, high)) {
-        return;
-    }
-
-    int size = high - low;
-    if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
-        int depth = getDepth(parallelism, size >> 12);
-        std::vector<double> b(depth == 0 ? 0 : size);
-        auto* sorter = new AdvancedSorter<double>(nullptr, a, depth == 0 ? nullptr : b.data(), low, size, low, depth);
-        sorter->invoke();
-        delete sorter;
     } else {
-        sort_floats(a, low, high);
-    }
-}
-
-static void sort(signed char* a, int low, int high) {
-    checkNotNull(a, "array");
-    if (low < 0 || high < 0 || low > high) {
-        throw std::out_of_range("Invalid range");
-    }
-
-    if (checkEarlyTermination(a, low, high)) {
-        return;
-    }
-
-    if (high - low >= MIN_BYTE_COUNTING_SORT_SIZE) {
-        counting_sort(a, low, high);
-    } else {
-        insertion_sort(a, low, high);
-    }
-}
-
-static void sort(char* a, int low, int high) {
-    checkNotNull(a, "array");
-    if (low < 0 || high < 0 || low > high) {
-        throw std::out_of_range("Invalid range");
-    }
-
-    if (checkEarlyTermination(a, low, high)) {
-        return;
-    }
-
-    if (high - low >= MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE) {
-        counting_sort(a, low, high);
-    } else {
-        sort_sequential<char>(nullptr, a, 0, low, high);
-    }
-}
-
-static void sort(short* a, int low, int high) {
-    checkNotNull(a, "array");
-    if (low < 0 || high < 0 || low > high) {
-        throw std::out_of_range("Invalid range");
-    }
-
-    if (checkEarlyTermination(a, low, high)) {
-        return;
-    }
-
-    if (high - low >= MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE) {
-        counting_sort(a, low, high);
-    } else {
-        sort_sequential<short>(nullptr, a, 0, low, high);
+        sort_sequential<T>(nullptr, a, 0, low, high);
     }
 }
 
@@ -168,86 +87,27 @@ static void sort(short* a, int low, int high) {
 // Public API: Convenience wrappers
 // -----------------------------------------------------------------------------
 
-static void sort(int* a, int length) {
+template<typename T>
+void sort(T* a, int length) {
     checkNotNull(a, "array");
     if (length < 0) throw std::invalid_argument("Array length cannot be negative");
+
+    // Default to hardware concurrency
     sort(a, std::thread::hardware_concurrency(), 0, length);
-}
-
-static void sort(long* a, int length) {
-    checkNotNull(a, "array");
-    if (length < 0) throw std::invalid_argument("Array length cannot be negative");
-    sort(a, std::thread::hardware_concurrency(), 0, length);
-}
-
-static void sort(float* a, int length) {
-    checkNotNull(a, "array");
-    if (length < 0) throw std::invalid_argument("Array length cannot be negative");
-    sort(a, std::thread::hardware_concurrency(), 0, length);
-}
-
-static void sort(double* a, int length) {
-    checkNotNull(a, "array");
-    if (length < 0) throw std::invalid_argument("Array length cannot be negative");
-    sort(a, std::thread::hardware_concurrency(), 0, length);
-}
-
-static void sort(signed char* a, int length) {
-    checkNotNull(a, "array");
-    if (length < 0) throw std::invalid_argument("Array length cannot be negative");
-    sort(a, 0, length);
-}
-
-static void sort(char* a, int length) {
-    checkNotNull(a, "array");
-    if (length < 0) throw std::invalid_argument("Array length cannot be negative");
-    sort(a, 0, length);
-}
-
-static void sort(short* a, int length) {
-    checkNotNull(a, "array");
-    if (length < 0) throw std::invalid_argument("Array length cannot be negative");
-    sort(a, 0, length);
 }
 
 // -----------------------------------------------------------------------------
-// Public API: Generic Templates
+// Public API: Container & Iterator Adapters
 // -----------------------------------------------------------------------------
 
 template<typename Container>
 void sort(Container& container) {
-    using ValueType = typename Container::value_type;
-    if constexpr (std::is_integral_v<ValueType> && sizeof(ValueType) <= 2) {
-        if (container.size() >= MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE) {
-            counting_sort(container.data(), 0, static_cast<int>(container.size()));
-        } else {
-            sort_sequential<ValueType>(nullptr, container.data(), 0, 0, static_cast<int>(container.size()));
-        }
-    } else if constexpr (std::is_floating_point_v<ValueType>) {
-        sort_floats(container.data(), 0, static_cast<int>(container.size()));
-    } else {
-        dual_pivot_quicksort(container.begin(), container.end());
-    }
+    sort(container.data(), std::thread::hardware_concurrency(), 0, static_cast<int>(container.size()));
 }
 
 template<typename Container>
 void sort(Container& container, int parallelism) {
-    using ValueType = typename Container::value_type;
-    if (container.size() > MIN_PARALLEL_SORT_SIZE && parallelism > 1) {
-        if constexpr (std::is_same_v<ValueType, int>) {
-            sort(container.data(), parallelism, 0, static_cast<int>(container.size()));
-        } else if constexpr (std::is_same_v<ValueType, long>) {
-            sort(container.data(), parallelism, 0, static_cast<int>(container.size()));
-        } else if constexpr (std::is_same_v<ValueType, float>) {
-            sort(container.data(), parallelism, 0, static_cast<int>(container.size()));
-        } else if constexpr (std::is_same_v<ValueType, double>) {
-            sort(container.data(), parallelism, 0, static_cast<int>(container.size()));
-        } else {
-            sort(container); // Fallback to sequential
-        }
-    } else {
-        sort(container);
-    }
+    sort(container.data(), parallelism, 0, static_cast<int>(container.size()));
 }
 
 template<typename RandomAccessIterator>
@@ -257,25 +117,12 @@ void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last)
                   "dual_pivot_quicksort requires random access iterators");
 
     if (first >= last) return;
-
     int size = last - first;
     if (size <= 1) return;
 
     auto* a = &(*first);
-
-    using ValueType = typename std::iterator_traits<RandomAccessIterator>::value_type;
-    if constexpr (std::is_integral_v<ValueType> && sizeof(ValueType) <= 2) {
-        if (size >= MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE) {
-            counting_sort(a, 0, size);
-        } else {
-            sort_sequential<ValueType>(nullptr, a, 0, 0, size);
-        }
-    } else if constexpr (std::is_floating_point_v<ValueType>) {
-        sort_floats(a, 0, size);
-    } else {
-        // Use generic sequential sort
-        sort_sequential<ValueType>(nullptr, a, 0, 0, size);
-    }
+    // Use 0 parallelism for default sequential behavior of this specific function name
+    sort(a, 0, 0, size);
 }
 
 template<typename RandomAccessIterator>
@@ -286,29 +133,11 @@ void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessItera
                   "dual_pivot_quicksort requires random access iterators");
 
     if (first >= last) return;
-
     int size = last - first;
     if (size <= 1) return;
 
     auto* a = &(*first);
-
-    // For now, just delegate to type-specific parallel sort if possible
-    using ValueType = typename std::iterator_traits<RandomAccessIterator>::value_type;
-    if (size > MIN_PARALLEL_SORT_SIZE && parallelism > 1) {
-        if constexpr (std::is_same_v<ValueType, int>) {
-            sort(a, parallelism, 0, size);
-        } else if constexpr (std::is_same_v<ValueType, long>) {
-            sort(a, parallelism, 0, size);
-        } else if constexpr (std::is_same_v<ValueType, float>) {
-            sort(a, parallelism, 0, size);
-        } else if constexpr (std::is_same_v<ValueType, double>) {
-            sort(a, parallelism, 0, size);
-        } else {
-            dual_pivot_quicksort(first, last);
-        }
-    } else {
-        dual_pivot_quicksort(first, last);
-    }
+    sort(a, parallelism, 0, size);
 }
 
 } // namespace dual_pivot

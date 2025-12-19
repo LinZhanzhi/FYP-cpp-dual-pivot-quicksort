@@ -139,11 +139,7 @@ sort_floats(T* array, int start_index, int end_index) {
     // Phase 2: Sorting
     // Sort the range excluding NaNs
     if (effective_end_index > start_index) {
-        if constexpr (std::is_same_v<T, float>) {
-            sort_float_sequential(nullptr, array, 0, start_index, effective_end_index);
-        } else if constexpr (std::is_same_v<T, double>) {
-            sort_double_sequential(nullptr, array, 0, start_index, effective_end_index);
-        }
+        sort_sequential<T>(nullptr, array, 0, start_index, effective_end_index);
     }
 
     // Phase 3: Post-processing

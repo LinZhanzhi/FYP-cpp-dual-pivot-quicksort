@@ -1,321 +1,593 @@
-Found 320 benchmark combinations.
-[1/320] Skipping std_sort int RANDOM 1000 (Already exists)
-[2/320] Skipping std_sort int RANDOM 10000 (Already exists)
-[3/320] Skipping std_sort int RANDOM 100000 (Already exists)
-[4/320] Skipping std_sort int RANDOM 1000000 (Already exists)
-[5/320] Skipping std_sort int RANDOM 10000000 (Already exists)
-[6/320] Skipping std_sort int NEARLY_SORTED 1000 (Already exists)
-[7/320] Skipping std_sort int NEARLY_SORTED 10000 (Already exists)
-[8/320] Skipping std_sort int NEARLY_SORTED 100000 (Already exists)
-[9/320] Skipping std_sort int NEARLY_SORTED 1000000 (Already exists)
-[10/320] Skipping std_sort int NEARLY_SORTED 10000000 (Already exists)
-[11/320] Skipping std_sort int REVERSE_SORTED 1000 (Already exists)
-[12/320] Skipping std_sort int REVERSE_SORTED 10000 (Already exists)
-[13/320] Skipping std_sort int REVERSE_SORTED 100000 (Already exists)
-[14/320] Skipping std_sort int REVERSE_SORTED 1000000 (Already exists)
-[15/320] Skipping std_sort int REVERSE_SORTED 10000000 (Already exists)
-[16/320] Skipping std_sort int MANY_DUPLICATES_10 1000 (Already exists)
-[17/320] Skipping std_sort int MANY_DUPLICATES_10 10000 (Already exists)
-[18/320] Skipping std_sort int MANY_DUPLICATES_10 100000 (Already exists)
-[19/320] Skipping std_sort int MANY_DUPLICATES_10 1000000 (Already exists)
-[20/320] Skipping std_sort int MANY_DUPLICATES_10 10000000 (Already exists)
-[21/320] Skipping std_sort int MANY_DUPLICATES_50 1000 (Already exists)
-[22/320] Skipping std_sort int MANY_DUPLICATES_50 10000 (Already exists)
-[23/320] Skipping std_sort int MANY_DUPLICATES_50 100000 (Already exists)
-[24/320] Skipping std_sort int MANY_DUPLICATES_50 1000000 (Already exists)
-[25/320] Skipping std_sort int MANY_DUPLICATES_50 10000000 (Already exists)
-[26/320] Skipping std_sort int MANY_DUPLICATES_90 1000 (Already exists)
-[27/320] Skipping std_sort int MANY_DUPLICATES_90 10000 (Already exists)
-[28/320] Skipping std_sort int MANY_DUPLICATES_90 100000 (Already exists)
-[29/320] Skipping std_sort int MANY_DUPLICATES_90 1000000 (Already exists)
-[30/320] Skipping std_sort int MANY_DUPLICATES_90 10000000 (Already exists)
-[31/320] Skipping std_sort int ORGAN_PIPE 1000 (Already exists)
-[32/320] Skipping std_sort int ORGAN_PIPE 10000 (Already exists)
-[33/320] Skipping std_sort int ORGAN_PIPE 100000 (Already exists)
-[34/320] Skipping std_sort int ORGAN_PIPE 1000000 (Already exists)
-[35/320] Skipping std_sort int ORGAN_PIPE 10000000 (Already exists)
-[36/320] Skipping std_sort int SAWTOOTH 1000 (Already exists)
-[37/320] Skipping std_sort int SAWTOOTH 10000 (Already exists)
-[38/320] Skipping std_sort int SAWTOOTH 100000 (Already exists)
-[39/320] Skipping std_sort int SAWTOOTH 1000000 (Already exists)
-[40/320] Skipping std_sort int SAWTOOTH 10000000 (Already exists)
-[41/320] Skipping std_sort double RANDOM 1000 (Already exists)
-[42/320] Skipping std_sort double RANDOM 10000 (Already exists)
-[43/320] Skipping std_sort double RANDOM 100000 (Already exists)
-[44/320] Skipping std_sort double RANDOM 1000000 (Already exists)
-[45/320] Skipping std_sort double RANDOM 10000000 (Already exists)
-[46/320] Skipping std_sort double NEARLY_SORTED 1000 (Already exists)
-[47/320] Skipping std_sort double NEARLY_SORTED 10000 (Already exists)
-[48/320] Skipping std_sort double NEARLY_SORTED 100000 (Already exists)
-[49/320] Skipping std_sort double NEARLY_SORTED 1000000 (Already exists)
-[50/320] Skipping std_sort double NEARLY_SORTED 10000000 (Already exists)
-[51/320] Skipping std_sort double REVERSE_SORTED 1000 (Already exists)
-[52/320] Skipping std_sort double REVERSE_SORTED 10000 (Already exists)
-[53/320] Skipping std_sort double REVERSE_SORTED 100000 (Already exists)
-[54/320] Skipping std_sort double REVERSE_SORTED 1000000 (Already exists)
-[55/320] Skipping std_sort double REVERSE_SORTED 10000000 (Already exists)
-[56/320] Skipping std_sort double MANY_DUPLICATES_10 1000 (Already exists)
-[57/320] Skipping std_sort double MANY_DUPLICATES_10 10000 (Already exists)
-[58/320] Skipping std_sort double MANY_DUPLICATES_10 100000 (Already exists)
-[59/320] Skipping std_sort double MANY_DUPLICATES_10 1000000 (Already exists)
-[60/320] Skipping std_sort double MANY_DUPLICATES_10 10000000 (Already exists)
-[61/320] Skipping std_sort double MANY_DUPLICATES_50 1000 (Already exists)
-[62/320] Skipping std_sort double MANY_DUPLICATES_50 10000 (Already exists)
-[63/320] Skipping std_sort double MANY_DUPLICATES_50 100000 (Already exists)
-[64/320] Skipping std_sort double MANY_DUPLICATES_50 1000000 (Already exists)
-[65/320] Skipping std_sort double MANY_DUPLICATES_50 10000000 (Already exists)
-[66/320] Skipping std_sort double MANY_DUPLICATES_90 1000 (Already exists)
-[67/320] Skipping std_sort double MANY_DUPLICATES_90 10000 (Already exists)
-[68/320] Skipping std_sort double MANY_DUPLICATES_90 100000 (Already exists)
-[69/320] Skipping std_sort double MANY_DUPLICATES_90 1000000 (Already exists)
-[70/320] Skipping std_sort double MANY_DUPLICATES_90 10000000 (Already exists)
-[71/320] Skipping std_sort double ORGAN_PIPE 1000 (Already exists)
-[72/320] Skipping std_sort double ORGAN_PIPE 10000 (Already exists)
-[73/320] Skipping std_sort double ORGAN_PIPE 100000 (Already exists)
-[74/320] Skipping std_sort double ORGAN_PIPE 1000000 (Already exists)
-[75/320] Skipping std_sort double ORGAN_PIPE 10000000 (Already exists)
-[76/320] Skipping std_sort double SAWTOOTH 1000 (Already exists)
-[77/320] Skipping std_sort double SAWTOOTH 10000 (Already exists)
-[78/320] Skipping std_sort double SAWTOOTH 100000 (Already exists)
-[79/320] Skipping std_sort double SAWTOOTH 1000000 (Already exists)
-[80/320] Skipping std_sort double SAWTOOTH 10000000 (Already exists)
-[81/320] Skipping dual_pivot int RANDOM 1000 (Already exists)
-[82/320] Skipping dual_pivot int RANDOM 10000 (Already exists)
-[83/320] Skipping dual_pivot int RANDOM 100000 (Already exists)
-[84/320] Skipping dual_pivot int RANDOM 1000000 (Already exists)
-[85/320] Skipping dual_pivot int RANDOM 10000000 (Already exists)
-[86/320] Skipping dual_pivot int NEARLY_SORTED 1000 (Already exists)
-[87/320] Skipping dual_pivot int NEARLY_SORTED 10000 (Already exists)
-[88/320] Skipping dual_pivot int NEARLY_SORTED 100000 (Already exists)
-[89/320] Skipping dual_pivot int NEARLY_SORTED 1000000 (Already exists)
-[90/320] Skipping dual_pivot int NEARLY_SORTED 10000000 (Already exists)
-[91/320] Skipping dual_pivot int REVERSE_SORTED 1000 (Already exists)
-[92/320] Skipping dual_pivot int REVERSE_SORTED 10000 (Already exists)
-[93/320] Skipping dual_pivot int REVERSE_SORTED 100000 (Already exists)
-[94/320] Skipping dual_pivot int REVERSE_SORTED 1000000 (Already exists)
-[95/320] Skipping dual_pivot int REVERSE_SORTED 10000000 (Already exists)
-[96/320] Skipping dual_pivot int MANY_DUPLICATES_10 1000 (Already exists)
-[97/320] Skipping dual_pivot int MANY_DUPLICATES_10 10000 (Already exists)
-[98/320] Skipping dual_pivot int MANY_DUPLICATES_10 100000 (Already exists)
-[99/320] Skipping dual_pivot int MANY_DUPLICATES_10 1000000 (Already exists)
-[100/320] Skipping dual_pivot int MANY_DUPLICATES_10 10000000 (Already exists)
-[101/320] Skipping dual_pivot int MANY_DUPLICATES_50 1000 (Already exists)
-[102/320] Skipping dual_pivot int MANY_DUPLICATES_50 10000 (Already exists)
-[103/320] Skipping dual_pivot int MANY_DUPLICATES_50 100000 (Already exists)
-[104/320] Skipping dual_pivot int MANY_DUPLICATES_50 1000000 (Already exists)
-[105/320] Skipping dual_pivot int MANY_DUPLICATES_50 10000000 (Already exists)
-[106/320] Skipping dual_pivot int MANY_DUPLICATES_90 1000 (Already exists)
-[107/320] Skipping dual_pivot int MANY_DUPLICATES_90 10000 (Already exists)
-[108/320] Skipping dual_pivot int MANY_DUPLICATES_90 100000 (Already exists)
-[109/320] Skipping dual_pivot int MANY_DUPLICATES_90 1000000 (Already exists)
-[110/320] Skipping dual_pivot int MANY_DUPLICATES_90 10000000 (Already exists)
-[111/320] Skipping dual_pivot int ORGAN_PIPE 1000 (Already exists)
-[112/320] Skipping dual_pivot int ORGAN_PIPE 10000 (Already exists)
-[113/320] Skipping dual_pivot int ORGAN_PIPE 100000 (Already exists)
-[114/320] Skipping dual_pivot int ORGAN_PIPE 1000000 (Already exists)
-[115/320] Skipping dual_pivot int ORGAN_PIPE 10000000 (Already exists)
-[116/320] Skipping dual_pivot int SAWTOOTH 1000 (Already exists)
-[117/320] Skipping dual_pivot int SAWTOOTH 10000 (Already exists)
-[118/320] Skipping dual_pivot int SAWTOOTH 100000 (Already exists)
-[119/320] Skipping dual_pivot int SAWTOOTH 1000000 (Already exists)
-[120/320] Skipping dual_pivot int SAWTOOTH 10000000 (Already exists)
-[121/320] Skipping dual_pivot double RANDOM 1000 (Already exists)
-[122/320] Skipping dual_pivot double RANDOM 10000 (Already exists)
-[123/320] Skipping dual_pivot double RANDOM 100000 (Already exists)
-[124/320] Skipping dual_pivot double RANDOM 1000000 (Already exists)
-[125/320] Skipping dual_pivot double RANDOM 10000000 (Already exists)
-[126/320] Skipping dual_pivot double NEARLY_SORTED 1000 (Already exists)
-[127/320] Skipping dual_pivot double NEARLY_SORTED 10000 (Already exists)
-[128/320] Skipping dual_pivot double NEARLY_SORTED 100000 (Already exists)
-[129/320] Skipping dual_pivot double NEARLY_SORTED 1000000 (Already exists)
-[130/320] Skipping dual_pivot double NEARLY_SORTED 10000000 (Already exists)
-[131/320] Skipping dual_pivot double REVERSE_SORTED 1000 (Already exists)
-[132/320] Skipping dual_pivot double REVERSE_SORTED 10000 (Already exists)
-[133/320] Skipping dual_pivot double REVERSE_SORTED 100000 (Already exists)
-[134/320] Skipping dual_pivot double REVERSE_SORTED 1000000 (Already exists)
-[135/320] Skipping dual_pivot double REVERSE_SORTED 10000000 (Already exists)
-[136/320] Skipping dual_pivot double MANY_DUPLICATES_10 1000 (Already exists)
-[137/320] Skipping dual_pivot double MANY_DUPLICATES_10 10000 (Already exists)
-[138/320] Skipping dual_pivot double MANY_DUPLICATES_10 100000 (Already exists)
-[139/320] Skipping dual_pivot double MANY_DUPLICATES_10 1000000 (Already exists)
-[140/320] Skipping dual_pivot double MANY_DUPLICATES_10 10000000 (Already exists)
-[141/320] Skipping dual_pivot double MANY_DUPLICATES_50 1000 (Already exists)
-[142/320] Skipping dual_pivot double MANY_DUPLICATES_50 10000 (Already exists)
-[143/320] Skipping dual_pivot double MANY_DUPLICATES_50 100000 (Already exists)
-[144/320] Skipping dual_pivot double MANY_DUPLICATES_50 1000000 (Already exists)
-[145/320] Skipping dual_pivot double MANY_DUPLICATES_50 10000000 (Already exists)
-[146/320] Skipping dual_pivot double MANY_DUPLICATES_90 1000 (Already exists)
-[147/320] Skipping dual_pivot double MANY_DUPLICATES_90 10000 (Already exists)
-[148/320] Skipping dual_pivot double MANY_DUPLICATES_90 100000 (Already exists)
-[149/320] Skipping dual_pivot double MANY_DUPLICATES_90 1000000 (Already exists)
-[150/320] Skipping dual_pivot double MANY_DUPLICATES_90 10000000 (Already exists)
-[151/320] Skipping dual_pivot double ORGAN_PIPE 1000 (Already exists)
-[152/320] Skipping dual_pivot double ORGAN_PIPE 10000 (Already exists)
-[153/320] Skipping dual_pivot double ORGAN_PIPE 100000 (Already exists)
-[154/320] Skipping dual_pivot double ORGAN_PIPE 1000000 (Already exists)
-[155/320] Skipping dual_pivot double ORGAN_PIPE 10000000 (Already exists)
-[156/320] Skipping dual_pivot double SAWTOOTH 1000 (Already exists)
-[157/320] Skipping dual_pivot double SAWTOOTH 10000 (Already exists)
-[158/320] Skipping dual_pivot double SAWTOOTH 100000 (Already exists)
-[159/320] Skipping dual_pivot double SAWTOOTH 1000000 (Already exists)
-[160/320] Skipping dual_pivot double SAWTOOTH 10000000 (Already exists)
-[161/320] Running std_stable_sort int RANDOM 1000...
-[162/320] Running std_stable_sort int RANDOM 10000...
-[163/320] Running std_stable_sort int RANDOM 100000...
-[164/320] Running std_stable_sort int RANDOM 1000000...
-[165/320] Running std_stable_sort int RANDOM 10000000...
-[166/320] Running std_stable_sort int NEARLY_SORTED 1000...
-[167/320] Running std_stable_sort int NEARLY_SORTED 10000...
-[168/320] Running std_stable_sort int NEARLY_SORTED 100000...
-[169/320] Running std_stable_sort int NEARLY_SORTED 1000000...
-[170/320] Running std_stable_sort int NEARLY_SORTED 10000000...
-[171/320] Running std_stable_sort int REVERSE_SORTED 1000...
-[172/320] Running std_stable_sort int REVERSE_SORTED 10000...
-[173/320] Running std_stable_sort int REVERSE_SORTED 100000...
-[174/320] Running std_stable_sort int REVERSE_SORTED 1000000...
-[175/320] Running std_stable_sort int REVERSE_SORTED 10000000...
-[176/320] Running std_stable_sort int MANY_DUPLICATES_10 1000...
-[177/320] Running std_stable_sort int MANY_DUPLICATES_10 10000...
-[178/320] Running std_stable_sort int MANY_DUPLICATES_10 100000...
-[179/320] Running std_stable_sort int MANY_DUPLICATES_10 1000000...
-[180/320] Running std_stable_sort int MANY_DUPLICATES_10 10000000...
-[181/320] Running std_stable_sort int MANY_DUPLICATES_50 1000...
-[182/320] Running std_stable_sort int MANY_DUPLICATES_50 10000...
-[183/320] Running std_stable_sort int MANY_DUPLICATES_50 100000...
-[184/320] Running std_stable_sort int MANY_DUPLICATES_50 1000000...
-[185/320] Running std_stable_sort int MANY_DUPLICATES_50 10000000...
-[186/320] Running std_stable_sort int MANY_DUPLICATES_90 1000...
-[187/320] Running std_stable_sort int MANY_DUPLICATES_90 10000...
-[188/320] Running std_stable_sort int MANY_DUPLICATES_90 100000...
-[189/320] Running std_stable_sort int MANY_DUPLICATES_90 1000000...
-[190/320] Running std_stable_sort int MANY_DUPLICATES_90 10000000...
-[191/320] Running std_stable_sort int ORGAN_PIPE 1000...
-[192/320] Running std_stable_sort int ORGAN_PIPE 10000...
-[193/320] Running std_stable_sort int ORGAN_PIPE 100000...
-[194/320] Running std_stable_sort int ORGAN_PIPE 1000000...
-[195/320] Running std_stable_sort int ORGAN_PIPE 10000000...
-[196/320] Running std_stable_sort int SAWTOOTH 1000...
-[197/320] Running std_stable_sort int SAWTOOTH 10000...
-[198/320] Running std_stable_sort int SAWTOOTH 100000...
-[199/320] Running std_stable_sort int SAWTOOTH 1000000...
-[200/320] Running std_stable_sort int SAWTOOTH 10000000...
-[201/320] Running std_stable_sort double RANDOM 1000...
-[202/320] Running std_stable_sort double RANDOM 10000...
-[203/320] Running std_stable_sort double RANDOM 100000...
-[204/320] Running std_stable_sort double RANDOM 1000000...
-[205/320] Running std_stable_sort double RANDOM 10000000...
-[206/320] Running std_stable_sort double NEARLY_SORTED 1000...
-[207/320] Running std_stable_sort double NEARLY_SORTED 10000...
-[208/320] Running std_stable_sort double NEARLY_SORTED 100000...
-[209/320] Running std_stable_sort double NEARLY_SORTED 1000000...
-[210/320] Running std_stable_sort double NEARLY_SORTED 10000000...
-[211/320] Running std_stable_sort double REVERSE_SORTED 1000...
-[212/320] Running std_stable_sort double REVERSE_SORTED 10000...
-[213/320] Running std_stable_sort double REVERSE_SORTED 100000...
-[214/320] Running std_stable_sort double REVERSE_SORTED 1000000...
-[215/320] Running std_stable_sort double REVERSE_SORTED 10000000...
-[216/320] Running std_stable_sort double MANY_DUPLICATES_10 1000...
-[217/320] Running std_stable_sort double MANY_DUPLICATES_10 10000...
-[218/320] Running std_stable_sort double MANY_DUPLICATES_10 100000...
-[219/320] Running std_stable_sort double MANY_DUPLICATES_10 1000000...
-[220/320] Running std_stable_sort double MANY_DUPLICATES_10 10000000...
-[221/320] Running std_stable_sort double MANY_DUPLICATES_50 1000...
-[222/320] Running std_stable_sort double MANY_DUPLICATES_50 10000...
-[223/320] Running std_stable_sort double MANY_DUPLICATES_50 100000...
-[224/320] Running std_stable_sort double MANY_DUPLICATES_50 1000000...
-[225/320] Running std_stable_sort double MANY_DUPLICATES_50 10000000...
-[226/320] Running std_stable_sort double MANY_DUPLICATES_90 1000...
-[227/320] Running std_stable_sort double MANY_DUPLICATES_90 10000...
-[228/320] Running std_stable_sort double MANY_DUPLICATES_90 100000...
-[229/320] Running std_stable_sort double MANY_DUPLICATES_90 1000000...
-[230/320] Running std_stable_sort double MANY_DUPLICATES_90 10000000...
-[231/320] Running std_stable_sort double ORGAN_PIPE 1000...
-[232/320] Running std_stable_sort double ORGAN_PIPE 10000...
-[233/320] Running std_stable_sort double ORGAN_PIPE 100000...
-[234/320] Running std_stable_sort double ORGAN_PIPE 1000000...
-[235/320] Running std_stable_sort double ORGAN_PIPE 10000000...
-[236/320] Running std_stable_sort double SAWTOOTH 1000...
-[237/320] Running std_stable_sort double SAWTOOTH 10000...
-[238/320] Running std_stable_sort double SAWTOOTH 100000...
-[239/320] Running std_stable_sort double SAWTOOTH 1000000...
-[240/320] Running std_stable_sort double SAWTOOTH 10000000...
-[241/320] Running qsort int RANDOM 1000...
-[242/320] Running qsort int RANDOM 10000...
-[243/320] Running qsort int RANDOM 100000...
-[244/320] Running qsort int RANDOM 1000000...
-[245/320] Running qsort int RANDOM 10000000...
-[246/320] Running qsort int NEARLY_SORTED 1000...
-[247/320] Running qsort int NEARLY_SORTED 10000...
-[248/320] Running qsort int NEARLY_SORTED 100000...
-[249/320] Running qsort int NEARLY_SORTED 1000000...
-[250/320] Running qsort int NEARLY_SORTED 10000000...
-[251/320] Running qsort int REVERSE_SORTED 1000...
-[252/320] Running qsort int REVERSE_SORTED 10000...
-[253/320] Running qsort int REVERSE_SORTED 100000...
-[254/320] Running qsort int REVERSE_SORTED 1000000...
-[255/320] Running qsort int REVERSE_SORTED 10000000...
-[256/320] Running qsort int MANY_DUPLICATES_10 1000...
-[257/320] Running qsort int MANY_DUPLICATES_10 10000...
-[258/320] Running qsort int MANY_DUPLICATES_10 100000...
-[259/320] Running qsort int MANY_DUPLICATES_10 1000000...
-[260/320] Running qsort int MANY_DUPLICATES_10 10000000...
-[261/320] Running qsort int MANY_DUPLICATES_50 1000...
-[262/320] Running qsort int MANY_DUPLICATES_50 10000...
-[263/320] Running qsort int MANY_DUPLICATES_50 100000...
-[264/320] Running qsort int MANY_DUPLICATES_50 1000000...
-[265/320] Running qsort int MANY_DUPLICATES_50 10000000...
-[266/320] Running qsort int MANY_DUPLICATES_90 1000...
-[267/320] Running qsort int MANY_DUPLICATES_90 10000...
-[268/320] Running qsort int MANY_DUPLICATES_90 100000...
-[269/320] Running qsort int MANY_DUPLICATES_90 1000000...
-[270/320] Running qsort int MANY_DUPLICATES_90 10000000...
-[271/320] Running qsort int ORGAN_PIPE 1000...
-[272/320] Running qsort int ORGAN_PIPE 10000...
-[273/320] Running qsort int ORGAN_PIPE 100000...
-[274/320] Running qsort int ORGAN_PIPE 1000000...
-[275/320] Running qsort int ORGAN_PIPE 10000000...
-[276/320] Running qsort int SAWTOOTH 1000...
-[277/320] Running qsort int SAWTOOTH 10000...
-[278/320] Running qsort int SAWTOOTH 100000...
-[279/320] Running qsort int SAWTOOTH 1000000...
-[280/320] Running qsort int SAWTOOTH 10000000...
-[281/320] Running qsort double RANDOM 1000...
-[282/320] Running qsort double RANDOM 10000...
-[283/320] Running qsort double RANDOM 100000...
-[284/320] Running qsort double RANDOM 1000000...
-[285/320] Running qsort double RANDOM 10000000...
-[286/320] Running qsort double NEARLY_SORTED 1000...
-[287/320] Running qsort double NEARLY_SORTED 10000...
-[288/320] Running qsort double NEARLY_SORTED 100000...
-[289/320] Running qsort double NEARLY_SORTED 1000000...
-[290/320] Running qsort double NEARLY_SORTED 10000000...
-[291/320] Running qsort double REVERSE_SORTED 1000...
-[292/320] Running qsort double REVERSE_SORTED 10000...
-[293/320] Running qsort double REVERSE_SORTED 100000...
-[294/320] Running qsort double REVERSE_SORTED 1000000...
-[295/320] Running qsort double REVERSE_SORTED 10000000...
-[296/320] Running qsort double MANY_DUPLICATES_10 1000...
-[297/320] Running qsort double MANY_DUPLICATES_10 10000...
-[298/320] Running qsort double MANY_DUPLICATES_10 100000...
-[299/320] Running qsort double MANY_DUPLICATES_10 1000000...
-[300/320] Running qsort double MANY_DUPLICATES_10 10000000...
-[301/320] Running qsort double MANY_DUPLICATES_50 1000...
-[302/320] Running qsort double MANY_DUPLICATES_50 10000...
-[303/320] Running qsort double MANY_DUPLICATES_50 100000...
-[304/320] Running qsort double MANY_DUPLICATES_50 1000000...
-[305/320] Running qsort double MANY_DUPLICATES_50 10000000...
-[306/320] Running qsort double MANY_DUPLICATES_90 1000...
-[307/320] Running qsort double MANY_DUPLICATES_90 10000...
-[308/320] Running qsort double MANY_DUPLICATES_90 100000...
-[309/320] Running qsort double MANY_DUPLICATES_90 1000000...
-[310/320] Running qsort double MANY_DUPLICATES_90 10000000...
-[311/320] Running qsort double ORGAN_PIPE 1000...
-[312/320] Running qsort double ORGAN_PIPE 10000...
-[313/320] Running qsort double ORGAN_PIPE 100000...
-[314/320] Running qsort double ORGAN_PIPE 1000000...
-[315/320] Running qsort double ORGAN_PIPE 10000000...
-[316/320] Running qsort double SAWTOOTH 1000...
-[317/320] Running qsort double SAWTOOTH 10000...
-[318/320] Running qsort double SAWTOOTH 100000...
-[319/320] Running qsort double SAWTOOTH 1000000...
-[320/320] Running qsort double SAWTOOTH 10000000...
+nohup: ignoring input
+Found 1984 benchmark combinations.
+[1/1984] Skipping std_sort int RANDOM 1000 (Already exists)
+[2/1984] Skipping std_sort int RANDOM 1259 (Already exists)
+[3/1984] Skipping std_sort int RANDOM 1585 (Already exists)
+[4/1984] Skipping std_sort int RANDOM 1995 (Already exists)
+[5/1984] Skipping std_sort int RANDOM 2512 (Already exists)
+[6/1984] Skipping std_sort int RANDOM 3162 (Already exists)
+[7/1984] Skipping std_sort int RANDOM 3981 (Already exists)
+[8/1984] Skipping std_sort int RANDOM 5012 (Already exists)
+[9/1984] Skipping std_sort int RANDOM 6310 (Already exists)
+[10/1984] Skipping std_sort int RANDOM 7943 (Already exists)
+[11/1984] Skipping std_sort int RANDOM 10000 (Already exists)
+[12/1984] Skipping std_sort int RANDOM 12589 (Already exists)
+[13/1984] Skipping std_sort int RANDOM 15849 (Already exists)
+[14/1984] Skipping std_sort int RANDOM 19953 (Already exists)
+[15/1984] Skipping std_sort int RANDOM 25119 (Already exists)
+[16/1984] Skipping std_sort int RANDOM 31623 (Already exists)
+[17/1984] Skipping std_sort int RANDOM 39811 (Already exists)
+[18/1984] Skipping std_sort int RANDOM 50119 (Already exists)
+[19/1984] Skipping std_sort int RANDOM 63096 (Already exists)
+[20/1984] Skipping std_sort int RANDOM 79433 (Already exists)
+[21/1984] Skipping std_sort int RANDOM 100000 (Already exists)
+[22/1984] Skipping std_sort int RANDOM 125893 (Already exists)
+[23/1984] Skipping std_sort int RANDOM 158489 (Already exists)
+[24/1984] Skipping std_sort int RANDOM 199526 (Already exists)
+[25/1984] Skipping std_sort int RANDOM 251189 (Already exists)
+[26/1984] Skipping std_sort int RANDOM 316228 (Already exists)
+[27/1984] Skipping std_sort int RANDOM 398107 (Already exists)
+[28/1984] Skipping std_sort int RANDOM 501187 (Already exists)
+[29/1984] Skipping std_sort int RANDOM 630957 (Already exists)
+[30/1984] Skipping std_sort int RANDOM 794328 (Already exists)
+[31/1984] Skipping std_sort int RANDOM 1000000 (Already exists)
+[32/1984] Skipping std_sort int NEARLY_SORTED 1000 (Already exists)
+[33/1984] Skipping std_sort int NEARLY_SORTED 1259 (Already exists)
+[34/1984] Skipping std_sort int NEARLY_SORTED 1585 (Already exists)
+[35/1984] Skipping std_sort int NEARLY_SORTED 1995 (Already exists)
+[36/1984] Skipping std_sort int NEARLY_SORTED 2512 (Already exists)
+[37/1984] Skipping std_sort int NEARLY_SORTED 3162 (Already exists)
+[38/1984] Skipping std_sort int NEARLY_SORTED 3981 (Already exists)
+[39/1984] Skipping std_sort int NEARLY_SORTED 5012 (Already exists)
+[40/1984] Skipping std_sort int NEARLY_SORTED 6310 (Already exists)
+[41/1984] Skipping std_sort int NEARLY_SORTED 7943 (Already exists)
+[42/1984] Skipping std_sort int NEARLY_SORTED 10000 (Already exists)
+[43/1984] Skipping std_sort int NEARLY_SORTED 12589 (Already exists)
+[44/1984] Skipping std_sort int NEARLY_SORTED 15849 (Already exists)
+[45/1984] Skipping std_sort int NEARLY_SORTED 19953 (Already exists)
+[46/1984] Skipping std_sort int NEARLY_SORTED 25119 (Already exists)
+[47/1984] Skipping std_sort int NEARLY_SORTED 31623 (Already exists)
+[48/1984] Skipping std_sort int NEARLY_SORTED 39811 (Already exists)
+[49/1984] Skipping std_sort int NEARLY_SORTED 50119 (Already exists)
+[50/1984] Skipping std_sort int NEARLY_SORTED 63096 (Already exists)
+[51/1984] Skipping std_sort int NEARLY_SORTED 79433 (Already exists)
+[52/1984] Skipping std_sort int NEARLY_SORTED 100000 (Already exists)
+[53/1984] Skipping std_sort int NEARLY_SORTED 125893 (Already exists)
+[54/1984] Skipping std_sort int NEARLY_SORTED 158489 (Already exists)
+[55/1984] Skipping std_sort int NEARLY_SORTED 199526 (Already exists)
+[56/1984] Skipping std_sort int NEARLY_SORTED 251189 (Already exists)
+[57/1984] Skipping std_sort int NEARLY_SORTED 316228 (Already exists)
+[58/1984] Skipping std_sort int NEARLY_SORTED 398107 (Already exists)
+[59/1984] Skipping std_sort int NEARLY_SORTED 501187 (Already exists)
+[60/1984] Skipping std_sort int NEARLY_SORTED 630957 (Already exists)
+[61/1984] Skipping std_sort int NEARLY_SORTED 794328 (Already exists)
+[62/1984] Skipping std_sort int NEARLY_SORTED 1000000 (Already exists)
+[63/1984] Skipping std_sort int REVERSE_SORTED 1000 (Already exists)
+[64/1984] Skipping std_sort int REVERSE_SORTED 1259 (Already exists)
+[65/1984] Skipping std_sort int REVERSE_SORTED 1585 (Already exists)
+[66/1984] Skipping std_sort int REVERSE_SORTED 1995 (Already exists)
+[67/1984] Skipping std_sort int REVERSE_SORTED 2512 (Already exists)
+[68/1984] Skipping std_sort int REVERSE_SORTED 3162 (Already exists)
+[69/1984] Skipping std_sort int REVERSE_SORTED 3981 (Already exists)
+[70/1984] Skipping std_sort int REVERSE_SORTED 5012 (Already exists)
+[71/1984] Skipping std_sort int REVERSE_SORTED 6310 (Already exists)
+[72/1984] Skipping std_sort int REVERSE_SORTED 7943 (Already exists)
+[73/1984] Skipping std_sort int REVERSE_SORTED 10000 (Already exists)
+[74/1984] Skipping std_sort int REVERSE_SORTED 12589 (Already exists)
+[75/1984] Skipping std_sort int REVERSE_SORTED 15849 (Already exists)
+[76/1984] Skipping std_sort int REVERSE_SORTED 19953 (Already exists)
+[77/1984] Skipping std_sort int REVERSE_SORTED 25119 (Already exists)
+[78/1984] Skipping std_sort int REVERSE_SORTED 31623 (Already exists)
+[79/1984] Skipping std_sort int REVERSE_SORTED 39811 (Already exists)
+[80/1984] Skipping std_sort int REVERSE_SORTED 50119 (Already exists)
+[81/1984] Skipping std_sort int REVERSE_SORTED 63096 (Already exists)
+[82/1984] Skipping std_sort int REVERSE_SORTED 79433 (Already exists)
+[83/1984] Skipping std_sort int REVERSE_SORTED 100000 (Already exists)
+[84/1984] Skipping std_sort int REVERSE_SORTED 125893 (Already exists)
+[85/1984] Skipping std_sort int REVERSE_SORTED 158489 (Already exists)
+[86/1984] Skipping std_sort int REVERSE_SORTED 199526 (Already exists)
+[87/1984] Skipping std_sort int REVERSE_SORTED 251189 (Already exists)
+[88/1984] Skipping std_sort int REVERSE_SORTED 316228 (Already exists)
+[89/1984] Skipping std_sort int REVERSE_SORTED 398107 (Already exists)
+[90/1984] Skipping std_sort int REVERSE_SORTED 501187 (Already exists)
+[91/1984] Skipping std_sort int REVERSE_SORTED 630957 (Already exists)
+[92/1984] Skipping std_sort int REVERSE_SORTED 794328 (Already exists)
+[93/1984] Skipping std_sort int REVERSE_SORTED 1000000 (Already exists)
+[94/1984] Skipping std_sort int MANY_DUPLICATES_10 1000 (Already exists)
+[95/1984] Skipping std_sort int MANY_DUPLICATES_10 1259 (Already exists)
+[96/1984] Skipping std_sort int MANY_DUPLICATES_10 1585 (Already exists)
+[97/1984] Skipping std_sort int MANY_DUPLICATES_10 1995 (Already exists)
+[98/1984] Skipping std_sort int MANY_DUPLICATES_10 2512 (Already exists)
+[99/1984] Skipping std_sort int MANY_DUPLICATES_10 3162 (Already exists)
+[100/1984] Skipping std_sort int MANY_DUPLICATES_10 3981 (Already exists)
+[101/1984] Skipping std_sort int MANY_DUPLICATES_10 5012 (Already exists)
+[102/1984] Skipping std_sort int MANY_DUPLICATES_10 6310 (Already exists)
+[103/1984] Skipping std_sort int MANY_DUPLICATES_10 7943 (Already exists)
+[104/1984] Skipping std_sort int MANY_DUPLICATES_10 10000 (Already exists)
+[105/1984] Skipping std_sort int MANY_DUPLICATES_10 12589 (Already exists)
+[106/1984] Skipping std_sort int MANY_DUPLICATES_10 15849 (Already exists)
+[107/1984] Skipping std_sort int MANY_DUPLICATES_10 19953 (Already exists)
+[108/1984] Skipping std_sort int MANY_DUPLICATES_10 25119 (Already exists)
+[109/1984] Skipping std_sort int MANY_DUPLICATES_10 31623 (Already exists)
+[110/1984] Skipping std_sort int MANY_DUPLICATES_10 39811 (Already exists)
+[111/1984] Skipping std_sort int MANY_DUPLICATES_10 50119 (Already exists)
+[112/1984] Skipping std_sort int MANY_DUPLICATES_10 63096 (Already exists)
+[113/1984] Skipping std_sort int MANY_DUPLICATES_10 79433 (Already exists)
+[114/1984] Skipping std_sort int MANY_DUPLICATES_10 100000 (Already exists)
+[115/1984] Skipping std_sort int MANY_DUPLICATES_10 125893 (Already exists)
+[116/1984] Skipping std_sort int MANY_DUPLICATES_10 158489 (Already exists)
+[117/1984] Skipping std_sort int MANY_DUPLICATES_10 199526 (Already exists)
+[118/1984] Skipping std_sort int MANY_DUPLICATES_10 251189 (Already exists)
+[119/1984] Skipping std_sort int MANY_DUPLICATES_10 316228 (Already exists)
+[120/1984] Skipping std_sort int MANY_DUPLICATES_10 398107 (Already exists)
+[121/1984] Skipping std_sort int MANY_DUPLICATES_10 501187 (Already exists)
+[122/1984] Skipping std_sort int MANY_DUPLICATES_10 630957 (Already exists)
+[123/1984] Skipping std_sort int MANY_DUPLICATES_10 794328 (Already exists)
+[124/1984] Skipping std_sort int MANY_DUPLICATES_10 1000000 (Already exists)
+[125/1984] Skipping std_sort int MANY_DUPLICATES_50 1000 (Already exists)
+[126/1984] Skipping std_sort int MANY_DUPLICATES_50 1259 (Already exists)
+[127/1984] Skipping std_sort int MANY_DUPLICATES_50 1585 (Already exists)
+[128/1984] Skipping std_sort int MANY_DUPLICATES_50 1995 (Already exists)
+[129/1984] Skipping std_sort int MANY_DUPLICATES_50 2512 (Already exists)
+[130/1984] Skipping std_sort int MANY_DUPLICATES_50 3162 (Already exists)
+[131/1984] Skipping std_sort int MANY_DUPLICATES_50 3981 (Already exists)
+[132/1984] Skipping std_sort int MANY_DUPLICATES_50 5012 (Already exists)
+[133/1984] Skipping std_sort int MANY_DUPLICATES_50 6310 (Already exists)
+[134/1984] Skipping std_sort int MANY_DUPLICATES_50 7943 (Already exists)
+[135/1984] Skipping std_sort int MANY_DUPLICATES_50 10000 (Already exists)
+[136/1984] Skipping std_sort int MANY_DUPLICATES_50 12589 (Already exists)
+[137/1984] Skipping std_sort int MANY_DUPLICATES_50 15849 (Already exists)
+[138/1984] Skipping std_sort int MANY_DUPLICATES_50 19953 (Already exists)
+[139/1984] Skipping std_sort int MANY_DUPLICATES_50 25119 (Already exists)
+[140/1984] Skipping std_sort int MANY_DUPLICATES_50 31623 (Already exists)
+[141/1984] Skipping std_sort int MANY_DUPLICATES_50 39811 (Already exists)
+[142/1984] Skipping std_sort int MANY_DUPLICATES_50 50119 (Already exists)
+[143/1984] Skipping std_sort int MANY_DUPLICATES_50 63096 (Already exists)
+[144/1984] Skipping std_sort int MANY_DUPLICATES_50 79433 (Already exists)
+[145/1984] Skipping std_sort int MANY_DUPLICATES_50 100000 (Already exists)
+[146/1984] Skipping std_sort int MANY_DUPLICATES_50 125893 (Already exists)
+[147/1984] Skipping std_sort int MANY_DUPLICATES_50 158489 (Already exists)
+[148/1984] Skipping std_sort int MANY_DUPLICATES_50 199526 (Already exists)
+[149/1984] Skipping std_sort int MANY_DUPLICATES_50 251189 (Already exists)
+[150/1984] Skipping std_sort int MANY_DUPLICATES_50 316228 (Already exists)
+[151/1984] Skipping std_sort int MANY_DUPLICATES_50 398107 (Already exists)
+[152/1984] Skipping std_sort int MANY_DUPLICATES_50 501187 (Already exists)
+[153/1984] Skipping std_sort int MANY_DUPLICATES_50 630957 (Already exists)
+[154/1984] Skipping std_sort int MANY_DUPLICATES_50 794328 (Already exists)
+[155/1984] Skipping std_sort int MANY_DUPLICATES_50 1000000 (Already exists)
+[156/1984] Skipping std_sort int MANY_DUPLICATES_90 1000 (Already exists)
+[157/1984] Skipping std_sort int MANY_DUPLICATES_90 1259 (Already exists)
+[158/1984] Skipping std_sort int MANY_DUPLICATES_90 1585 (Already exists)
+[159/1984] Skipping std_sort int MANY_DUPLICATES_90 1995 (Already exists)
+[160/1984] Skipping std_sort int MANY_DUPLICATES_90 2512 (Already exists)
+[161/1984] Skipping std_sort int MANY_DUPLICATES_90 3162 (Already exists)
+[162/1984] Skipping std_sort int MANY_DUPLICATES_90 3981 (Already exists)
+[163/1984] Skipping std_sort int MANY_DUPLICATES_90 5012 (Already exists)
+[164/1984] Skipping std_sort int MANY_DUPLICATES_90 6310 (Already exists)
+[165/1984] Skipping std_sort int MANY_DUPLICATES_90 7943 (Already exists)
+[166/1984] Skipping std_sort int MANY_DUPLICATES_90 10000 (Already exists)
+[167/1984] Skipping std_sort int MANY_DUPLICATES_90 12589 (Already exists)
+[168/1984] Skipping std_sort int MANY_DUPLICATES_90 15849 (Already exists)
+[169/1984] Skipping std_sort int MANY_DUPLICATES_90 19953 (Already exists)
+[170/1984] Skipping std_sort int MANY_DUPLICATES_90 25119 (Already exists)
+[171/1984] Skipping std_sort int MANY_DUPLICATES_90 31623 (Already exists)
+[172/1984] Skipping std_sort int MANY_DUPLICATES_90 39811 (Already exists)
+[173/1984] Skipping std_sort int MANY_DUPLICATES_90 50119 (Already exists)
+[174/1984] Skipping std_sort int MANY_DUPLICATES_90 63096 (Already exists)
+[175/1984] Skipping std_sort int MANY_DUPLICATES_90 79433 (Already exists)
+[176/1984] Skipping std_sort int MANY_DUPLICATES_90 100000 (Already exists)
+[177/1984] Skipping std_sort int MANY_DUPLICATES_90 125893 (Already exists)
+[178/1984] Skipping std_sort int MANY_DUPLICATES_90 158489 (Already exists)
+[179/1984] Skipping std_sort int MANY_DUPLICATES_90 199526 (Already exists)
+[180/1984] Skipping std_sort int MANY_DUPLICATES_90 251189 (Already exists)
+[181/1984] Skipping std_sort int MANY_DUPLICATES_90 316228 (Already exists)
+[182/1984] Skipping std_sort int MANY_DUPLICATES_90 398107 (Already exists)
+[183/1984] Skipping std_sort int MANY_DUPLICATES_90 501187 (Already exists)
+[184/1984] Skipping std_sort int MANY_DUPLICATES_90 630957 (Already exists)
+[185/1984] Skipping std_sort int MANY_DUPLICATES_90 794328 (Already exists)
+[186/1984] Skipping std_sort int MANY_DUPLICATES_90 1000000 (Already exists)
+[187/1984] Skipping std_sort int ORGAN_PIPE 1000 (Already exists)
+[188/1984] Skipping std_sort int ORGAN_PIPE 1259 (Already exists)
+[189/1984] Skipping std_sort int ORGAN_PIPE 1585 (Already exists)
+[190/1984] Skipping std_sort int ORGAN_PIPE 1995 (Already exists)
+[191/1984] Skipping std_sort int ORGAN_PIPE 2512 (Already exists)
+[192/1984] Skipping std_sort int ORGAN_PIPE 3162 (Already exists)
+[193/1984] Skipping std_sort int ORGAN_PIPE 3981 (Already exists)
+[194/1984] Skipping std_sort int ORGAN_PIPE 5012 (Already exists)
+[195/1984] Skipping std_sort int ORGAN_PIPE 6310 (Already exists)
+[196/1984] Skipping std_sort int ORGAN_PIPE 7943 (Already exists)
+[197/1984] Skipping std_sort int ORGAN_PIPE 10000 (Already exists)
+[198/1984] Skipping std_sort int ORGAN_PIPE 12589 (Already exists)
+[199/1984] Skipping std_sort int ORGAN_PIPE 15849 (Already exists)
+[200/1984] Skipping std_sort int ORGAN_PIPE 19953 (Already exists)
+[201/1984] Skipping std_sort int ORGAN_PIPE 25119 (Already exists)
+[202/1984] Skipping std_sort int ORGAN_PIPE 31623 (Already exists)
+[203/1984] Skipping std_sort int ORGAN_PIPE 39811 (Already exists)
+[204/1984] Skipping std_sort int ORGAN_PIPE 50119 (Already exists)
+[205/1984] Skipping std_sort int ORGAN_PIPE 63096 (Already exists)
+[206/1984] Skipping std_sort int ORGAN_PIPE 79433 (Already exists)
+[207/1984] Skipping std_sort int ORGAN_PIPE 100000 (Already exists)
+[208/1984] Skipping std_sort int ORGAN_PIPE 125893 (Already exists)
+[209/1984] Skipping std_sort int ORGAN_PIPE 158489 (Already exists)
+[210/1984] Skipping std_sort int ORGAN_PIPE 199526 (Already exists)
+[211/1984] Skipping std_sort int ORGAN_PIPE 251189 (Already exists)
+[212/1984] Skipping std_sort int ORGAN_PIPE 316228 (Already exists)
+[213/1984] Skipping std_sort int ORGAN_PIPE 398107 (Already exists)
+[214/1984] Skipping std_sort int ORGAN_PIPE 501187 (Already exists)
+[215/1984] Skipping std_sort int ORGAN_PIPE 630957 (Already exists)
+[216/1984] Skipping std_sort int ORGAN_PIPE 794328 (Already exists)
+[217/1984] Skipping std_sort int ORGAN_PIPE 1000000 (Already exists)
+[218/1984] Skipping std_sort int SAWTOOTH 1000 (Already exists)
+[219/1984] Skipping std_sort int SAWTOOTH 1259 (Already exists)
+[220/1984] Skipping std_sort int SAWTOOTH 1585 (Already exists)
+[221/1984] Skipping std_sort int SAWTOOTH 1995 (Already exists)
+[222/1984] Skipping std_sort int SAWTOOTH 2512 (Already exists)
+[223/1984] Skipping std_sort int SAWTOOTH 3162 (Already exists)
+[224/1984] Skipping std_sort int SAWTOOTH 3981 (Already exists)
+[225/1984] Skipping std_sort int SAWTOOTH 5012 (Already exists)
+[226/1984] Skipping std_sort int SAWTOOTH 6310 (Already exists)
+[227/1984] Skipping std_sort int SAWTOOTH 7943 (Already exists)
+[228/1984] Skipping std_sort int SAWTOOTH 10000 (Already exists)
+[229/1984] Skipping std_sort int SAWTOOTH 12589 (Already exists)
+[230/1984] Skipping std_sort int SAWTOOTH 15849 (Already exists)
+[231/1984] Skipping std_sort int SAWTOOTH 19953 (Already exists)
+[232/1984] Skipping std_sort int SAWTOOTH 25119 (Already exists)
+[233/1984] Skipping std_sort int SAWTOOTH 31623 (Already exists)
+[234/1984] Skipping std_sort int SAWTOOTH 39811 (Already exists)
+[235/1984] Skipping std_sort int SAWTOOTH 50119 (Already exists)
+[236/1984] Skipping std_sort int SAWTOOTH 63096 (Already exists)
+[237/1984] Skipping std_sort int SAWTOOTH 79433 (Already exists)
+[238/1984] Skipping std_sort int SAWTOOTH 100000 (Already exists)
+[239/1984] Skipping std_sort int SAWTOOTH 125893 (Already exists)
+[240/1984] Skipping std_sort int SAWTOOTH 158489 (Already exists)
+[241/1984] Skipping std_sort int SAWTOOTH 199526 (Already exists)
+[242/1984] Skipping std_sort int SAWTOOTH 251189 (Already exists)
+[243/1984] Skipping std_sort int SAWTOOTH 316228 (Already exists)
+[244/1984] Skipping std_sort int SAWTOOTH 398107 (Already exists)
+[245/1984] Skipping std_sort int SAWTOOTH 501187 (Already exists)
+[246/1984] Skipping std_sort int SAWTOOTH 630957 (Already exists)
+[247/1984] Skipping std_sort int SAWTOOTH 794328 (Already exists)
+[248/1984] Skipping std_sort int SAWTOOTH 1000000 (Already exists)
+[249/1984] Skipping std_sort double RANDOM 1000 (Already exists)
+[250/1984] Skipping std_sort double RANDOM 1259 (Already exists)
+[251/1984] Skipping std_sort double RANDOM 1585 (Already exists)
+[252/1984] Skipping std_sort double RANDOM 1995 (Already exists)
+[253/1984] Skipping std_sort double RANDOM 2512 (Already exists)
+[254/1984] Skipping std_sort double RANDOM 3162 (Already exists)
+[255/1984] Skipping std_sort double RANDOM 3981 (Already exists)
+[256/1984] Skipping std_sort double RANDOM 5012 (Already exists)
+[257/1984] Skipping std_sort double RANDOM 6310 (Already exists)
+[258/1984] Skipping std_sort double RANDOM 7943 (Already exists)
+[259/1984] Skipping std_sort double RANDOM 10000 (Already exists)
+[260/1984] Skipping std_sort double RANDOM 12589 (Already exists)
+[261/1984] Skipping std_sort double RANDOM 15849 (Already exists)
+[262/1984] Skipping std_sort double RANDOM 19953 (Already exists)
+[263/1984] Skipping std_sort double RANDOM 25119 (Already exists)
+[264/1984] Skipping std_sort double RANDOM 31623 (Already exists)
+[265/1984] Skipping std_sort double RANDOM 39811 (Already exists)
+[266/1984] Skipping std_sort double RANDOM 50119 (Already exists)
+[267/1984] Skipping std_sort double RANDOM 63096 (Already exists)
+[268/1984] Skipping std_sort double RANDOM 79433 (Already exists)
+[269/1984] Skipping std_sort double RANDOM 100000 (Already exists)
+[270/1984] Skipping std_sort double RANDOM 125893 (Already exists)
+[271/1984] Skipping std_sort double RANDOM 158489 (Already exists)
+[272/1984] Skipping std_sort double RANDOM 199526 (Already exists)
+[273/1984] Skipping std_sort double RANDOM 251189 (Already exists)
+[274/1984] Skipping std_sort double RANDOM 316228 (Already exists)
+[275/1984] Skipping std_sort double RANDOM 398107 (Already exists)
+[276/1984] Skipping std_sort double RANDOM 501187 (Already exists)
+[277/1984] Skipping std_sort double RANDOM 630957 (Already exists)
+[278/1984] Skipping std_sort double RANDOM 794328 (Already exists)
+[279/1984] Skipping std_sort double RANDOM 1000000 (Already exists)
+[280/1984] Skipping std_sort double NEARLY_SORTED 1000 (Already exists)
+[281/1984] Skipping std_sort double NEARLY_SORTED 1259 (Already exists)
+[282/1984] Skipping std_sort double NEARLY_SORTED 1585 (Already exists)
+[283/1984] Skipping std_sort double NEARLY_SORTED 1995 (Already exists)
+[284/1984] Skipping std_sort double NEARLY_SORTED 2512 (Already exists)
+[285/1984] Skipping std_sort double NEARLY_SORTED 3162 (Already exists)
+[286/1984] Skipping std_sort double NEARLY_SORTED 3981 (Already exists)
+[287/1984] Skipping std_sort double NEARLY_SORTED 5012 (Already exists)
+[288/1984] Skipping std_sort double NEARLY_SORTED 6310 (Already exists)
+[289/1984] Skipping std_sort double NEARLY_SORTED 7943 (Already exists)
+[290/1984] Skipping std_sort double NEARLY_SORTED 10000 (Already exists)
+[291/1984] Skipping std_sort double NEARLY_SORTED 12589 (Already exists)
+[292/1984] Skipping std_sort double NEARLY_SORTED 15849 (Already exists)
+[293/1984] Skipping std_sort double NEARLY_SORTED 19953 (Already exists)
+[294/1984] Skipping std_sort double NEARLY_SORTED 25119 (Already exists)
+[295/1984] Skipping std_sort double NEARLY_SORTED 31623 (Already exists)
+[296/1984] Skipping std_sort double NEARLY_SORTED 39811 (Already exists)
+[297/1984] Skipping std_sort double NEARLY_SORTED 50119 (Already exists)
+[298/1984] Skipping std_sort double NEARLY_SORTED 63096 (Already exists)
+[299/1984] Skipping std_sort double NEARLY_SORTED 79433 (Already exists)
+[300/1984] Skipping std_sort double NEARLY_SORTED 100000 (Already exists)
+[301/1984] Skipping std_sort double NEARLY_SORTED 125893 (Already exists)
+[302/1984] Skipping std_sort double NEARLY_SORTED 158489 (Already exists)
+[303/1984] Skipping std_sort double NEARLY_SORTED 199526 (Already exists)
+[304/1984] Skipping std_sort double NEARLY_SORTED 251189 (Already exists)
+[305/1984] Skipping std_sort double NEARLY_SORTED 316228 (Already exists)
+[306/1984] Skipping std_sort double NEARLY_SORTED 398107 (Already exists)
+[307/1984] Skipping std_sort double NEARLY_SORTED 501187 (Already exists)
+[308/1984] Skipping std_sort double NEARLY_SORTED 630957 (Already exists)
+[309/1984] Skipping std_sort double NEARLY_SORTED 794328 (Already exists)
+[310/1984] Skipping std_sort double NEARLY_SORTED 1000000 (Already exists)
+[311/1984] Skipping std_sort double REVERSE_SORTED 1000 (Already exists)
+[312/1984] Skipping std_sort double REVERSE_SORTED 1259 (Already exists)
+[313/1984] Skipping std_sort double REVERSE_SORTED 1585 (Already exists)
+[314/1984] Skipping std_sort double REVERSE_SORTED 1995 (Already exists)
+[315/1984] Skipping std_sort double REVERSE_SORTED 2512 (Already exists)
+[316/1984] Skipping std_sort double REVERSE_SORTED 3162 (Already exists)
+[317/1984] Skipping std_sort double REVERSE_SORTED 3981 (Already exists)
+[318/1984] Skipping std_sort double REVERSE_SORTED 5012 (Already exists)
+[319/1984] Skipping std_sort double REVERSE_SORTED 6310 (Already exists)
+[320/1984] Skipping std_sort double REVERSE_SORTED 7943 (Already exists)
+[321/1984] Skipping std_sort double REVERSE_SORTED 10000 (Already exists)
+[322/1984] Skipping std_sort double REVERSE_SORTED 12589 (Already exists)
+[323/1984] Skipping std_sort double REVERSE_SORTED 15849 (Already exists)
+[324/1984] Skipping std_sort double REVERSE_SORTED 19953 (Already exists)
+[325/1984] Skipping std_sort double REVERSE_SORTED 25119 (Already exists)
+[326/1984] Skipping std_sort double REVERSE_SORTED 31623 (Already exists)
+[327/1984] Skipping std_sort double REVERSE_SORTED 39811 (Already exists)
+[328/1984] Skipping std_sort double REVERSE_SORTED 50119 (Already exists)
+[329/1984] Skipping std_sort double REVERSE_SORTED 63096 (Already exists)
+[330/1984] Skipping std_sort double REVERSE_SORTED 79433 (Already exists)
+[331/1984] Skipping std_sort double REVERSE_SORTED 100000 (Already exists)
+[332/1984] Skipping std_sort double REVERSE_SORTED 125893 (Already exists)
+[333/1984] Skipping std_sort double REVERSE_SORTED 158489 (Already exists)
+[334/1984] Skipping std_sort double REVERSE_SORTED 199526 (Already exists)
+[335/1984] Skipping std_sort double REVERSE_SORTED 251189 (Already exists)
+[336/1984] Skipping std_sort double REVERSE_SORTED 316228 (Already exists)
+[337/1984] Skipping std_sort double REVERSE_SORTED 398107 (Already exists)
+[338/1984] Skipping std_sort double REVERSE_SORTED 501187 (Already exists)
+[339/1984] Skipping std_sort double REVERSE_SORTED 630957 (Already exists)
+[340/1984] Skipping std_sort double REVERSE_SORTED 794328 (Already exists)
+[341/1984] Skipping std_sort double REVERSE_SORTED 1000000 (Already exists)
+[342/1984] Skipping std_sort double MANY_DUPLICATES_10 1000 (Already exists)
+[343/1984] Skipping std_sort double MANY_DUPLICATES_10 1259 (Already exists)
+[344/1984] Skipping std_sort double MANY_DUPLICATES_10 1585 (Already exists)
+[345/1984] Skipping std_sort double MANY_DUPLICATES_10 1995 (Already exists)
+[346/1984] Skipping std_sort double MANY_DUPLICATES_10 2512 (Already exists)
+[347/1984] Skipping std_sort double MANY_DUPLICATES_10 3162 (Already exists)
+[348/1984] Skipping std_sort double MANY_DUPLICATES_10 3981 (Already exists)
+[349/1984] Skipping std_sort double MANY_DUPLICATES_10 5012 (Already exists)
+[350/1984] Skipping std_sort double MANY_DUPLICATES_10 6310 (Already exists)
+[351/1984] Skipping std_sort double MANY_DUPLICATES_10 7943 (Already exists)
+[352/1984] Skipping std_sort double MANY_DUPLICATES_10 10000 (Already exists)
+[353/1984] Skipping std_sort double MANY_DUPLICATES_10 12589 (Already exists)
+[354/1984] Skipping std_sort double MANY_DUPLICATES_10 15849 (Already exists)
+[355/1984] Skipping std_sort double MANY_DUPLICATES_10 19953 (Already exists)
+[356/1984] Skipping std_sort double MANY_DUPLICATES_10 25119 (Already exists)
+[357/1984] Skipping std_sort double MANY_DUPLICATES_10 31623 (Already exists)
+[358/1984] Skipping std_sort double MANY_DUPLICATES_10 39811 (Already exists)
+[359/1984] Skipping std_sort double MANY_DUPLICATES_10 50119 (Already exists)
+[360/1984] Skipping std_sort double MANY_DUPLICATES_10 63096 (Already exists)
+[361/1984] Skipping std_sort double MANY_DUPLICATES_10 79433 (Already exists)
+[362/1984] Skipping std_sort double MANY_DUPLICATES_10 100000 (Already exists)
+[363/1984] Skipping std_sort double MANY_DUPLICATES_10 125893 (Already exists)
+[364/1984] Skipping std_sort double MANY_DUPLICATES_10 158489 (Already exists)
+[365/1984] Skipping std_sort double MANY_DUPLICATES_10 199526 (Already exists)
+[366/1984] Skipping std_sort double MANY_DUPLICATES_10 251189 (Already exists)
+[367/1984] Skipping std_sort double MANY_DUPLICATES_10 316228 (Already exists)
+[368/1984] Skipping std_sort double MANY_DUPLICATES_10 398107 (Already exists)
+[369/1984] Skipping std_sort double MANY_DUPLICATES_10 501187 (Already exists)
+[370/1984] Skipping std_sort double MANY_DUPLICATES_10 630957 (Already exists)
+[371/1984] Skipping std_sort double MANY_DUPLICATES_10 794328 (Already exists)
+[372/1984] Skipping std_sort double MANY_DUPLICATES_10 1000000 (Already exists)
+[373/1984] Skipping std_sort double MANY_DUPLICATES_50 1000 (Already exists)
+[374/1984] Skipping std_sort double MANY_DUPLICATES_50 1259 (Already exists)
+[375/1984] Skipping std_sort double MANY_DUPLICATES_50 1585 (Already exists)
+[376/1984] Skipping std_sort double MANY_DUPLICATES_50 1995 (Already exists)
+[377/1984] Skipping std_sort double MANY_DUPLICATES_50 2512 (Already exists)
+[378/1984] Skipping std_sort double MANY_DUPLICATES_50 3162 (Already exists)
+[379/1984] Skipping std_sort double MANY_DUPLICATES_50 3981 (Already exists)
+[380/1984] Skipping std_sort double MANY_DUPLICATES_50 5012 (Already exists)
+[381/1984] Skipping std_sort double MANY_DUPLICATES_50 6310 (Already exists)
+[382/1984] Skipping std_sort double MANY_DUPLICATES_50 7943 (Already exists)
+[383/1984] Skipping std_sort double MANY_DUPLICATES_50 10000 (Already exists)
+[384/1984] Skipping std_sort double MANY_DUPLICATES_50 12589 (Already exists)
+[385/1984] Skipping std_sort double MANY_DUPLICATES_50 15849 (Already exists)
+[386/1984] Skipping std_sort double MANY_DUPLICATES_50 19953 (Already exists)
+[387/1984] Skipping std_sort double MANY_DUPLICATES_50 25119 (Already exists)
+[388/1984] Skipping std_sort double MANY_DUPLICATES_50 31623 (Already exists)
+[389/1984] Skipping std_sort double MANY_DUPLICATES_50 39811 (Already exists)
+[390/1984] Skipping std_sort double MANY_DUPLICATES_50 50119 (Already exists)
+[391/1984] Skipping std_sort double MANY_DUPLICATES_50 63096 (Already exists)
+[392/1984] Skipping std_sort double MANY_DUPLICATES_50 79433 (Already exists)
+[393/1984] Skipping std_sort double MANY_DUPLICATES_50 100000 (Already exists)
+[394/1984] Skipping std_sort double MANY_DUPLICATES_50 125893 (Already exists)
+[395/1984] Skipping std_sort double MANY_DUPLICATES_50 158489 (Already exists)
+[396/1984] Skipping std_sort double MANY_DUPLICATES_50 199526 (Already exists)
+[397/1984] Skipping std_sort double MANY_DUPLICATES_50 251189 (Already exists)
+[398/1984] Skipping std_sort double MANY_DUPLICATES_50 316228 (Already exists)
+[399/1984] Skipping std_sort double MANY_DUPLICATES_50 398107 (Already exists)
+[400/1984] Skipping std_sort double MANY_DUPLICATES_50 501187 (Already exists)
+[401/1984] Skipping std_sort double MANY_DUPLICATES_50 630957 (Already exists)
+[402/1984] Skipping std_sort double MANY_DUPLICATES_50 794328 (Already exists)
+[403/1984] Skipping std_sort double MANY_DUPLICATES_50 1000000 (Already exists)
+[404/1984] Skipping std_sort double MANY_DUPLICATES_90 1000 (Already exists)
+[405/1984] Skipping std_sort double MANY_DUPLICATES_90 1259 (Already exists)
+[406/1984] Skipping std_sort double MANY_DUPLICATES_90 1585 (Already exists)
+[407/1984] Skipping std_sort double MANY_DUPLICATES_90 1995 (Already exists)
+[408/1984] Skipping std_sort double MANY_DUPLICATES_90 2512 (Already exists)
+[409/1984] Skipping std_sort double MANY_DUPLICATES_90 3162 (Already exists)
+[410/1984] Skipping std_sort double MANY_DUPLICATES_90 3981 (Already exists)
+[411/1984] Skipping std_sort double MANY_DUPLICATES_90 5012 (Already exists)
+[412/1984] Skipping std_sort double MANY_DUPLICATES_90 6310 (Already exists)
+[413/1984] Skipping std_sort double MANY_DUPLICATES_90 7943 (Already exists)
+[414/1984] Skipping std_sort double MANY_DUPLICATES_90 10000 (Already exists)
+[415/1984] Skipping std_sort double MANY_DUPLICATES_90 12589 (Already exists)
+[416/1984] Skipping std_sort double MANY_DUPLICATES_90 15849 (Already exists)
+[417/1984] Skipping std_sort double MANY_DUPLICATES_90 19953 (Already exists)
+[418/1984] Skipping std_sort double MANY_DUPLICATES_90 25119 (Already exists)
+[419/1984] Skipping std_sort double MANY_DUPLICATES_90 31623 (Already exists)
+[420/1984] Skipping std_sort double MANY_DUPLICATES_90 39811 (Already exists)
+[421/1984] Skipping std_sort double MANY_DUPLICATES_90 50119 (Already exists)
+[422/1984] Skipping std_sort double MANY_DUPLICATES_90 63096 (Already exists)
+[423/1984] Skipping std_sort double MANY_DUPLICATES_90 79433 (Already exists)
+[424/1984] Skipping std_sort double MANY_DUPLICATES_90 100000 (Already exists)
+[425/1984] Skipping std_sort double MANY_DUPLICATES_90 125893 (Already exists)
+[426/1984] Skipping std_sort double MANY_DUPLICATES_90 158489 (Already exists)
+[427/1984] Skipping std_sort double MANY_DUPLICATES_90 199526 (Already exists)
+[428/1984] Skipping std_sort double MANY_DUPLICATES_90 251189 (Already exists)
+[429/1984] Skipping std_sort double MANY_DUPLICATES_90 316228 (Already exists)
+[430/1984] Skipping std_sort double MANY_DUPLICATES_90 398107 (Already exists)
+[431/1984] Skipping std_sort double MANY_DUPLICATES_90 501187 (Already exists)
+[432/1984] Skipping std_sort double MANY_DUPLICATES_90 630957 (Already exists)
+[433/1984] Skipping std_sort double MANY_DUPLICATES_90 794328 (Already exists)
+[434/1984] Skipping std_sort double MANY_DUPLICATES_90 1000000 (Already exists)
+[435/1984] Skipping std_sort double ORGAN_PIPE 1000 (Already exists)
+[436/1984] Skipping std_sort double ORGAN_PIPE 1259 (Already exists)
+[437/1984] Skipping std_sort double ORGAN_PIPE 1585 (Already exists)
+[438/1984] Skipping std_sort double ORGAN_PIPE 1995 (Already exists)
+[439/1984] Skipping std_sort double ORGAN_PIPE 2512 (Already exists)
+[440/1984] Skipping std_sort double ORGAN_PIPE 3162 (Already exists)
+[441/1984] Skipping std_sort double ORGAN_PIPE 3981 (Already exists)
+[442/1984] Skipping std_sort double ORGAN_PIPE 5012 (Already exists)
+[443/1984] Skipping std_sort double ORGAN_PIPE 6310 (Already exists)
+[444/1984] Skipping std_sort double ORGAN_PIPE 7943 (Already exists)
+[445/1984] Skipping std_sort double ORGAN_PIPE 10000 (Already exists)
+[446/1984] Skipping std_sort double ORGAN_PIPE 12589 (Already exists)
+[447/1984] Skipping std_sort double ORGAN_PIPE 15849 (Already exists)
+[448/1984] Skipping std_sort double ORGAN_PIPE 19953 (Already exists)
+[449/1984] Skipping std_sort double ORGAN_PIPE 25119 (Already exists)
+[450/1984] Skipping std_sort double ORGAN_PIPE 31623 (Already exists)
+[451/1984] Skipping std_sort double ORGAN_PIPE 39811 (Already exists)
+[452/1984] Skipping std_sort double ORGAN_PIPE 50119 (Already exists)
+[453/1984] Skipping std_sort double ORGAN_PIPE 63096 (Already exists)
+[454/1984] Skipping std_sort double ORGAN_PIPE 79433 (Already exists)
+[455/1984] Skipping std_sort double ORGAN_PIPE 100000 (Already exists)
+[456/1984] Skipping std_sort double ORGAN_PIPE 125893 (Already exists)
+[457/1984] Skipping std_sort double ORGAN_PIPE 158489 (Already exists)
+[458/1984] Skipping std_sort double ORGAN_PIPE 199526 (Already exists)
+[459/1984] Skipping std_sort double ORGAN_PIPE 251189 (Already exists)
+[460/1984] Skipping std_sort double ORGAN_PIPE 316228 (Already exists)
+[461/1984] Skipping std_sort double ORGAN_PIPE 398107 (Already exists)
+[462/1984] Skipping std_sort double ORGAN_PIPE 501187 (Already exists)
+[463/1984] Skipping std_sort double ORGAN_PIPE 630957 (Already exists)
+[464/1984] Skipping std_sort double ORGAN_PIPE 794328 (Already exists)
+[465/1984] Skipping std_sort double ORGAN_PIPE 1000000 (Already exists)
+[466/1984] Skipping std_sort double SAWTOOTH 1000 (Already exists)
+[467/1984] Skipping std_sort double SAWTOOTH 1259 (Already exists)
+[468/1984] Skipping std_sort double SAWTOOTH 1585 (Already exists)
+[469/1984] Skipping std_sort double SAWTOOTH 1995 (Already exists)
+[470/1984] Skipping std_sort double SAWTOOTH 2512 (Already exists)
+[471/1984] Skipping std_sort double SAWTOOTH 3162 (Already exists)
+[472/1984] Skipping std_sort double SAWTOOTH 3981 (Already exists)
+[473/1984] Skipping std_sort double SAWTOOTH 5012 (Already exists)
+[474/1984] Skipping std_sort double SAWTOOTH 6310 (Already exists)
+[475/1984] Skipping std_sort double SAWTOOTH 7943 (Already exists)
+[476/1984] Skipping std_sort double SAWTOOTH 10000 (Already exists)
+[477/1984] Skipping std_sort double SAWTOOTH 12589 (Already exists)
+[478/1984] Skipping std_sort double SAWTOOTH 15849 (Already exists)
+[479/1984] Skipping std_sort double SAWTOOTH 19953 (Already exists)
+[480/1984] Skipping std_sort double SAWTOOTH 25119 (Already exists)
+[481/1984] Skipping std_sort double SAWTOOTH 31623 (Already exists)
+[482/1984] Skipping std_sort double SAWTOOTH 39811 (Already exists)
+[483/1984] Skipping std_sort double SAWTOOTH 50119 (Already exists)
+[484/1984] Skipping std_sort double SAWTOOTH 63096 (Already exists)
+[485/1984] Skipping std_sort double SAWTOOTH 79433 (Already exists)
+[486/1984] Skipping std_sort double SAWTOOTH 100000 (Already exists)
+[487/1984] Skipping std_sort double SAWTOOTH 125893 (Already exists)
+[488/1984] Skipping std_sort double SAWTOOTH 158489 (Already exists)
+[489/1984] Skipping std_sort double SAWTOOTH 199526 (Already exists)
+[490/1984] Skipping std_sort double SAWTOOTH 251189 (Already exists)
+[491/1984] Skipping std_sort double SAWTOOTH 316228 (Already exists)
+[492/1984] Skipping std_sort double SAWTOOTH 398107 (Already exists)
+[493/1984] Skipping std_sort double SAWTOOTH 501187 (Already exists)
+[494/1984] Skipping std_sort double SAWTOOTH 630957 (Already exists)
+[495/1984] Skipping std_sort double SAWTOOTH 794328 (Already exists)
+[496/1984] Skipping std_sort double SAWTOOTH 1000000 (Already exists)
+[497/1984] Running dual_pivot int RANDOM 1000...
+[498/1984] Running dual_pivot int RANDOM 1259...
+[499/1984] Running dual_pivot int RANDOM 1585...
+[500/1984] Running dual_pivot int RANDOM 1995...
+[501/1984] Running dual_pivot int RANDOM 2512...
+[502/1984] Running dual_pivot int RANDOM 3162...
+[503/1984] Running dual_pivot int RANDOM 3981...
+[504/1984] Running dual_pivot int RANDOM 5012...
+[505/1984] Running dual_pivot int RANDOM 6310...
+[506/1984] Running dual_pivot int RANDOM 7943...
+[507/1984] Running dual_pivot int RANDOM 10000...
+[508/1984] Running dual_pivot int RANDOM 12589...
+[509/1984] Running dual_pivot int RANDOM 15849...
+[510/1984] Running dual_pivot int RANDOM 19953...
+[511/1984] Running dual_pivot int RANDOM 25119...
+[512/1984] Running dual_pivot int RANDOM 31623...
+[513/1984] Running dual_pivot int RANDOM 39811...
+[514/1984] Running dual_pivot int RANDOM 50119...
+[515/1984] Running dual_pivot int RANDOM 63096...
+[516/1984] Running dual_pivot int RANDOM 79433...
+[517/1984] Running dual_pivot int RANDOM 100000...
+[518/1984] Running dual_pivot int RANDOM 125893...
+[519/1984] Running dual_pivot int RANDOM 158489...
+[520/1984] Running dual_pivot int RANDOM 199526...
+[521/1984] Running dual_pivot int RANDOM 251189...
+[522/1984] Running dual_pivot int RANDOM 316228...
+[523/1984] Running dual_pivot int RANDOM 398107...
+[524/1984] Running dual_pivot int RANDOM 501187...
+[525/1984] Running dual_pivot int RANDOM 630957...
+[526/1984] Running dual_pivot int RANDOM 794328...
+[527/1984] Running dual_pivot int RANDOM 1000000...
+[528/1984] Running dual_pivot int NEARLY_SORTED 1000...
+[529/1984] Running dual_pivot int NEARLY_SORTED 1259...
+[530/1984] Running dual_pivot int NEARLY_SORTED 1585...
+[531/1984] Running dual_pivot int NEARLY_SORTED 1995...
+[532/1984] Running dual_pivot int NEARLY_SORTED 2512...
+[533/1984] Running dual_pivot int NEARLY_SORTED 3162...
+[534/1984] Running dual_pivot int NEARLY_SORTED 3981...
+[535/1984] Running dual_pivot int NEARLY_SORTED 5012...
+[536/1984] Running dual_pivot int NEARLY_SORTED 6310...
+[537/1984] Running dual_pivot int NEARLY_SORTED 7943...
+[538/1984] Running dual_pivot int NEARLY_SORTED 10000...
+[539/1984] Running dual_pivot int NEARLY_SORTED 12589...
+[540/1984] Running dual_pivot int NEARLY_SORTED 15849...
+[541/1984] Running dual_pivot int NEARLY_SORTED 19953...
+[542/1984] Running dual_pivot int NEARLY_SORTED 25119...
+[543/1984] Running dual_pivot int NEARLY_SORTED 31623...
+[544/1984] Running dual_pivot int NEARLY_SORTED 39811...
+[545/1984] Running dual_pivot int NEARLY_SORTED 50119...
+[546/1984] Running dual_pivot int NEARLY_SORTED 63096...
+[547/1984] Running dual_pivot int NEARLY_SORTED 79433...
+[548/1984] Running dual_pivot int NEARLY_SORTED 100000...
+[549/1984] Running dual_pivot int NEARLY_SORTED 125893...
+[550/1984] Running dual_pivot int NEARLY_SORTED 158489...
+[551/1984] Running dual_pivot int NEARLY_SORTED 199526...
+[552/1984] Running dual_pivot int NEARLY_SORTED 251189...
+[553/1984] Running dual_pivot int NEARLY_SORTED 316228...
+[554/1984] Running dual_pivot int NEARLY_SORTED 398107...
+[555/1984] Running dual_pivot int NEARLY_SORTED 501187...
+[556/1984] Running dual_pivot int NEARLY_SORTED 630957...
+[557/1984] Running dual_pivot int NEARLY_SORTED 794328...
+[558/1984] Running dual_pivot int NEARLY_SORTED 1000000...
+[559/1984] Running dual_pivot int REVERSE_SORTED 1000...
+[560/1984] Running dual_pivot int REVERSE_SORTED 1259...
+[561/1984] Running dual_pivot int REVERSE_SORTED 1585...
+[562/1984] Running dual_pivot int REVERSE_SORTED 1995...
+[563/1984] Running dual_pivot int REVERSE_SORTED 2512...
+[564/1984] Running dual_pivot int REVERSE_SORTED 3162...
+[565/1984] Running dual_pivot int REVERSE_SORTED 3981...
+[566/1984] Running dual_pivot int REVERSE_SORTED 5012...
+[567/1984] Running dual_pivot int REVERSE_SORTED 6310...
+[568/1984] Running dual_pivot int REVERSE_SORTED 7943...
+[569/1984] Running dual_pivot int REVERSE_SORTED 10000...
+[570/1984] Running dual_pivot int REVERSE_SORTED 12589...
+[571/1984] Running dual_pivot int REVERSE_SORTED 15849...
+[572/1984] Running dual_pivot int REVERSE_SORTED 19953...
+[573/1984] Running dual_pivot int REVERSE_SORTED 25119...
+[574/1984] Running dual_pivot int REVERSE_SORTED 31623...
+[575/1984] Running dual_pivot int REVERSE_SORTED 39811...
+[576/1984] Running dual_pivot int REVERSE_SORTED 50119...
+[577/1984] Running dual_pivot int REVERSE_SORTED 63096...
+[578/1984] Running dual_pivot int REVERSE_SORTED 79433...
+[579/1984] Running dual_pivot int REVERSE_SORTED 100000...
+[580/1984] Running dual_pivot int REVERSE_SORTED 125893...
+[581/1984] Running dual_pivot int REVERSE_SORTED 158489...
+[582/1984] Running dual_pivot int REVERSE_SORTED 199526...
+[583/1984] Running dual_pivot int REVERSE_SORTED 251189...
+[584/1984] Running dual_pivot int REVERSE_SORTED 316228...
+[585/1984] Running dual_pivot int REVERSE_SORTED 398107...
+[586/1984] Running dual_pivot int REVERSE_SORTED 501187...
+[587/1984] Running dual_pivot int REVERSE_SORTED 630957...
+[588/1984] Running dual_pivot int REVERSE_SORTED 794328...
+[589/1984] Running dual_pivot int REVERSE_SORTED 1000000...
+[590/1984] Running dual_pivot int MANY_DUPLICATES_10 1000...
+[591/1984] Running dual_pivot int MANY_DUPLICATES_10 1259...

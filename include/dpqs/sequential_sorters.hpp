@@ -112,8 +112,10 @@ void sort_sequential(Sorter<T>* sorter, T* a, int bits, int low, int high) {
 
             // Fork parallel tasks if sorter available
             if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
+                sorter->addToPendingCount(1); // Prevent premature completion
                 sorter->forkSorter(bits | 1, lower + 1, upper);
                 sorter->forkSorter(bits | 1, upper + 1, high);
+                sorter->addToPendingCount(-1); // Release hold
             } else {
                 sort_sequential(sorter, a, bits | 1, lower + 1, upper);
                 sort_sequential(sorter, a, bits | 1, upper + 1, high);
@@ -133,25 +135,6 @@ void sort_sequential(Sorter<T>* sorter, T* a, int bits, int low, int high) {
 
         high = lower; // Continue with left part (tail recursion elimination)
     }
-}
-
-// Type-specific wrappers for backward compatibility and API requirements
-// These are called by Sorter<T>::compute and dual_pivot_quicksort.hpp
-
-inline void sort_int_sequential(Sorter<int>* sorter, int* a, int bits, int low, int high) {
-    sort_sequential(sorter, a, bits, low, high);
-}
-
-inline void sort_long_sequential(Sorter<long>* sorter, long* a, int bits, int low, int high) {
-    sort_sequential(sorter, a, bits, low, high);
-}
-
-inline void sort_float_sequential(Sorter<float>* sorter, float* a, int bits, int low, int high) {
-    sort_sequential(sorter, a, bits, low, high);
-}
-
-inline void sort_double_sequential(Sorter<double>* sorter, double* a, int bits, int low, int high) {
-    sort_sequential(sorter, a, bits, low, high);
 }
 
 } // namespace dual_pivot

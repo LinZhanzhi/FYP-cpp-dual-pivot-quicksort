@@ -11,11 +11,8 @@ namespace dual_pivot {
 
 // Forward declarations
 template<typename T> class Sorter;
-void sort_int_sequential(Sorter<int>* sorter, int* a, int bits, int low, int high);
-void sort_long_sequential(Sorter<long>* sorter, long* a, int bits, int low, int high);
-void sort_float_sequential(Sorter<float>* sorter, float* a, int bits, int low, int high);
-void sort_double_sequential(Sorter<double>* sorter, double* a, int bits, int low, int high);
-template<typename T> void parallelQuickSort(T* a, int depth, int low, int high);
+template<typename T>
+void sort_sequential(Sorter<T>* sorter, T* a, int bits, int low, int high);
 
 /**
  * @brief Generic sorter for type-erased array operations
@@ -99,7 +96,7 @@ public:
      * @param high Ending index of range for child task (exclusive)
      */
     void forkSorter(int depth, int low, int high) {
-        addToPendingCount(1);
+        // addToPendingCount(1); // Removed: Constructor already increments pending count
         // Local variable optimization (matching Java pattern)
         // Helps compiler with register allocation and reduces memory accesses
         ArrayPointer localA = this->a;
@@ -187,28 +184,21 @@ public:
     void compute() override {
         if (depth < 0) {
             // Use parallel merge sort for highly parallel scenarios
-            this->setPendingCount(2);
+            // this->setPendingCount(2); // Removed to avoid deadlock
             int half = size >> 1;
 
-            auto* left = new Sorter(this, b, a, low, half, offset, depth + 1);
-            auto* right = new Sorter(this, b, a, low + half, size - half, offset, depth + 1);
+            // Adjust b pointer so that b[low] maps to b_buffer[low - offset]
+            // This is necessary because sort_sequential expects the array to be indexable by 'low'
+            T* b_adjusted = b - offset;
+            auto* left = new Sorter(this, b_adjusted, a, low, half, offset, depth + 1);
+            auto* right = new Sorter(this, b_adjusted, a, low + half, size - half, offset, depth + 1);
 
             left->fork();
             right->compute();
         } else {
-            // Use type-specific parallel quicksort
-            if constexpr (std::is_same_v<T, int>) {
-                sort_int_sequential(this, a, depth, low, low + size);
-            } else if constexpr (std::is_same_v<T, long>) {
-                sort_long_sequential(this, a, depth, low, low + size);
-            } else if constexpr (std::is_same_v<T, float>) {
-                sort_float_sequential(this, a, depth, low, low + size);
-            } else if constexpr (std::is_same_v<T, double>) {
-                sort_double_sequential(this, a, depth, low, low + size);
-            } else {
-                // Fallback to generic implementation
-                parallelQuickSort(a, depth, low, low + size);
-            }
+            // Use type-specific parallel quicksort via the generic sequential sorter
+            // which handles forking if a sorter is provided
+            sort_sequential(this, a, depth, low, low + size);
         }
         this->tryComplete();
     }
@@ -251,7 +241,7 @@ public:
 
     // Factory method for creating child sorters (matching Java's forkSorter pattern)
     void forkSorter(int depth, int low, int high) {
-        this->addToPendingCount(1);
+        // this->addToPendingCount(1); // Removed: Constructor already increments pending count
         auto* child = new Sorter(this, a, b, low, high - low, offset, depth);
         child->fork();
     }

@@ -1,7 +1,6 @@
 #ifndef DPQS_PARALLEL_PARALLEL_SORT_HPP
 #define DPQS_PARALLEL_PARALLEL_SORT_HPP
 
-#include "dpqs/core_sort.hpp"
 #include "dpqs/sequential_sorters.hpp"
 #include "dpqs/run_merger.hpp"
 #include "dpqs/parallel/merger.hpp"

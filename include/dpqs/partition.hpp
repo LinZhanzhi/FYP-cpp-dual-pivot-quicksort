@@ -60,8 +60,9 @@ FORCE_INLINE std::pair<int, int> partition_dual_pivot(T* a, int low, int high, i
 
     // Skip elements that are already in correct positions
     // This optimization reduces unnecessary work for partially sorted data
-    while (a[++lower] < pivot1);  // Find first element >= P1
-    while (a[--upper] > pivot2);  // Find first element <= P2
+    // Added bounds checks for safety, though sentinels should prevent OOB
+    while (lower < end && a[++lower] < pivot1);
+    while (upper > low && a[--upper] > pivot2);
 
     // Backward 3-interval partitioning with cache optimization
     // Process from right to left for better cache utilization
@@ -170,7 +171,7 @@ std::pair<int, int> partition_single_pivot(T* a, int low, int high, int pivotInd
             a[k] = pivot;
 
             if (ak < pivot) { // Move a[k] to the left side
-                while (a[++lower] < pivot);
+                while (lower < end && a[++lower] < pivot); // Added bounds check
 
                 if (a[lower] > pivot) {
                     a[--upper] = a[lower];

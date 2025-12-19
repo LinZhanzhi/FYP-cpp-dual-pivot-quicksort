@@ -18,6 +18,7 @@ protected:
     CountedCompleter* parent{nullptr};
     bool completed{false};
     std::mutex completion_mutex;  // Enhanced thread safety
+    std::condition_variable completion_cv; // For waiting on completion
 
 public:
     CountedCompleter(CountedCompleter* parent = nullptr) : parent(parent) {
@@ -41,6 +42,11 @@ public:
         }
     }
 
+    void wait() {
+        std::unique_lock<std::mutex> lock(completion_mutex);
+        completion_cv.wait(lock, [this]{ return completed; });
+    }
+
     void fork() {
         auto& pool = getThreadPool();
         pool.enqueue([this]() { invoke(); });
@@ -54,6 +60,8 @@ public:
 
             if (curr->pending.load() == 0 && !curr->completed) {
                 curr->completed = true;
+                curr->completion_cv.notify_all(); // Notify waiters
+
                 CountedCompleter* parent = curr->parent;
 
                 if (parent) {
