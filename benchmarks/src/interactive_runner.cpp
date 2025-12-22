@@ -57,8 +57,13 @@ std::map<std::string, std::string> parse_args(int argc, char* argv[]) {
     return args;
 }
 
+struct AlgoResult {
+    double runtime;
+    bool success;
+};
+
 template <typename T>
-double run_algo(const std::string& algo, const std::vector<T>& original_data, int iterations) {
+AlgoResult run_algo(const std::string& algo, const std::vector<T>& original_data, int iterations) {
     // Warmup run (discarded)
     {
         std::vector<T> warmup_data = original_data;
@@ -68,8 +73,35 @@ double run_algo(const std::string& algo, const std::vector<T>& original_data, in
             std::stable_sort(warmup_data.begin(), warmup_data.end());
         } else if (algo == "qsort") {
             std::qsort(warmup_data.data(), warmup_data.size(), sizeof(T), compare<T>);
+        } else if (algo == "dual_pivot_parallel") {
+            dual_pivot::sort(warmup_data);
+        } else if (algo == "dual_pivot_sequential") {
+            dual_pivot::sort(warmup_data, 1);
         } else if (algo == "dual_pivot") {
             dual_pivot::sort(warmup_data);
+        }
+    }
+
+    bool success = true;
+    // Verification run
+    {
+        std::vector<T> verify_data = original_data;
+        if (algo == "std_sort") {
+            std::sort(verify_data.begin(), verify_data.end());
+        } else if (algo == "std_stable_sort") {
+            std::stable_sort(verify_data.begin(), verify_data.end());
+        } else if (algo == "qsort") {
+            std::qsort(verify_data.data(), verify_data.size(), sizeof(T), compare<T>);
+        } else if (algo == "dual_pivot_parallel") {
+            dual_pivot::sort(verify_data);
+        } else if (algo == "dual_pivot_sequential") {
+            dual_pivot::sort(verify_data, 1);
+        } else if (algo == "dual_pivot") {
+            dual_pivot::sort(verify_data);
+        }
+
+        if (!std::is_sorted(verify_data.begin(), verify_data.end())) {
+            success = false;
         }
     }
 
@@ -86,6 +118,10 @@ double run_algo(const std::string& algo, const std::vector<T>& original_data, in
             std::stable_sort(test_data.begin(), test_data.end());
         } else if (algo == "qsort") {
             std::qsort(test_data.data(), test_data.size(), sizeof(T), compare<T>);
+        } else if (algo == "dual_pivot_parallel") {
+            dual_pivot::sort(test_data);
+        } else if (algo == "dual_pivot_sequential") {
+            dual_pivot::sort(test_data, 1);
         } else if (algo == "dual_pivot") {
             dual_pivot::sort(test_data);
         }
@@ -102,7 +138,7 @@ double run_algo(const std::string& algo, const std::vector<T>& original_data, in
     // the minimum execution time is the most robust estimator for the true runtime
     // because noise is additive.
     double min_duration = *std::min_element(durations.begin(), durations.end());
-    return min_duration;
+    return {min_duration, success};
 }
 
 template <typename T>
@@ -130,15 +166,15 @@ void run_interactive(size_t size, benchmark_data::DataPattern pattern, bool only
     std::vector<T> sorted_data = data;
     std::sort(sorted_data.begin(), sorted_data.end());
 
-    std::vector<std::string> algos = {"std_sort", "dual_pivot", "std_stable_sort", "qsort"};
+    std::vector<std::string> algos = {"std_sort", "dual_pivot_parallel", "dual_pivot_sequential", "std_stable_sort", "qsort"};
 
     std::cout << "{" << std::endl;
     print_json_value("size", std::to_string(size));
 
     std::cout << "\"results\": [" << std::endl;
     for (size_t i = 0; i < algos.size(); ++i) {
-        double runtime = run_algo(algos[i], data, 30);
-        std::cout << "  { \"algorithm\": \"" << algos[i] << "\", \"runtime\": " << runtime << " }" << (i < algos.size() - 1 ? "," : "") << std::endl;
+        AlgoResult res = run_algo(algos[i], data, 30);
+        std::cout << "  { \"algorithm\": \"" << algos[i] << "\", \"runtime\": " << res.runtime << ", \"success\": " << (res.success ? "true" : "false") << " }" << (i < algos.size() - 1 ? "," : "") << std::endl;
     }
     std::cout << "]," << std::endl;
 

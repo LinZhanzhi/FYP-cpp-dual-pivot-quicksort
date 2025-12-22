@@ -169,17 +169,23 @@
                 </div>
 
                 <div v-if="playgroundResult" class="mt-6">
-                    <h3 class="text-lg font-bold mb-2">Results (Average of 30 runs)</h3>
+                    <h3 class="text-lg font-bold mb-2">Results (Minimum of 30 runs)</h3>
                     <table class="min-w-full divide-y divide-gray-200 mb-6">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Algorithm</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Runtime (ms)</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr v-for="res in playgroundResult.results" :key="res.algorithm">
                                 <td class="px-6 py-4 whitespace-nowrap">{{ res.algorithm }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span :class="res.success ? 'text-green-600' : 'text-red-600'">
+                                        {{ res.success ? 'Success' : 'Failed' }}
+                                    </span>
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ res.runtime.toFixed(4) }}</td>
                             </tr>
                         </tbody>
