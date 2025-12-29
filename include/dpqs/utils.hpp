@@ -8,6 +8,8 @@
 #include <utility>
 #include <stdexcept>
 #include <string>
+#include <iterator>
+#include <type_traits>
 
 // Compiler optimization hints
 #if defined(__GNUC__) || defined(__clang__)
@@ -46,6 +48,21 @@ constexpr int DELTA = 3; // Recursion depth delta
 constexpr int MIN_PARALLEL_SORT_SIZE = 4096; // Threshold for parallel sorting
 
 namespace dual_pivot {
+
+// Trait to detect contiguous iterators
+template<typename Iter, typename = void>
+struct is_contiguous_iterator : std::false_type {};
+
+template<typename Iter>
+struct is_contiguous_iterator<Iter, std::enable_if_t<std::is_pointer_v<Iter>>> : std::true_type {};
+
+#if __cplusplus >= 202002L
+template<typename Iter>
+struct is_contiguous_iterator<Iter, std::enable_if_t<std::contiguous_iterator<Iter>>> : std::true_type {};
+#endif
+
+template<typename Iter>
+constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
 
 // Utility functions
 template<typename T>

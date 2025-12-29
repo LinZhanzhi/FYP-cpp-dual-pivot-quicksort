@@ -68,10 +68,11 @@ void sort(T* a, int parallelism, int low, int high) {
     if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
         int depth = getDepth(parallelism, size >> 12);
         std::vector<T> b(depth == 0 ? 0 : size);
-        auto* sorter = new AdvancedSorter<T>(nullptr, a, depth == 0 ? nullptr : b.data(), low, size, low, depth);
-        sorter->invoke();
-        sorter->wait();
-        delete sorter;
+
+        // Use stack allocation instead of heap allocation for safety and performance
+        AdvancedSorter<T> sorter(nullptr, a, depth == 0 ? nullptr : b.data(), low, size, low, depth);
+        sorter.invoke();
+        sorter.wait();
         return;
     }
 
@@ -120,9 +121,16 @@ void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last)
     int size = last - first;
     if (size <= 1) return;
 
-    auto* a = &(*first);
-    // Use 0 parallelism for default sequential behavior of this specific function name
-    sort(a, 0, 0, size);
+    if constexpr (is_contiguous_iterator_v<RandomAccessIterator>) {
+        auto* a = &(*first);
+        // Use 0 parallelism for default sequential behavior of this specific function name
+        sort(a, 0, 0, size);
+    } else {
+        using ValueType = typename std::iterator_traits<RandomAccessIterator>::value_type;
+        std::vector<ValueType> temp(first, last);
+        sort(temp.data(), 0, 0, size);
+        std::copy(temp.begin(), temp.end(), first);
+    }
 }
 
 template<typename RandomAccessIterator>
@@ -136,8 +144,15 @@ void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessItera
     int size = last - first;
     if (size <= 1) return;
 
-    auto* a = &(*first);
-    sort(a, parallelism, 0, size);
+    if constexpr (is_contiguous_iterator_v<RandomAccessIterator>) {
+        auto* a = &(*first);
+        sort(a, parallelism, 0, size);
+    } else {
+        using ValueType = typename std::iterator_traits<RandomAccessIterator>::value_type;
+        std::vector<ValueType> temp(first, last);
+        sort(temp.data(), parallelism, 0, size);
+        std::copy(temp.begin(), temp.end(), first);
+    }
 }
 
 } // namespace dual_pivot
