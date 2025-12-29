@@ -22,6 +22,52 @@ namespace dual_pivot {
 // -----------------------------------------------------------------------------
 
 /**
+ * @brief Main entry point for Dual-Pivot Quicksort with custom comparator.
+ *
+ * This generic function handles all supported data types and execution modes (sequential/parallel).
+ * It automatically dispatches to the most appropriate sorting strategy:
+ * - Parallel Dual-Pivot Quicksort for large arrays.
+ * - Sequential Dual-Pivot Quicksort for smaller arrays or when parallelism is disabled.
+ *
+ * @tparam T The element type.
+ * @tparam Compare The comparator type.
+ * @param a Pointer to the array.
+ * @param parallelism Number of threads to use (0 or 1 for sequential).
+ * @param low Starting index (inclusive).
+ * @param high Ending index (exclusive).
+ * @param comp The comparator to use.
+ */
+template<typename T, typename Compare>
+void sort(T* a, int parallelism, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp) {
+    if (low >= high) return;
+    checkNotNull(a, "array");
+    if (low < 0 || high < 0) {
+        throw std::out_of_range("Invalid range");
+    }
+
+    if (checkEarlyTermination(a, low, high, comp)) {
+        return;
+    }
+
+    std::ptrdiff_t size = high - low;
+
+    // Case 2: Parallel Sort (for types > 2 bytes)
+    if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
+        int depth = getDepth(parallelism, size >> 12);
+        std::vector<T> b(depth == 0 ? 0 : size);
+
+        // Use stack allocation instead of heap allocation for safety and performance
+        AdvancedSorter<T, Compare> sorter(nullptr, a, depth == 0 ? nullptr : b.data(), low, size, low, depth, comp);
+        sorter.invoke();
+        sorter.wait();
+        return;
+    }
+
+    // Case 3: Sequential Sort (fallback)
+    sort_sequential<T, Compare>(nullptr, a, 0, low, high, comp);
+}
+
+/**
  * @brief Main entry point for Dual-Pivot Quicksort.
  *
  * This generic function handles all supported data types and execution modes (sequential/parallel).
@@ -60,20 +106,14 @@ void sort(T* a, int parallelism, std::ptrdiff_t low, std::ptrdiff_t high) {
             counting_sort(a, low, high);
         } else {
             // Fallback to sequential sort (which handles insertion sort for small arrays)
-            sort_sequential<T>(nullptr, a, 0, low, high);
+            sort_sequential<T, std::less<T>>(nullptr, a, 0, low, high, std::less<T>());
         }
         return;
     }
 
     // Case 2: Parallel Sort (for types > 2 bytes)
     if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
-        int depth = getDepth(parallelism, size >> 12);
-        std::vector<T> b(depth == 0 ? 0 : size);
-
-        // Use stack allocation instead of heap allocation for safety and performance
-        AdvancedSorter<T> sorter(nullptr, a, depth == 0 ? nullptr : b.data(), low, size, low, depth);
-        sorter.invoke();
-        sorter.wait();
+        sort(a, parallelism, low, high, std::less<T>());
         return;
     }
 
@@ -81,7 +121,7 @@ void sort(T* a, int parallelism, std::ptrdiff_t low, std::ptrdiff_t high) {
     if constexpr (std::is_floating_point_v<T>) {
         sort_floats(a, low, high);
     } else {
-        sort_sequential<T>(nullptr, a, 0, low, high);
+        sort_sequential<T, std::less<T>>(nullptr, a, 0, low, high, std::less<T>());
     }
 }
 
@@ -98,6 +138,15 @@ void sort(T* a, std::ptrdiff_t length) {
     sort(a, std::thread::hardware_concurrency(), 0, length);
 }
 
+template<typename T, typename Compare>
+void sort(T* a, std::ptrdiff_t length, Compare comp) {
+    checkNotNull(a, "array");
+    if (length < 0) throw std::invalid_argument("Array length cannot be negative");
+
+    // Default to hardware concurrency
+    sort(a, std::thread::hardware_concurrency(), 0, length, comp);
+}
+
 // -----------------------------------------------------------------------------
 // Public API: Container & Iterator Adapters
 // -----------------------------------------------------------------------------
@@ -107,9 +156,19 @@ void sort(Container& container) {
     sort(container.data(), std::thread::hardware_concurrency(), 0, static_cast<std::ptrdiff_t>(container.size()));
 }
 
+template<typename Container, typename Compare>
+void sort(Container& container, Compare comp) {
+    sort(container.data(), std::thread::hardware_concurrency(), 0, static_cast<std::ptrdiff_t>(container.size()), comp);
+}
+
 template<typename Container>
 void sort(Container& container, int parallelism) {
     sort(container.data(), parallelism, 0, static_cast<std::ptrdiff_t>(container.size()));
+}
+
+template<typename Container, typename Compare>
+void sort(Container& container, int parallelism, Compare comp) {
+    sort(container.data(), parallelism, 0, static_cast<std::ptrdiff_t>(container.size()), comp);
 }
 
 template<typename RandomAccessIterator>
@@ -131,6 +190,30 @@ void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last)
     }
 }
 
+template<typename RandomAccessIterator, typename Compare>
+void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last, Compare comp) {
+    static_assert(std::is_same_v<typename std::iterator_traits<RandomAccessIterator>::iterator_category,
+                                std::random_access_iterator_tag>,
+                  "dual_pivot_quicksort requires random access iterators");
+
+    if (first >= last) return;
+    std::ptrdiff_t size = last - first;
+    if (size <= 1) return;
+
+    if constexpr (is_contiguous_iterator_v<RandomAccessIterator>) {
+        auto* a = &(*first);
+        // Use 0 parallelism for default sequential behavior of this specific function name
+        sort(a, 0, 0, size, comp);
+    } else {
+        // Fallback to vector copy for non-contiguous iterators with custom comparator
+        // until sort_iterator supports custom comparators
+        using ValueType = typename std::iterator_traits<RandomAccessIterator>::value_type;
+        std::vector<ValueType> temp(first, last);
+        sort(temp.data(), 0, 0, size, comp);
+        std::copy(temp.begin(), temp.end(), first);
+    }
+}
+
 template<typename RandomAccessIterator>
 void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessIterator last,
                                   int parallelism = std::thread::hardware_concurrency()) {
@@ -149,6 +232,28 @@ void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessItera
         using ValueType = typename std::iterator_traits<RandomAccessIterator>::value_type;
         std::vector<ValueType> temp(first, last);
         sort(temp.data(), parallelism, 0, size);
+        std::copy(temp.begin(), temp.end(), first);
+    }
+}
+
+template<typename RandomAccessIterator, typename Compare>
+void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessIterator last, Compare comp,
+                                  int parallelism = std::thread::hardware_concurrency()) {
+    static_assert(std::is_same_v<typename std::iterator_traits<RandomAccessIterator>::iterator_category,
+                                std::random_access_iterator_tag>,
+                  "dual_pivot_quicksort requires random access iterators");
+
+    if (first >= last) return;
+    std::ptrdiff_t size = last - first;
+    if (size <= 1) return;
+
+    if constexpr (is_contiguous_iterator_v<RandomAccessIterator>) {
+        auto* a = &(*first);
+        sort(a, parallelism, 0, size, comp);
+    } else {
+        using ValueType = typename std::iterator_traits<RandomAccessIterator>::value_type;
+        std::vector<ValueType> temp(first, last);
+        sort(temp.data(), parallelism, 0, size, comp);
         std::copy(temp.begin(), temp.end(), first);
     }
 }

@@ -11,9 +11,9 @@
 namespace dual_pivot {
 
 // Forward declarations
-template<typename T> class Sorter;
-template<typename T>
-void sort_sequential(Sorter<T>* sorter, T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high);
+template<typename T, typename Compare> class Sorter;
+template<typename T, typename Compare>
+void sort_sequential(Sorter<T, Compare>* sorter, T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp);
 
 /**
  * @brief Generic sorter for type-erased array operations
@@ -149,8 +149,9 @@ public:
  * - Automatic fallback to sequential algorithms for small tasks
  *
  * @tparam T Element type being sorted
+ * @tparam Compare Comparator type
  */
-template<typename T>
+template<typename T, typename Compare>
 class Sorter : public CountedCompleter<T> {
 private:
     Sorter* parent;              ///< Parent task for completion propagation
@@ -160,6 +161,7 @@ private:
     int size;                    ///< Number of elements to sort
     int offset;                  ///< Buffer offset for reuse optimization
     int depth;                   ///< Recursion depth for algorithm selection
+    Compare comp;                ///< Comparator
     std::vector<Sorter*> children; ///< Children tasks to manage memory
 
 public:
@@ -172,10 +174,11 @@ public:
      * @param size Number of elements to sort
      * @param offset Buffer offset for reuse patterns
      * @param depth Recursion depth for algorithm selection
+     * @param comp Comparator instance
      */
-    Sorter(Sorter* parent, T* a, T* b, int low, int size, int offset, int depth)
+    Sorter(Sorter* parent, T* a, T* b, int low, int size, int offset, int depth, Compare comp)
         : CountedCompleter<T>(parent), parent(parent), a(a), b(b),
-          low(low), size(size), offset(offset), depth(depth) {}
+          low(low), size(size), offset(offset), depth(depth), comp(comp) {}
 
     ~Sorter() {
         for (auto* child : children) {
@@ -209,8 +212,8 @@ public:
             // Adjust b pointer so that b[low] maps to b_buffer[low - offset]
             // This is necessary because sort_sequential expects the array to be indexable by 'low'
             T* b_adjusted = b - offset;
-            auto* left = new Sorter(this, b_adjusted, a, low, half, offset, depth + 1);
-            auto* right = new Sorter(this, b_adjusted, a, low + half, size - half, offset, depth + 1);
+            auto* left = new Sorter(this, b_adjusted, a, low, half, offset, depth + 1, comp);
+            auto* right = new Sorter(this, b_adjusted, a, low + half, size - half, offset, depth + 1, comp);
 
             children.push_back(left);
             children.push_back(right);
@@ -220,7 +223,7 @@ public:
         } else {
             // Use type-specific parallel quicksort via the generic sequential sorter
             // which handles forking if a sorter is provided
-            sort_sequential(this, a, depth, low, low + size);
+            sort_sequential(this, a, depth, low, low + size, comp);
         }
         this->addToPendingCount(-1); // Release hold
         this->tryComplete();
@@ -247,7 +250,7 @@ public:
             bool src = (depth & 1) == 0;
 
             // Create merger for the two halves
-            auto* merger = new Merger<T>(nullptr,
+            auto* merger = new Merger<T, Compare>(nullptr,
                 a,                          // dst
                 src ? low : low - offset,   // k
                 b,                          // a1
@@ -255,7 +258,8 @@ public:
                 src ? mi - offset : mi,     // hi1
                 b,                          // a2
                 src ? mi - offset : mi,     // lo2
-                src ? low + size - offset : low + size  // hi2
+                src ? low + size - offset : low + size,  // hi2
+                comp
             );
             merger->invoke();
             delete merger;
@@ -265,7 +269,7 @@ public:
     // Factory method for creating child sorters (matching Java's forkSorter pattern)
     void forkSorter(int depth, int low, int high) {
         // this->addToPendingCount(1); // Removed: Constructor already increments pending count
-        auto* child = new Sorter(this, a, b, low, high - low, offset, depth);
+        auto* child = new Sorter(this, a, b, low, high - low, offset, depth, comp);
         children.push_back(child);
         child->fork();
     }

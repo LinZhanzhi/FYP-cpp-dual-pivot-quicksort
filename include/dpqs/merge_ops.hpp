@@ -40,12 +40,12 @@ namespace dual_pivot {
  * @param lo2 Starting index of second segment (inclusive)
  * @param hi2 Ending index of second segment (exclusive)
  */
-template<typename T>
-void merge_parts(T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdiff_t hi1, T* a2, std::ptrdiff_t lo2, std::ptrdiff_t hi2) {
+template<typename T, typename Compare>
+void merge_parts(T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdiff_t hi1, T* a2, std::ptrdiff_t lo2, std::ptrdiff_t hi2, Compare comp) {
     // Phase 1: Main merge loop - process both arrays while they have elements
     // Uses branch-free comparison for better performance on modern CPUs
     while (lo1 < hi1 && lo2 < hi2) {
-        dst[k++] = (a1[lo1] < a2[lo2]) ? a1[lo1++] : a2[lo2++];
+        dst[k++] = comp(a1[lo1], a2[lo2]) ? a1[lo1++] : a2[lo2++];
     }
 
     // Phase 2: Copy remaining elements from first array
@@ -93,6 +93,7 @@ void merge_parts(T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdi
  * Space Complexity: O(log(n+m)) recursion stack space
  *
  * @tparam T Element type (must support comparison and assignment)
+ * @tparam Compare Comparator type
  * @param dst Destination array for merged result
  * @param k Starting index in destination array
  * @param a1 First source array
@@ -101,9 +102,10 @@ void merge_parts(T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdi
  * @param a2 Second source array
  * @param lo2 Starting index of second segment (inclusive)
  * @param hi2 Ending index of second segment (exclusive)
+ * @param comp Comparator instance
  */
-template<typename T>
-void parallel_merge_parts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2) {
+template<typename T, typename Compare>
+void parallel_merge_parts(T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdiff_t hi1, T* a2, std::ptrdiff_t lo2, std::ptrdiff_t hi2, Compare comp) {
     // Check if both segments are large enough for parallel processing
     if (hi1 - lo1 >= MIN_PARALLEL_MERGE_PARTS_SIZE && hi2 - lo2 >= MIN_PARALLEL_MERGE_PARTS_SIZE) {
         // Ensure first array is larger for optimal partitioning
@@ -115,31 +117,31 @@ void parallel_merge_parts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2
         }
 
         // Find median of larger array for balanced workload distribution
-        int mi1 = (lo1 + hi1) >> 1;
+        std::ptrdiff_t mi1 = (lo1 + hi1) >> 1;
         T key = a1[mi1];
 
         // Binary search to find split point in smaller array
         // This ensures elements < key go to left merge, elements >= key go to right merge
-        int mi2 = std::lower_bound(a2 + lo2, a2 + hi2, key) - a2;
+        std::ptrdiff_t mi2 = std::lower_bound(a2 + lo2, a2 + hi2, key, comp) - a2;
 
         // Calculate destination offset for right merge operation
-        int d = mi2 - lo2 + mi1 - lo1;
+        std::ptrdiff_t d = mi2 - lo2 + mi1 - lo1;
 
         // Launch parallel task for right partition
         auto& pool = getThreadPool();
         auto future = pool.enqueue([=] {
-            parallel_merge_parts(dst, k + d, a1, mi1, hi1, a2, mi2, hi2);
+            parallel_merge_parts(dst, k + d, a1, mi1, hi1, a2, mi2, hi2, comp);
         });
 
         // Process left partition in current thread
-        parallel_merge_parts(dst, k, a1, lo1, mi1, a2, lo2, mi2);
+        parallel_merge_parts(dst, k, a1, lo1, mi1, a2, lo2, mi2, comp);
 
         // Wait for right partition to complete
         future.get();
     } else {
         // Fall back to sequential merge for small segments
         // This avoids thread creation overhead for small workloads
-        merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+        merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2, comp);
     }
 }
 

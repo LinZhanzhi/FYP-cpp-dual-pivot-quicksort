@@ -28,8 +28,8 @@ namespace dual_pivot {
  * @param low Starting index (inclusive).
  * @param high Ending index (exclusive).
  */
-template<typename T>
-DPQS_FORCE_INLINE void insertion_sort(T* a, std::ptrdiff_t low, std::ptrdiff_t high) {
+template<typename T, typename Compare>
+DPQS_FORCE_INLINE void insertion_sort(T* a, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp) {
     // Phase 6: Cache-friendly insertion sort with prefetching
     for (std::ptrdiff_t i, k = low; ++k < high; ) {
         T ai = a[i = k];
@@ -41,9 +41,9 @@ DPQS_FORCE_INLINE void insertion_sort(T* a, std::ptrdiff_t low, std::ptrdiff_t h
         }
 
         // Use branch prediction hints for the common case (already sorted)
-        if (DPQS_UNLIKELY(ai < a[i - 1])) {
+        if (DPQS_UNLIKELY(comp(ai, a[i - 1]))) {
             // Element is out of place - shift elements to make room
-            while (--i >= low && ai < a[i]) {
+            while (--i >= low && comp(ai, a[i])) {
                 a[i + 1] = a[i];
             }
             a[i + 1] = ai;
@@ -76,8 +76,9 @@ DPQS_FORCE_INLINE void insertion_sort(T* a, std::ptrdiff_t low, std::ptrdiff_t h
  * @param low Starting index (inclusive).
  * @param high Ending index (exclusive).
  */
-template<typename T>
-void mixed_insertion_sort(T* a, std::ptrdiff_t low, std::ptrdiff_t high) {
+template<typename T, typename Compare>
+void mixed_insertion_sort(T* a, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp) {
+    std::ptrdiff_t start = low;
     std::ptrdiff_t size = high - low;
     std::ptrdiff_t end = high - 3 * ((size >> 5) << 3);  // Calculate transition point
 
@@ -86,7 +87,7 @@ void mixed_insertion_sort(T* a, std::ptrdiff_t low, std::ptrdiff_t high) {
         for (std::ptrdiff_t i; ++low < end; ) {
             T ai = a[i = low];
 
-            while (ai < a[--i]) {
+            while (--i >= start && comp(ai, a[i])) {
                 a[i + 1] = a[i];
             }
             a[i + 1] = ai;
@@ -100,19 +101,19 @@ void mixed_insertion_sort(T* a, std::ptrdiff_t low, std::ptrdiff_t high) {
         for (std::ptrdiff_t i, p = high; ++low < end; ) {
             T ai = a[i = low];
 
-            if (ai < a[i - 1]) { // Small element - needs insertion
+            if (comp(ai, a[i - 1])) { // Small element - needs insertion
                 // Insert small element into sorted part
                 a[i] = a[i - 1];
                 --i;
 
-                while (ai < a[--i]) {
+                while (--i >= start && comp(ai, a[i])) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
 
-            } else if (p > i && ai > pin) { // Large element - move to end
+            } else if (p > i && comp(pin, ai)) { // Large element - move to end
                 // Find position for large element
-                while (a[--p] > pin);
+                while (comp(pin, a[--p]));
 
                 // Swap large element to proper position
                 if (p > i) {
@@ -121,7 +122,7 @@ void mixed_insertion_sort(T* a, std::ptrdiff_t low, std::ptrdiff_t high) {
                 }
 
                 // Insert the swapped element (now small) into sorted part
-                while (ai < a[--i]) {
+                while (--i >= start && comp(ai, a[i])) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = ai;
@@ -130,30 +131,30 @@ void mixed_insertion_sort(T* a, std::ptrdiff_t low, std::ptrdiff_t high) {
 
         // Phase 2: Pair insertion sort on remaining part
         // Process two elements at a time for better cache efficiency
-        for (int i; low < high; ++low) {
+        for (std::ptrdiff_t i; low < high; ++low) {
             T a1 = a[i = low], a2 = a[++low];
 
             // Insert pair of elements efficiently
-            if (a1 > a2) {
+            if (comp(a2, a1)) {
                 // First element is larger - insert in reverse order
-                while (a1 < a[--i]) {
+                while (--i >= start && comp(a1, a[i])) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a1;
 
-                while (a2 < a[--i]) {
+                while (--i >= start && comp(a2, a[i])) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = a2;
 
-            } else if (a1 < a[i - 1]) {
+            } else if (comp(a1, a[i - 1])) {
                 // Both elements need insertion
-                while (a2 < a[--i]) {
+                while (--i >= start && comp(a2, a[i])) {
                     a[i + 2] = a[i];
                 }
                 a[++i + 1] = a2;
 
-                while (a1 < a[--i]) {
+                while (--i >= start && comp(a1, a[i])) {
                     a[i + 1] = a[i];
                 }
                 a[i + 1] = a1;

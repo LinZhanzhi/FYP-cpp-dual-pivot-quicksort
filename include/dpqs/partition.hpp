@@ -39,8 +39,8 @@ namespace dual_pivot {
  * @param pivotIndex2 Index of the second pivot element (P2)
  * @return std::pair<int, int> containing (lower, upper) partition boundaries
  */
-template<typename T>
-DPQS_FORCE_INLINE std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_dual_pivot(T* a, std::ptrdiff_t low, std::ptrdiff_t high, std::ptrdiff_t pivotIndex1, std::ptrdiff_t pivotIndex2) {
+template<typename T, typename Compare>
+DPQS_FORCE_INLINE std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_dual_pivot(T* a, std::ptrdiff_t low, std::ptrdiff_t high, std::ptrdiff_t pivotIndex1, std::ptrdiff_t pivotIndex2, Compare comp) {
     // Move pivots to ends
     std::swap(a[low], a[pivotIndex1]);
     std::swap(a[high - 1], a[pivotIndex2]);
@@ -53,11 +53,11 @@ DPQS_FORCE_INLINE std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_dual_pivot
     std::ptrdiff_t i = lt;
 
     while (i <= gt) {
-        if (a[i] < pivot1) {
+        if (comp(a[i], pivot1)) {
             std::swap(a[i], a[lt]);
             lt++;
             i++;
-        } else if (a[i] > pivot2) {
+        } else if (comp(pivot2, a[i])) {
             std::swap(a[i], a[gt]);
             gt--;
         } else {
@@ -73,8 +73,8 @@ DPQS_FORCE_INLINE std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_dual_pivot
     return std::make_pair(lt, gt);
 }
 
-template<typename T>
-std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_single_pivot(T* a, std::ptrdiff_t low, std::ptrdiff_t high, std::ptrdiff_t pivotIndex1, std::ptrdiff_t) {
+template<typename T, typename Compare>
+std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_single_pivot(T* a, std::ptrdiff_t low, std::ptrdiff_t high, std::ptrdiff_t pivotIndex1, std::ptrdiff_t, Compare comp) {
     std::ptrdiff_t lt = low;
     std::ptrdiff_t gt = high;
     T pivot = a[pivotIndex1];
@@ -84,9 +84,9 @@ std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_single_pivot(T* a, std::ptrd
 
     std::ptrdiff_t i = low + 1;
     while (i < gt) {
-        if (a[i] < pivot) {
+        if (comp(a[i], pivot)) {
             std::swap(a[lt++], a[i++]);
-        } else if (a[i] > pivot) {
+        } else if (comp(pivot, a[i])) {
             std::swap(a[i], a[--gt]);
         } else {
             i++;

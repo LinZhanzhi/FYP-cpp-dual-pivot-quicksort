@@ -26,13 +26,13 @@ public:
     void compute() override {
         // Runtime type dispatch for merging operations (matching Java's approach)
         if (dst.isIntArray()) {
-            merge_parts(dst.asIntArray(), k, a1.asIntArray(), lo1, hi1, a2.asIntArray(), lo2, hi2);
+            merge_parts(dst.asIntArray(), k, a1.asIntArray(), lo1, hi1, a2.asIntArray(), lo2, hi2, std::less<int>());
         } else if (dst.isLongArray()) {
-            merge_parts(dst.asLongArray(), k, a1.asLongArray(), lo1, hi1, a2.asLongArray(), lo2, hi2);
+            merge_parts(dst.asLongArray(), k, a1.asLongArray(), lo1, hi1, a2.asLongArray(), lo2, hi2, std::less<long>());
         } else if (dst.isFloatArray()) {
-            merge_parts(dst.asFloatArray(), k, a1.asFloatArray(), lo1, hi1, a2.asFloatArray(), lo2, hi2);
+            merge_parts(dst.asFloatArray(), k, a1.asFloatArray(), lo1, hi1, a2.asFloatArray(), lo2, hi2, std::less<float>());
         } else if (dst.isDoubleArray()) {
-            merge_parts(dst.asDoubleArray(), k, a1.asDoubleArray(), lo1, hi1, a2.asDoubleArray(), lo2, hi2);
+            merge_parts(dst.asDoubleArray(), k, a1.asDoubleArray(), lo1, hi1, a2.asDoubleArray(), lo2, hi2, std::less<double>());
         } else {
             throw std::runtime_error("Unknown array type in GenericMerger::compute()");
         }
@@ -61,8 +61,9 @@ public:
  * - Cache-aware processing to minimize memory access overhead
  *
  * @tparam T Element type being merged
+ * @tparam Compare Comparator type
  */
-template<typename T>
+template<typename T, typename Compare>
 class Merger : public CountedCompleter<T> {
 private:
     T* dst;                      ///< Destination array for merged result
@@ -71,6 +72,7 @@ private:
     std::ptrdiff_t lo1, hi1;                ///< Range of first segment [lo1, hi1)
     T* a2;                       ///< Second source array
     std::ptrdiff_t lo2, hi2;                ///< Range of second segment [lo2, hi2)
+    Compare comp;                ///< Comparator
 
 public:
     /**
@@ -84,9 +86,10 @@ public:
      * @param a2 Second source array
      * @param lo2 Start of second segment (inclusive)
      * @param hi2 End of second segment (exclusive)
+     * @param comp Comparator instance
      */
-    Merger(CountedCompleter<T>* parent, T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdiff_t hi1, T* a2, std::ptrdiff_t lo2, std::ptrdiff_t hi2)
-        : CountedCompleter<T>(parent), dst(dst), k(k), a1(a1), lo1(lo1), hi1(hi1), a2(a2), lo2(lo2), hi2(hi2) {}
+    Merger(CountedCompleter<T>* parent, T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdiff_t hi1, T* a2, std::ptrdiff_t lo2, std::ptrdiff_t hi2, Compare comp)
+        : CountedCompleter<T>(parent), dst(dst), k(k), a1(a1), lo1(lo1), hi1(hi1), a2(a2), lo2(lo2), hi2(hi2), comp(comp) {}
 
     /**
      * @brief Main computation method for parallel merging
@@ -105,16 +108,16 @@ public:
         // Use parallel merge with subdivision for large parts
         if (hi1 - lo1 >= MIN_PARALLEL_MERGE_PARTS_SIZE && hi2 - lo2 >= MIN_PARALLEL_MERGE_PARTS_SIZE) {
             // Parallel merge with binary search partitioning
-            parallel_merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+            parallel_merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2, comp);
         } else {
             // Sequential merge for small parts
-            merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+            merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2, comp);
         }
     }
 };
 
 // RunMerger class for parallel run merging (matching Java's RunMerger extends RecursiveTask)
-template<typename T>
+template<typename T, typename Compare>
 class RunMerger : public CountedCompleter<void> {
 public:
     T* result = nullptr;
@@ -127,13 +130,14 @@ private:
     std::vector<std::ptrdiff_t> run;
     std::ptrdiff_t lo, hi;
     std::ptrdiff_t mi; // Store split point
+    Compare comp;
 
     RunMerger* leftChild = nullptr;
     RunMerger* rightChild = nullptr;
 
 public:
-    RunMerger(CountedCompleter<void>* parent, T* a, T* b, std::ptrdiff_t offset, int aim, const std::vector<std::ptrdiff_t>& run, std::ptrdiff_t lo, std::ptrdiff_t hi)
-        : CountedCompleter<void>(parent), a(a), b(b), offset(offset), aim(aim), run(run), lo(lo), hi(hi) {}
+    RunMerger(CountedCompleter<void>* parent, T* a, T* b, std::ptrdiff_t offset, int aim, const std::vector<std::ptrdiff_t>& run, std::ptrdiff_t lo, std::ptrdiff_t hi, Compare comp)
+        : CountedCompleter<void>(parent), a(a), b(b), offset(offset), aim(aim), run(run), lo(lo), hi(hi), comp(comp) {}
 
     ~RunMerger() {
         if (leftChild) delete leftChild;
@@ -162,8 +166,8 @@ public:
         while (run[++mi + 1] <= rmi);
 
         // Create parallel tasks for left and right parts
-        leftChild = new RunMerger(this, a, b, offset, -aim, run, lo, mi);
-        rightChild = new RunMerger(this, a, b, offset, 0, run, mi, hi);
+        leftChild = new RunMerger(this, a, b, offset, -aim, run, lo, mi, comp);
+        rightChild = new RunMerger(this, a, b, offset, 0, run, mi, hi, comp);
 
         leftChild->fork();
         rightChild->fork();
@@ -185,7 +189,7 @@ public:
             std::ptrdiff_t hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
             // Advanced merge with parallel coordination
-            merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+            merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2, comp);
             result = dst;
         }
     }

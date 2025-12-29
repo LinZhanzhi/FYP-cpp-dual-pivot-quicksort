@@ -35,12 +35,12 @@ namespace dual_pivot {
  */
 
 // Forward declarations for run merging functions
-template<typename T>
+template<typename T, typename Compare>
 T* merge_runs(T* a, T* b, std::ptrdiff_t offset, int aim,
-             const std::vector<std::ptrdiff_t>& run, std::ptrdiff_t lo, std::ptrdiff_t hi);
+             const std::vector<std::ptrdiff_t>& run, std::ptrdiff_t lo, std::ptrdiff_t hi, Compare comp);
 
-template<typename T>
-void merge_parts(T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdiff_t hi1, T* a2, std::ptrdiff_t lo2, std::ptrdiff_t hi2);
+template<typename T, typename Compare>
+void merge_parts(T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdiff_t hi1, T* a2, std::ptrdiff_t lo2, std::ptrdiff_t hi2, Compare comp);
 
 /**
  * @brief Attempts to detect and merge sorted runs for optimized sorting
@@ -69,15 +69,17 @@ void merge_parts(T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdi
  * - Maintains cache efficiency through localized processing
  *
  * @tparam T Element type (must support comparison and assignment)
+ * @tparam Compare Comparator type
  * @param a Pointer to the array to analyze and potentially sort
  * @param low Starting index of the range to process
  * @param size Number of elements in the range
+ * @param comp Comparator instance
  * @param parallel Whether to use parallel merging (default: false)
  * @return true if runs were detected and merged (array is now sorted)
  * @return false if run detection failed (caller should use different algorithm)
  */
-template<typename T>
-bool try_merge_runs(T* a, std::ptrdiff_t low, std::ptrdiff_t size, bool parallel = false) {
+template<typename T, typename Compare>
+bool try_merge_runs(T* a, std::ptrdiff_t low, std::ptrdiff_t size, Compare comp, bool parallel = false) {
     // Run array stores start indices of sorted subsequences
     // Only constructed if initial analysis shows promising run structure
     // run[i] holds the starting index of the i-th run
@@ -89,23 +91,23 @@ bool try_merge_runs(T* a, std::ptrdiff_t low, std::ptrdiff_t size, bool parallel
     for (std::ptrdiff_t k = low + 1; k < high; ) {
 
         // Find the end index of the current run
-        if (a[k - 1] < a[k]) {
+        if (comp(a[k - 1], a[k])) {
             // Identify ascending sequence
-            while (++k < high && a[k - 1] <= a[k]);
+            while (++k < high && !comp(a[k], a[k - 1]));
 
-        } else if (a[k - 1] > a[k]) {
+        } else if (comp(a[k], a[k - 1])) {
             // Identify descending sequence
-            while (++k < high && a[k - 1] >= a[k]);
+            while (++k < high && !comp(a[k - 1], a[k]));
 
             // Reverse into ascending order
-            for (int i = last - 1, j = k; ++i < --j && a[i] > a[j]; ) {
+            for (int i = last - 1, j = k; ++i < --j && comp(a[j], a[i]); ) {
                 T temp = a[i];
                 a[i] = a[j];
                 a[j] = temp;
             }
         } else { // Identify constant sequence
             T ak = a[k];
-            while (++k < high && ak == a[k]);
+            while (++k < high && !comp(ak, a[k]) && !comp(a[k], ak));
 
             if (k < high) {
                 continue;
@@ -130,7 +132,7 @@ bool try_merge_runs(T* a, std::ptrdiff_t low, std::ptrdiff_t size, bool parallel
             run.push_back(low);
             run.push_back(last = k);
 
-        } else if (a[last - 1] > a[last]) {
+        } else if (comp(a[last], a[last - 1])) {
             if (count > (k - low) >> MIN_FIRST_RUNS_FACTOR) {
                 // The first runs are not long
                 // enough to continue scanning.
@@ -153,7 +155,7 @@ bool try_merge_runs(T* a, std::ptrdiff_t low, std::ptrdiff_t size, bool parallel
 
         if (parallel && count >= MIN_RUN_COUNT) {
             // Use parallel run merging for large run counts
-            auto* merger = new RunMerger<T>(nullptr, a, b.data(), low, 1, run, 0, count);
+            auto* merger = new RunMerger<T, Compare>(nullptr, a, b.data(), low, 1, run, 0, count, comp);
             merger->invoke();
             merger->wait();
             T* result = merger->result;
@@ -165,15 +167,15 @@ bool try_merge_runs(T* a, std::ptrdiff_t low, std::ptrdiff_t size, bool parallel
             }
         } else {
             // Use sequential merging
-            merge_runs(a, b.data(), low, 1, run, 0, count);
+            merge_runs(a, b.data(), low, 1, run, 0, count, comp);
         }
     }
     return true;
 }
 
-template<typename T>
+template<typename T, typename Compare>
 T* merge_runs(T* a, T* b, std::ptrdiff_t offset, int aim,
-             const std::vector<std::ptrdiff_t>& run, std::ptrdiff_t lo, std::ptrdiff_t hi) {
+             const std::vector<std::ptrdiff_t>& run, std::ptrdiff_t lo, std::ptrdiff_t hi, Compare comp) {
 
     if (hi - lo == 1) {
         if (aim >= 0) {
@@ -191,8 +193,8 @@ T* merge_runs(T* a, T* b, std::ptrdiff_t offset, int aim,
     while (run[++mi + 1] <= rmi);
 
     // Merge the left and right parts
-    T* a1 = merge_runs(a, b, offset, -aim, run, lo, mi);
-    T* a2 = merge_runs(a, b, offset, 0, run, mi, hi);
+    T* a1 = merge_runs(a, b, offset, -aim, run, lo, mi, comp);
+    T* a2 = merge_runs(a, b, offset, 0, run, mi, hi, comp);
 
     T* dst = (a1 == a) ? b : a;
 
@@ -202,7 +204,7 @@ T* merge_runs(T* a, T* b, std::ptrdiff_t offset, int aim,
     std::ptrdiff_t lo2 = (a2 == b) ? run[mi] - offset : run[mi];
     std::ptrdiff_t hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
-    merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
+    merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2, comp);
     return dst;
 }
 

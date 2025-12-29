@@ -15,8 +15,8 @@ namespace dual_pivot {
  * @param offset The start index of the heap in the array.
  * @param upper_bound The exclusive upper bound of the heap in the array.
  */
-template<typename T>
-void push_down(T* array, std::ptrdiff_t parent_index, T value, std::ptrdiff_t offset, std::ptrdiff_t upper_bound) {
+template<typename T, typename Compare>
+void push_down(T* array, std::ptrdiff_t parent_index, T value, std::ptrdiff_t offset, std::ptrdiff_t upper_bound, Compare comp) {
     for (std::ptrdiff_t child_index;;) {
         // Calculate the index of the right child.
         // The heap structure is implicit in the array range [offset, upper_bound].
@@ -30,12 +30,12 @@ void push_down(T* array, std::ptrdiff_t parent_index, T value, std::ptrdiff_t of
         // Compare the right child with the left child (child_index - 1).
         // If the right child is out of bounds (child_index == upper_bound) or smaller than the left child,
         // we select the left child as the candidate for swapping.
-        if (child_index == upper_bound || array[child_index] < array[child_index - 1]) {
+        if (child_index == upper_bound || comp(array[child_index], array[child_index - 1])) {
             --child_index;
         }
         // If the larger child is smaller than or equal to the value being sifted down,
         // the heap property is satisfied, and we can stop.
-        if (array[child_index] <= value) {
+        if (!comp(value, array[child_index])) {
             break;
         }
         // Move the larger child up to the parent's position.
@@ -54,24 +54,26 @@ void push_down(T* array, std::ptrdiff_t parent_index, T value, std::ptrdiff_t of
  * becomes too large, preventing worst-case O(n^2) behavior (Introsort strategy).
  *
  * @tparam T The type of elements in the array.
+ * @tparam Compare The type of the comparator function object.
  * @param array The array to sort.
  * @param start_index The inclusive start index of the range.
  * @param end_index The exclusive end index of the range.
+ * @param comp The comparator to use.
  */
-template<typename T>
-void heap_sort(T* array, std::ptrdiff_t start_index, std::ptrdiff_t end_index) {
+template<typename T, typename Compare>
+void heap_sort(T* array, std::ptrdiff_t start_index, std::ptrdiff_t end_index, Compare comp) {
     // Phase 1: Build the heap.
     // Start from the last non-leaf node and sift down each node to establish the heap property.
     for (std::ptrdiff_t node_index = (start_index + end_index) >> 1; node_index > start_index; ) {
         --node_index;
-        push_down(array, node_index, array[node_index], start_index, end_index);
+        push_down(array, node_index, array[node_index], start_index, end_index, comp);
     }
     // Phase 2: Sort the array.
     // Repeatedly extract the maximum element (at start_index) and place it at the end of the current range.
     // Then reduce the range and restore the heap property.
     while (--end_index > start_index) {
         T max = array[start_index];
-        push_down(array, start_index, array[end_index], start_index, end_index);
+        push_down(array, start_index, array[end_index], start_index, end_index, comp);
         array[end_index] = max;
     }
 }

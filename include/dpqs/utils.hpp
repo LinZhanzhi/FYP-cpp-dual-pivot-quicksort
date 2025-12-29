@@ -79,13 +79,18 @@ void checkNotNull(T* ptr, const std::string& name) {
     }
 }
 
-template<typename T>
-bool checkEarlyTermination(T* a, std::ptrdiff_t low, std::ptrdiff_t high) {
+template<typename T, typename Compare>
+bool checkEarlyTermination(T* a, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp) {
     if (high - low <= 1) return true;
     for (std::ptrdiff_t i = low; i < high - 1; i++) {
-        if (a[i] > a[i+1]) return false;
+        if (comp(a[i+1], a[i])) return false;
     }
     return true;
+}
+
+template<typename T>
+bool checkEarlyTermination(T* a, std::ptrdiff_t low, std::ptrdiff_t high) {
+    return checkEarlyTermination(a, low, high, std::less<T>());
 }
 
 inline int getDepth(int parallelism, std::ptrdiff_t size_factor) {
