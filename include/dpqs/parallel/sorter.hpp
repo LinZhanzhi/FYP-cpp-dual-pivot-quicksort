@@ -13,7 +13,7 @@ namespace dual_pivot {
 // Forward declarations
 template<typename T> class Sorter;
 template<typename T>
-void sort_sequential(Sorter<T>* sorter, T* a, int bits, int low, int high);
+void sort_sequential(Sorter<T>* sorter, T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high);
 
 /**
  * @brief Generic sorter for type-erased array operations
@@ -47,9 +47,9 @@ private:
     GenericSorter* parent;       ///< Parent task for completion propagation
     ArrayPointer a;              ///< Primary array (equivalent to Java's Object a)
     ArrayPointer b;              ///< Buffer array (equivalent to Java's Object b)
-    int low;                     ///< Starting index of range to sort
-    int size;                    ///< Number of elements to sort
-    int offset;                  ///< Buffer offset for reuse optimization
+    std::ptrdiff_t low;                     ///< Starting index of range to sort
+    std::ptrdiff_t size;                    ///< Number of elements to sort
+    std::ptrdiff_t offset;                  ///< Buffer offset for reuse optimization
     int depth;                   ///< Recursion depth for algorithm selection
     std::vector<GenericSorter*> children;
 
@@ -64,7 +64,7 @@ public:
      * @param offset Buffer offset for reuse patterns
      * @param depth Recursion depth for algorithm selection
      */
-    GenericSorter(GenericSorter* parent, ArrayPointer a, ArrayPointer b, int low, int size, int offset, int depth)
+    GenericSorter(GenericSorter* parent, ArrayPointer a, ArrayPointer b, std::ptrdiff_t low, std::ptrdiff_t size, std::ptrdiff_t offset, int depth)
         : CountedCompleter<void>(parent), parent(parent), a(a), b(b),
           low(low), size(size), offset(offset), depth(depth) {}
 

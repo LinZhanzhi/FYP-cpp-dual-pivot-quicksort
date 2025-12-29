@@ -28,7 +28,7 @@ namespace dual_pivot {
  * @param e5 Index of the 5th element.
  */
 template<typename T>
-FORCE_INLINE void sort5_network(T* a, int e1, int e2, int e3, int e4, int e5) {
+DPQS_FORCE_INLINE void sort5_network(T* a, std::ptrdiff_t e1, std::ptrdiff_t e2, std::ptrdiff_t e3, std::ptrdiff_t e4, std::ptrdiff_t e5) {
     if (a[e1] > a[e2]) std::swap(a[e1], a[e2]);
     if (a[e4] > a[e5]) std::swap(a[e4], a[e5]);
     if (a[e1] > a[e3]) std::swap(a[e1], a[e3]);
@@ -62,10 +62,10 @@ FORCE_INLINE void sort5_network(T* a, int e1, int e2, int e3, int e4, int e5) {
  * @param high Ending index (exclusive).
  */
 template<typename T>
-void sort_sequential(Sorter<T>* sorter, T* a, int bits, int low, int high) {
+void sort_sequential(Sorter<T>* sorter, T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high) {
     while (true) {
-        int end = high - 1;
-        int size = high - low;
+        std::ptrdiff_t end = high - 1;
+        std::ptrdiff_t size = high - low;
 
         // Use mixed insertion sort on small non-leftmost parts
         if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
@@ -91,12 +91,12 @@ void sort_sequential(Sorter<T>* sorter, T* a, int bits, int low, int high) {
         }
 
         // Five-element pivot selection
-        int step = (size >> 3) * 3 + 3;
-        int e1 = low + step;
-        int e5 = end - step;
-        int e3 = (e1 + e5) >> 1;
-        int e2 = (e1 + e3) >> 1;
-        int e4 = (e3 + e5) >> 1;
+        std::ptrdiff_t step = (size >> 3) * 3 + 3;
+        std::ptrdiff_t e1 = low + step;
+        std::ptrdiff_t e5 = end - step;
+        std::ptrdiff_t e3 = (e1 + e5) >> 1;
+        std::ptrdiff_t e2 = (e1 + e3) >> 1;
+        std::ptrdiff_t e4 = (e3 + e5) >> 1;
 
         // Sort 5-element sample
         sort5_network(a, e1, e2, e3, e4, e5);

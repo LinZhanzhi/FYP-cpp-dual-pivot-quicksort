@@ -16,8 +16,8 @@ namespace dual_pivot {
  * @param upper_bound The exclusive upper bound of the heap in the array.
  */
 template<typename T>
-void push_down(T* array, int parent_index, T value, int offset, int upper_bound) {
-    for (int child_index;;) {
+void push_down(T* array, std::ptrdiff_t parent_index, T value, std::ptrdiff_t offset, std::ptrdiff_t upper_bound) {
+    for (std::ptrdiff_t child_index;;) {
         // Calculate the index of the right child.
         // The heap structure is implicit in the array range [offset, upper_bound].
         // The formula maps the 0-based heap index to the array index.
@@ -59,10 +59,10 @@ void push_down(T* array, int parent_index, T value, int offset, int upper_bound)
  * @param end_index The exclusive end index of the range.
  */
 template<typename T>
-void heap_sort(T* array, int start_index, int end_index) {
+void heap_sort(T* array, std::ptrdiff_t start_index, std::ptrdiff_t end_index) {
     // Phase 1: Build the heap.
     // Start from the last non-leaf node and sift down each node to establish the heap property.
-    for (int node_index = (start_index + end_index) >> 1; node_index > start_index; ) {
+    for (std::ptrdiff_t node_index = (start_index + end_index) >> 1; node_index > start_index; ) {
         --node_index;
         push_down(array, node_index, array[node_index], start_index, end_index);
     }

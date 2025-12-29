@@ -29,19 +29,19 @@ namespace dual_pivot {
  * @param high Ending index (exclusive).
  */
 template<typename T>
-FORCE_INLINE void insertion_sort(T* a, int low, int high) {
+DPQS_FORCE_INLINE void insertion_sort(T* a, std::ptrdiff_t low, std::ptrdiff_t high) {
     // Phase 6: Cache-friendly insertion sort with prefetching
-    for (int i, k = low; ++k < high; ) {
+    for (std::ptrdiff_t i, k = low; ++k < high; ) {
         T ai = a[i = k];
 
         // Prefetch next elements to improve cache performance
         // This is crucial for the "memory wall" - CPU-memory speed gap
-        if (LIKELY(k + 1 < high)) {
-            PREFETCH_READ(&a[k + 1]);
+        if (DPQS_LIKELY(k + 1 < high)) {
+            DPQS_PREFETCH_READ(&a[k + 1]);
         }
 
         // Use branch prediction hints for the common case (already sorted)
-        if (UNLIKELY(ai < a[i - 1])) {
+        if (DPQS_UNLIKELY(ai < a[i - 1])) {
             // Element is out of place - shift elements to make room
             while (--i >= low && ai < a[i]) {
                 a[i + 1] = a[i];
@@ -77,13 +77,13 @@ FORCE_INLINE void insertion_sort(T* a, int low, int high) {
  * @param high Ending index (exclusive).
  */
 template<typename T>
-void mixed_insertion_sort(T* a, int low, int high) {
-    int size = high - low;
-    int end = high - 3 * ((size >> 5) << 3);  // Calculate transition point
+void mixed_insertion_sort(T* a, std::ptrdiff_t low, std::ptrdiff_t high) {
+    std::ptrdiff_t size = high - low;
+    std::ptrdiff_t end = high - 3 * ((size >> 5) << 3);  // Calculate transition point
 
     if (end == high) {
         // Tiny array: use simple insertion sort
-        for (int i; ++low < end; ) {
+        for (std::ptrdiff_t i; ++low < end; ) {
             T ai = a[i = low];
 
             while (ai < a[--i]) {
@@ -97,7 +97,7 @@ void mixed_insertion_sort(T* a, int low, int high) {
         // Phase 1: Pin insertion sort on the initial part
         T pin = a[end];  // Use pin element to separate small/large values
 
-        for (int i, p = high; ++low < end; ) {
+        for (std::ptrdiff_t i, p = high; ++low < end; ) {
             T ai = a[i = low];
 
             if (ai < a[i - 1]) { // Small element - needs insertion
@@ -165,15 +165,15 @@ void mixed_insertion_sort(T* a, int low, int high) {
 /**
  * @brief Specialized insertion sort for int.
  */
-static void insertion_sort_int(int* a, int low, int high) {
-    for (int i, k = low; ++k < high; ) {
+static void insertion_sort_int(int* a, std::ptrdiff_t low, std::ptrdiff_t high) {
+    for (std::ptrdiff_t i, k = low; ++k < high; ) {
         int ai = a[i = k];
 
-        if (LIKELY(k + 1 < high)) {
-            PREFETCH_READ(&a[k + 1]);
+        if (DPQS_LIKELY(k + 1 < high)) {
+            DPQS_PREFETCH_READ(&a[k + 1]);
         }
 
-        if (UNLIKELY(ai < a[i - 1])) {
+        if (DPQS_UNLIKELY(ai < a[i - 1])) {
             while (--i >= low && ai < a[i]) {
                 a[i + 1] = a[i];
             }
@@ -185,15 +185,15 @@ static void insertion_sort_int(int* a, int low, int high) {
 /**
  * @brief Specialized insertion sort for long.
  */
-static void insertion_sort_long(long* a, int low, int high) {
-    for (int i, k = low; ++k < high; ) {
+static void insertion_sort_long(long* a, std::ptrdiff_t low, std::ptrdiff_t high) {
+    for (std::ptrdiff_t i, k = low; ++k < high; ) {
         long ai = a[i = k];
 
-        if (LIKELY(k + 1 < high)) {
-            PREFETCH_READ(&a[k + 1]);
+        if (DPQS_LIKELY(k + 1 < high)) {
+            DPQS_PREFETCH_READ(&a[k + 1]);
         }
 
-        if (UNLIKELY(ai < a[i - 1])) {
+        if (DPQS_UNLIKELY(ai < a[i - 1])) {
             while (--i >= low && ai < a[i]) {
                 a[i + 1] = a[i];
             }
@@ -205,15 +205,15 @@ static void insertion_sort_long(long* a, int low, int high) {
 /**
  * @brief Specialized insertion sort for float.
  */
-static void insertion_sort_float(float* a, int low, int high) {
-    for (int i, k = low; ++k < high; ) {
+static void insertion_sort_float(float* a, std::ptrdiff_t low, std::ptrdiff_t high) {
+    for (std::ptrdiff_t i, k = low; ++k < high; ) {
         float ai = a[i = k];
 
-        if (LIKELY(k + 1 < high)) {
-            PREFETCH_READ(&a[k + 1]);
+        if (DPQS_LIKELY(k + 1 < high)) {
+            DPQS_PREFETCH_READ(&a[k + 1]);
         }
 
-        if (UNLIKELY(ai < a[i - 1])) {
+        if (DPQS_UNLIKELY(ai < a[i - 1])) {
             while (--i >= low && ai < a[i]) {
                 a[i + 1] = a[i];
             }
@@ -225,15 +225,15 @@ static void insertion_sort_float(float* a, int low, int high) {
 /**
  * @brief Specialized insertion sort for double.
  */
-static void insertion_sort_double(double* a, int low, int high) {
-    for (int i, k = low; ++k < high; ) {
+static void insertion_sort_double(double* a, std::ptrdiff_t low, std::ptrdiff_t high) {
+    for (std::ptrdiff_t i, k = low; ++k < high; ) {
         double ai = a[i = k];
 
-        if (LIKELY(k + 1 < high)) {
-            PREFETCH_READ(&a[k + 1]);
+        if (DPQS_LIKELY(k + 1 < high)) {
+            DPQS_PREFETCH_READ(&a[k + 1]);
         }
 
-        if (UNLIKELY(ai < a[i - 1])) {
+        if (DPQS_UNLIKELY(ai < a[i - 1])) {
             while (--i >= low && ai < a[i]) {
                 a[i + 1] = a[i];
             }

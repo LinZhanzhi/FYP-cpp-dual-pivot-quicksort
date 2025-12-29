@@ -12,15 +12,15 @@ namespace dual_pivot {
 class GenericMerger : public CountedCompleter<void> {
 private:
     ArrayPointer dst;
-    int k;
+    std::ptrdiff_t k;
     ArrayPointer a1;
-    int lo1, hi1;
+    std::ptrdiff_t lo1, hi1;
     ArrayPointer a2;
-    int lo2, hi2;
+    std::ptrdiff_t lo2, hi2;
 
 public:
-    GenericMerger(CountedCompleter<void>* parent, ArrayPointer dst, int k,
-                  ArrayPointer a1, int lo1, int hi1, ArrayPointer a2, int lo2, int hi2)
+    GenericMerger(CountedCompleter<void>* parent, ArrayPointer dst, std::ptrdiff_t k,
+                  ArrayPointer a1, std::ptrdiff_t lo1, std::ptrdiff_t hi1, ArrayPointer a2, std::ptrdiff_t lo2, std::ptrdiff_t hi2)
         : CountedCompleter<void>(parent), dst(dst), k(k), a1(a1), lo1(lo1), hi1(hi1), a2(a2), lo2(lo2), hi2(hi2) {}
 
     void compute() override {
@@ -66,11 +66,11 @@ template<typename T>
 class Merger : public CountedCompleter<T> {
 private:
     T* dst;                      ///< Destination array for merged result
-    int k;                       ///< Starting index in destination
+    std::ptrdiff_t k;                       ///< Starting index in destination
     T* a1;                       ///< First source array
-    int lo1, hi1;                ///< Range of first segment [lo1, hi1)
+    std::ptrdiff_t lo1, hi1;                ///< Range of first segment [lo1, hi1)
     T* a2;                       ///< Second source array
-    int lo2, hi2;                ///< Range of second segment [lo2, hi2)
+    std::ptrdiff_t lo2, hi2;                ///< Range of second segment [lo2, hi2)
 
 public:
     /**
@@ -85,7 +85,7 @@ public:
      * @param lo2 Start of second segment (inclusive)
      * @param hi2 End of second segment (exclusive)
      */
-    Merger(CountedCompleter<T>* parent, T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2)
+    Merger(CountedCompleter<T>* parent, T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdiff_t hi1, T* a2, std::ptrdiff_t lo2, std::ptrdiff_t hi2)
         : CountedCompleter<T>(parent), dst(dst), k(k), a1(a1), lo1(lo1), hi1(hi1), a2(a2), lo2(lo2), hi2(hi2) {}
 
     /**
@@ -122,17 +122,17 @@ public:
 private:
     T* a;
     T* b;
-    int offset;
+    std::ptrdiff_t offset;
     int aim;
-    std::vector<int> run;
-    int lo, hi;
-    int mi; // Store split point
+    std::vector<std::ptrdiff_t> run;
+    std::ptrdiff_t lo, hi;
+    std::ptrdiff_t mi; // Store split point
 
     RunMerger* leftChild = nullptr;
     RunMerger* rightChild = nullptr;
 
 public:
-    RunMerger(CountedCompleter<void>* parent, T* a, T* b, int offset, int aim, const std::vector<int>& run, int lo, int hi)
+    RunMerger(CountedCompleter<void>* parent, T* a, T* b, std::ptrdiff_t offset, int aim, const std::vector<std::ptrdiff_t>& run, std::ptrdiff_t lo, std::ptrdiff_t hi)
         : CountedCompleter<void>(parent), a(a), b(b), offset(offset), aim(aim), run(run), lo(lo), hi(hi) {}
 
     ~RunMerger() {
@@ -147,7 +147,7 @@ public:
                 result = a;
             } else {
                 // Copy elements in reverse order (matching Java's approach)
-                for (int i = run[hi], j = i - offset, low = run[lo]; i > low; ) {
+                for (std::ptrdiff_t i = run[hi], j = i - offset, low = run[lo]; i > low; ) {
                     b[--j] = a[--i];
                 }
                 result = b;
@@ -158,7 +158,7 @@ public:
 
         // Advanced parallel subdivision (matching Java's sophisticated approach)
         mi = lo;
-        int rmi = (run[lo] + run[hi]) >> 1; // Unsigned right shift equivalent
+        std::ptrdiff_t rmi = (run[lo] + run[hi]) >> 1; // Unsigned right shift equivalent
         while (run[++mi + 1] <= rmi);
 
         // Create parallel tasks for left and right parts
@@ -178,11 +178,11 @@ public:
             T* dst = (a1 == a) ? b : a;
 
             // Complex offset calculations (matching Java's approach)
-            int k   = (a1 == a) ? run[lo] - offset : run[lo];
-            int lo1 = (a1 == b) ? run[lo] - offset : run[lo];
-            int hi1 = (a1 == b) ? run[mi] - offset : run[mi];
-            int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
-            int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
+            std::ptrdiff_t k   = (a1 == a) ? run[lo] - offset : run[lo];
+            std::ptrdiff_t lo1 = (a1 == b) ? run[lo] - offset : run[lo];
+            std::ptrdiff_t hi1 = (a1 == b) ? run[mi] - offset : run[mi];
+            std::ptrdiff_t lo2 = (a2 == b) ? run[mi] - offset : run[mi];
+            std::ptrdiff_t hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
             // Advanced merge with parallel coordination
             merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);

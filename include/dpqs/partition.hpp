@@ -40,7 +40,7 @@ namespace dual_pivot {
  * @return std::pair<int, int> containing (lower, upper) partition boundaries
  */
 template<typename T>
-FORCE_INLINE std::pair<int, int> partition_dual_pivot(T* a, int low, int high, int pivotIndex1, int pivotIndex2) {
+DPQS_FORCE_INLINE std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_dual_pivot(T* a, std::ptrdiff_t low, std::ptrdiff_t high, std::ptrdiff_t pivotIndex1, std::ptrdiff_t pivotIndex2) {
     // Move pivots to ends
     std::swap(a[low], a[pivotIndex1]);
     std::swap(a[high - 1], a[pivotIndex2]);
@@ -48,9 +48,9 @@ FORCE_INLINE std::pair<int, int> partition_dual_pivot(T* a, int low, int high, i
     T pivot1 = a[low];
     T pivot2 = a[high - 1];
 
-    int lt = low + 1;
-    int gt = high - 2;
-    int i = lt;
+    std::ptrdiff_t lt = low + 1;
+    std::ptrdiff_t gt = high - 2;
+    std::ptrdiff_t i = lt;
 
     while (i <= gt) {
         if (a[i] < pivot1) {
@@ -74,15 +74,15 @@ FORCE_INLINE std::pair<int, int> partition_dual_pivot(T* a, int low, int high, i
 }
 
 template<typename T>
-std::pair<int, int> partition_single_pivot(T* a, int low, int high, int pivotIndex1, int) {
-    int lt = low;
-    int gt = high;
+std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_single_pivot(T* a, std::ptrdiff_t low, std::ptrdiff_t high, std::ptrdiff_t pivotIndex1, std::ptrdiff_t) {
+    std::ptrdiff_t lt = low;
+    std::ptrdiff_t gt = high;
     T pivot = a[pivotIndex1];
 
     // Move pivot to start
     std::swap(a[low], a[pivotIndex1]);
 
-    int i = low + 1;
+    std::ptrdiff_t i = low + 1;
     while (i < gt) {
         if (a[i] < pivot) {
             std::swap(a[lt++], a[i++]);

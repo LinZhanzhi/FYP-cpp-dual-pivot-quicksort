@@ -85,11 +85,11 @@ inline double bits_to_double(unsigned long long bits) {
  * @return The index where zeros should begin.
  */
 template<typename T>
-int find_zero_insertion_point(T* array, int start_index, int end_index) {
-    int search_left = start_index;
-    int search_right = end_index;
+std::ptrdiff_t find_zero_insertion_point(T* array, std::ptrdiff_t start_index, std::ptrdiff_t end_index) {
+    std::ptrdiff_t search_left = start_index;
+    std::ptrdiff_t search_right = end_index;
     while (search_left <= search_right) {
-        int search_mid = (search_left + search_right) / 2;
+        std::ptrdiff_t search_mid = (search_left + search_right) / 2;
         if (array[search_mid] < 0) {
             search_left = search_mid + 1;
         } else {
@@ -116,13 +116,13 @@ int find_zero_insertion_point(T* array, int start_index, int end_index) {
  */
 template<typename T>
 typename std::enable_if<std::is_floating_point<T>::value, void>::type
-sort_floats(T* array, int start_index, int end_index) {
-    int negative_zero_count = 0;
-    int effective_end_index = end_index;
+sort_floats(T* array, std::ptrdiff_t start_index, std::ptrdiff_t end_index) {
+    std::ptrdiff_t negative_zero_count = 0;
+    std::ptrdiff_t effective_end_index = end_index;
 
     // Phase 1: Pre-processing
     // Move NaNs to the end and normalize -0.0 to +0.0
-    for (int k = effective_end_index - 1; k >= start_index; k--) {
+    for (std::ptrdiff_t k = effective_end_index - 1; k >= start_index; k--) {
         T current_value = array[k];
 
         if (is_nan(current_value)) {
@@ -146,10 +146,10 @@ sort_floats(T* array, int start_index, int end_index) {
     // Restore -0.0 values. They should be placed before +0.0.
     if (negative_zero_count > 0) {
         // Find where the zeros begin (after the last negative number)
-        int insertion_index = find_zero_insertion_point(array, start_index, effective_end_index - 1);
+        std::ptrdiff_t insertion_index = find_zero_insertion_point(array, start_index, effective_end_index - 1);
 
         // Replace the first 'negative_zero_count' zeros with -0.0
-        for (int i = 0; i < negative_zero_count && insertion_index < effective_end_index; i++, insertion_index++) {
+        for (std::ptrdiff_t i = 0; i < negative_zero_count && insertion_index < effective_end_index; i++, insertion_index++) {
             if constexpr (std::is_same_v<T, float>) {
                 if (is_positive_zero(array[insertion_index])) {
                     array[insertion_index] = bits_to_float(0x80000000U);

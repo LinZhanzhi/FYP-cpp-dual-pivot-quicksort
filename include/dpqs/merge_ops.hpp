@@ -41,7 +41,7 @@ namespace dual_pivot {
  * @param hi2 Ending index of second segment (exclusive)
  */
 template<typename T>
-void merge_parts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2) {
+void merge_parts(T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdiff_t hi1, T* a2, std::ptrdiff_t lo2, std::ptrdiff_t hi2) {
     // Phase 1: Main merge loop - process both arrays while they have elements
     // Uses branch-free comparison for better performance on modern CPUs
     while (lo1 < hi1 && lo2 < hi2) {

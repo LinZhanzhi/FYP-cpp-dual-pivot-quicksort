@@ -36,11 +36,11 @@ namespace dual_pivot {
 
 // Forward declarations for run merging functions
 template<typename T>
-T* merge_runs(T* a, T* b, int offset, int aim,
-             const std::vector<int>& run, int lo, int hi);
+T* merge_runs(T* a, T* b, std::ptrdiff_t offset, int aim,
+             const std::vector<std::ptrdiff_t>& run, std::ptrdiff_t lo, std::ptrdiff_t hi);
 
 template<typename T>
-void merge_parts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2);
+void merge_parts(T* dst, std::ptrdiff_t k, T* a1, std::ptrdiff_t lo1, std::ptrdiff_t hi1, T* a2, std::ptrdiff_t lo2, std::ptrdiff_t hi2);
 
 /**
  * @brief Attempts to detect and merge sorted runs for optimized sorting
@@ -77,16 +77,16 @@ void merge_parts(T* dst, int k, T* a1, int lo1, int hi1, T* a2, int lo2, int hi2
  * @return false if run detection failed (caller should use different algorithm)
  */
 template<typename T>
-bool try_merge_runs(T* a, int low, int size, bool parallel = false) {
+bool try_merge_runs(T* a, std::ptrdiff_t low, std::ptrdiff_t size, bool parallel = false) {
     // Run array stores start indices of sorted subsequences
     // Only constructed if initial analysis shows promising run structure
     // run[i] holds the starting index of the i-th run
-    std::vector<int> run;
-    int high = low + size;
-    int count = 1, last = low;
+    std::vector<std::ptrdiff_t> run;
+    std::ptrdiff_t high = low + size;
+    std::ptrdiff_t count = 1, last = low;
 
     // Identify all possible runs
-    for (int k = low + 1; k < high; ) {
+    for (std::ptrdiff_t k = low + 1; k < high; ) {
 
         // Find the end index of the current run
         if (a[k - 1] < a[k]) {
@@ -172,22 +172,22 @@ bool try_merge_runs(T* a, int low, int size, bool parallel = false) {
 }
 
 template<typename T>
-T* merge_runs(T* a, T* b, int offset, int aim,
-             const std::vector<int>& run, int lo, int hi) {
+T* merge_runs(T* a, T* b, std::ptrdiff_t offset, int aim,
+             const std::vector<std::ptrdiff_t>& run, std::ptrdiff_t lo, std::ptrdiff_t hi) {
 
     if (hi - lo == 1) {
         if (aim >= 0) {
             return a;
         }
-        for (int i = run[hi], j = i - offset, low = run[lo]; i > low; ) {
+        for (std::ptrdiff_t i = run[hi], j = i - offset, low = run[lo]; i > low; ) {
             b[--j] = a[--i];
         }
         return b;
     }
 
     // Split into approximately equal parts
-    int mi = lo;
-    int rmi = (run[lo] + run[hi]) >> 1;
+    std::ptrdiff_t mi = lo;
+    std::ptrdiff_t rmi = (run[lo] + run[hi]) >> 1;
     while (run[++mi + 1] <= rmi);
 
     // Merge the left and right parts
@@ -196,11 +196,11 @@ T* merge_runs(T* a, T* b, int offset, int aim,
 
     T* dst = (a1 == a) ? b : a;
 
-    int k   = (a1 == a) ? run[lo] - offset : run[lo];
-    int lo1 = (a1 == b) ? run[lo] - offset : run[lo];
-    int hi1 = (a1 == b) ? run[mi] - offset : run[mi];
-    int lo2 = (a2 == b) ? run[mi] - offset : run[mi];
-    int hi2 = (a2 == b) ? run[hi] - offset : run[hi];
+    std::ptrdiff_t k   = (a1 == a) ? run[lo] - offset : run[lo];
+    std::ptrdiff_t lo1 = (a1 == b) ? run[lo] - offset : run[lo];
+    std::ptrdiff_t hi1 = (a1 == b) ? run[mi] - offset : run[mi];
+    std::ptrdiff_t lo2 = (a2 == b) ? run[mi] - offset : run[mi];
+    std::ptrdiff_t hi2 = (a2 == b) ? run[hi] - offset : run[hi];
 
     merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2);
     return dst;

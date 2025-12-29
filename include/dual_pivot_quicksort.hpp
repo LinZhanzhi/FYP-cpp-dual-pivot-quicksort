@@ -7,6 +7,7 @@
 #include "dpqs/sequential_sorters.hpp"
 #include "dpqs/counting_sort.hpp"
 #include "dpqs/float_sort.hpp"
+#include "dpqs/iterator_sort.hpp"
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -37,7 +38,7 @@ namespace dual_pivot {
  * @param high Ending index (exclusive).
  */
 template<typename T>
-void sort(T* a, int parallelism, int low, int high) {
+void sort(T* a, int parallelism, std::ptrdiff_t low, std::ptrdiff_t high) {
     if (low >= high) return;
     checkNotNull(a, "array");
     if (low < 0 || high < 0) {
@@ -48,12 +49,12 @@ void sort(T* a, int parallelism, int low, int high) {
         return;
     }
 
-    int size = high - low;
+    std::ptrdiff_t size = high - low;
 
     // Case 1: Small integral types (1 or 2 bytes) -> Counting Sort
     if constexpr (std::is_integral_v<T> && sizeof(T) <= 2) {
         // Use smaller threshold for 1-byte types (smaller frequency array overhead)
-        int threshold = (sizeof(T) == 1) ? MIN_BYTE_COUNTING_SORT_SIZE : MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE;
+        std::ptrdiff_t threshold = (sizeof(T) == 1) ? MIN_BYTE_COUNTING_SORT_SIZE : MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE;
 
         if (size >= threshold) {
             counting_sort(a, low, high);
@@ -89,7 +90,7 @@ void sort(T* a, int parallelism, int low, int high) {
 // -----------------------------------------------------------------------------
 
 template<typename T>
-void sort(T* a, int length) {
+void sort(T* a, std::ptrdiff_t length) {
     checkNotNull(a, "array");
     if (length < 0) throw std::invalid_argument("Array length cannot be negative");
 
@@ -103,12 +104,12 @@ void sort(T* a, int length) {
 
 template<typename Container>
 void sort(Container& container) {
-    sort(container.data(), std::thread::hardware_concurrency(), 0, static_cast<int>(container.size()));
+    sort(container.data(), std::thread::hardware_concurrency(), 0, static_cast<std::ptrdiff_t>(container.size()));
 }
 
 template<typename Container>
 void sort(Container& container, int parallelism) {
-    sort(container.data(), parallelism, 0, static_cast<int>(container.size()));
+    sort(container.data(), parallelism, 0, static_cast<std::ptrdiff_t>(container.size()));
 }
 
 template<typename RandomAccessIterator>
@@ -118,7 +119,7 @@ void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last)
                   "dual_pivot_quicksort requires random access iterators");
 
     if (first >= last) return;
-    int size = last - first;
+    std::ptrdiff_t size = last - first;
     if (size <= 1) return;
 
     if constexpr (is_contiguous_iterator_v<RandomAccessIterator>) {
@@ -126,10 +127,7 @@ void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last)
         // Use 0 parallelism for default sequential behavior of this specific function name
         sort(a, 0, 0, size);
     } else {
-        using ValueType = typename std::iterator_traits<RandomAccessIterator>::value_type;
-        std::vector<ValueType> temp(first, last);
-        sort(temp.data(), 0, 0, size);
-        std::copy(temp.begin(), temp.end(), first);
+        sort_iterator(first, last);
     }
 }
 
@@ -141,7 +139,7 @@ void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessItera
                   "dual_pivot_quicksort requires random access iterators");
 
     if (first >= last) return;
-    int size = last - first;
+    std::ptrdiff_t size = last - first;
     if (size <= 1) return;
 
     if constexpr (is_contiguous_iterator_v<RandomAccessIterator>) {

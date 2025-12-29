@@ -15,12 +15,12 @@
 namespace dual_pivot {
 
 // Forward declarations
-template<typename T> void parallelQuickSort(T* a, int bits, int low, int high);
+template<typename T> void parallelQuickSort(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high);
 
 template<typename T>
-void parallelMergeSort(T* a, T* b, int low, int size, int offset, int depth) {
+void parallelMergeSort(T* a, T* b, std::ptrdiff_t low, std::ptrdiff_t size, std::ptrdiff_t offset, int depth) {
     if (depth < 0) {
-        int half = size >> 1;
+        std::ptrdiff_t half = size >> 1;
 
         auto& pool = getThreadPool();
         auto future1 = pool.enqueue([=] { parallelMergeSort(b, a, low, half, offset, depth + 1); });
@@ -38,12 +38,12 @@ void parallelMergeSort(T* a, T* b, int low, int size, int offset, int depth) {
 }
 
 template<typename T>
-void parallelQuickSort(T* a, int bits, int low, int high) {
-    int size = high - low;
+void parallelQuickSort(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high) {
+    std::ptrdiff_t size = high - low;
 
     if (size > MIN_PARALLEL_SORT_SIZE) {
         while (true) {
-            int end = high - 1;
+            std::ptrdiff_t end = high - 1;
             size = high - low;
 
             if (size < MAX_MIXED_INSERTION_SORT_SIZE + bits && (bits & 1) > 0) {
@@ -66,17 +66,17 @@ void parallelQuickSort(T* a, int bits, int low, int high) {
                 return;
             }
 
-            int step = (size >> 3) * 3 + 3;
-            int e1 = low + step;
-            int e5 = end - step;
-            int e3 = (e1 + e5) >> 1;
-            int e2 = (e1 + e3) >> 1;
-            int e4 = (e3 + e5) >> 1;
+            std::ptrdiff_t step = (size >> 3) * 3 + 3;
+            std::ptrdiff_t e1 = low + step;
+            std::ptrdiff_t e5 = end - step;
+            std::ptrdiff_t e3 = (e1 + e5) >> 1;
+            std::ptrdiff_t e2 = (e1 + e3) >> 1;
+            std::ptrdiff_t e4 = (e3 + e5) >> 1;
 
             // Sort 5-element sample
             sort5_network(a, e1, e2, e3, e4, e5);
 
-            int lower, upper;
+            std::ptrdiff_t lower, upper;
 
             if (a[e1] < a[e2] && a[e2] < a[e3] && a[e3] < a[e4] && a[e4] < a[e5]) {
                 auto pivotIndices = partition_dual_pivot(a, low, high, e1, e5);
@@ -108,8 +108,8 @@ void parallelQuickSort(T* a, int bits, int low, int high) {
 }
 
 template<typename T>
-void parallelSort(T* a, int parallelism, int low, int high) {
-    int size = high - low;
+void parallelSort(T* a, int parallelism, std::ptrdiff_t low, std::ptrdiff_t high) {
+    std::ptrdiff_t size = high - low;
 
     if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
         int depth = getDepth(parallelism, size >> 12);
@@ -131,13 +131,13 @@ private:
     AdvancedSorter* parent;
     T* a;
     T* b;
-    int low;
-    int size;
-    int offset;
+    std::ptrdiff_t low;
+    std::ptrdiff_t size;
+    std::ptrdiff_t offset;
     int depth;
 
 public:
-    AdvancedSorter(AdvancedSorter* parent, T* a, T* b, int low, int size, int offset, int depth)
+    AdvancedSorter(AdvancedSorter* parent, T* a, T* b, std::ptrdiff_t low, std::ptrdiff_t size, std::ptrdiff_t offset, int depth)
         : Sorter<T>(parent, a, b, low, size, offset, depth),
           parent(parent), a(a), b(b), low(low), size(size), offset(offset), depth(depth) {}
 

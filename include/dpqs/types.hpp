@@ -38,7 +38,7 @@ using ArrayVariant = std::variant<
  */
 struct ArrayPointer {
     ArrayVariant data;      ///< The actual array pointer stored as a variant
-    int size;              ///< Number of elements in the array
+    std::ptrdiff_t size;              ///< Number of elements in the array
     int element_size;      ///< Size of each element in bytes
 
     /**
@@ -53,7 +53,7 @@ struct ArrayPointer {
      * @param sz Size of the array (default: 0)
      */
     template<typename T>
-    ArrayPointer(T* ptr, int sz = 0) : data(ptr), size(sz), element_size(sizeof(T)) {}
+    ArrayPointer(T* ptr, std::ptrdiff_t sz = 0) : data(ptr), size(sz), element_size(sizeof(T)) {}
 
     // Type checking methods (equivalent to Java's instanceof operator)
 
