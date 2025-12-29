@@ -6,8 +6,9 @@
 *   **Analysis Depth**: How deep should the performance analysis go? Is "Time vs. Size" sufficient, or do we need CPU counter analysis (cache misses, branch mispredictions) to prove *why* optimizations like prefetching work?
 
 ## 2. Scope & Missing Features (The "Next Steps")
-*   **Custom Comparators**: Is support for custom comparators (e.g., `[](int a, int b) { return a > b; }`) a requirement? Currently, the library hardcodes `<`. Adding this would make it truly generic but requires significant templating changes.
 *   **Standard Compliance**: Should I aim for C++17 Parallel Algorithms compliance (`std::execution::par`), or is the current custom API (`dual_pivot::sort`) sufficient?
+    *   *Context*: `std::execution::par` abstracts away thread management and algorithm selection, which makes it difficult to perform specific scalability analysis (e.g., "Speedup vs. Thread Count") or guarantee the use of Dual-Pivot Quicksort over Introsort.
+    *   *Trade-off*: The custom API allows explicit control over parallelism (critical for the thesis experiments) and tuning parameters, whereas the standard interface is more "user-friendly" but opaque for research purposes.
 *   **Out-of-Core Sorting**: We added 64-bit support for large RAM arrays. Is disk-based (external) sorting for datasets larger than RAM in scope?
 
 ## 3. Academic & Report Value (The "Thesis")
