@@ -39,7 +39,27 @@ private:
     std::condition_variable condition;          ///< Condition variable for worker synchronization
     std::atomic<bool> stop;                     ///< Atomic flag for clean shutdown
 
+    std::atomic<int> active_tasks{0};           ///< Count of currently executing tasks
+    std::condition_variable wait_cv;            ///< CV for waiting for all tasks to complete
+
+    // Profiling
+    std::atomic<long> tasks_pushed{0};
+    std::atomic<long> tasks_executed{0};
+
 public:
+    void reset_stats() {
+        tasks_pushed = 0;
+        tasks_executed = 0;
+    }
+
+    void print_stats() {
+        // Use printf to avoid iostream includes if possible, or just use std::cout since we likely have it
+        // For now, let's assume std::cout is available or just expose getters
+    }
+
+    long get_tasks_pushed() const { return tasks_pushed; }
+    long get_tasks_executed() const { return tasks_executed; }
+
     /**
      * @brief Construct a thread pool with specified number of threads
      *
@@ -60,9 +80,74 @@ public:
                         task = std::move(this->tasks.front());
                         this->tasks.pop();
                     }
+
+                    this->active_tasks++;
                     task();
+                    this->active_tasks--;
+                    this->tasks_executed++;
+
+                    if (this->active_tasks == 0) {
+                        std::unique_lock<std::mutex> lock(this->queue_mutex);
+                        if (this->tasks.empty()) {
+                            this->wait_cv.notify_all();
+                        }
+                    }
                 }
             });
+        }
+    }
+
+    /**
+     * @brief Submit a fire-and-forget task
+     *
+     * Adds a task to the queue without returning a future.
+     * Used for the non-blocking parallel sort implementation.
+     */
+    template<typename F>
+    void submit(F&& f) {
+        {
+            std::unique_lock<std::mutex> lock(queue_mutex);
+            tasks.emplace(std::forward<F>(f));
+            tasks_pushed++;
+        }
+        condition.notify_one();
+    }
+
+    /**
+     * @brief Wait until all tasks are completed
+     *
+     * Blocks the calling thread until the task queue is empty AND
+     * no workers are currently executing a task.
+     * Also processes tasks while waiting to help out (Work Stealing-ish).
+     */
+    void wait_for_completion() {
+        // Try to help while waiting
+        while (true) {
+            std::function<void()> task;
+            {
+                std::unique_lock<std::mutex> lock(queue_mutex);
+                if (tasks.empty()) {
+                    if (active_tasks == 0) return; // Done
+                    // Wait for others to finish
+                    wait_cv.wait(lock, [this] { return this->tasks.empty() && this->active_tasks == 0; });
+                    return;
+                }
+                task = std::move(tasks.front());
+                tasks.pop();
+            }
+
+            // Execute stolen task
+            active_tasks++;
+            task();
+            active_tasks--;
+            tasks_executed++;
+
+            if (active_tasks == 0) {
+                std::unique_lock<std::mutex> lock(queue_mutex);
+                if (tasks.empty()) {
+                    wait_cv.notify_all();
+                }
+            }
         }
     }
 
@@ -99,6 +184,13 @@ public:
     }
 
     /**
+     * @brief Get the number of worker threads
+     */
+    size_t size() const {
+        return workers.size();
+    }
+
+    /**
      * @brief Destructor - ensures clean shutdown of all threads
      *
      * Signals all worker threads to stop, wakes them up, and waits for
@@ -111,7 +203,7 @@ public:
         }
         condition.notify_all();
         for (std::thread &worker: workers) {
-            worker.join();
+            if (worker.joinable()) worker.join();
         }
     }
 };
@@ -123,14 +215,22 @@ public:
  * The singleton pattern ensures that only one thread pool exists per process,
  * avoiding resource waste and thread proliferation.
  *
- * The thread pool is created with the default hardware concurrency and remains
- * active for the lifetime of the program.
+ * Supports resizing if a specific thread count is requested.
  *
+ * @param num_threads Optional number of threads to resize the pool to.
+ *                    If 0 (default), returns existing pool or creates with hardware concurrency.
  * @return Reference to the global ThreadPool instance
  */
-inline ThreadPool& getThreadPool() {
-    static ThreadPool pool;
-    return pool;
+inline ThreadPool& getThreadPool(int num_threads = 0) {
+    static std::unique_ptr<ThreadPool> pool;
+    static std::mutex init_mutex;
+
+    std::lock_guard<std::mutex> lock(init_mutex);
+    if (!pool || (num_threads > 0 && pool->size() != static_cast<size_t>(num_threads))) {
+        if (num_threads <= 0) num_threads = std::thread::hardware_concurrency();
+        pool = std::make_unique<ThreadPool>(num_threads);
+    }
+    return *pool;
 }
 
 } // namespace dual_pivot
