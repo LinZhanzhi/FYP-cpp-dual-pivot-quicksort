@@ -7,3 +7,6 @@ test_dual_pivot_quicksort
 test/test_dual_pivot_quicksort
 benchmark_log.txt
 benchmarks/benchmark_log.txt
+diagnostic_runner
+test_dpqs
+*:Zone.Identifier
