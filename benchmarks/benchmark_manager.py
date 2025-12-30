@@ -2,6 +2,7 @@ import subprocess
 import os
 import itertools
 import sys
+import multiprocessing
 
 # Get the directory where the script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -16,7 +17,15 @@ WSL_BASE_DIR = "/home/lzz725/FYP/benchmarks"
 WSL_RUNNER = f"{WSL_BASE_DIR}/build/benchmark_runner"
 WSL_RESULTS_DIR = f"{WSL_BASE_DIR}/results/raw"
 
-ALGORITHMS = ["std_sort", "std_stable_sort", "qsort", "dual_pivot_parallel", "dual_pivot_sequential"]
+# Generate parallel algorithms based on hardware threads
+max_threads = multiprocessing.cpu_count()
+parallel_algos = []
+t = 2
+while t <= max_threads:
+    parallel_algos.append(f"dual_pivot_parallel_{t}")
+    t *= 2
+
+ALGORITHMS = ["std_sort", "std_stable_sort", "qsort", "dual_pivot_sequential"] + parallel_algos
 TYPES = ["int", "double"]
 PATTERNS = [
     "RANDOM", "NEARLY_SORTED", "REVERSE_SORTED",
@@ -46,6 +55,13 @@ def get_output_filename(algo, type_, pattern, size):
 def run_single_test(algo, type_, pattern, size):
     ensure_directories()
 
+    threads = 0
+    if algo.startswith("dual_pivot_parallel_"):
+        try:
+            threads = int(algo.split("_")[-1])
+        except ValueError:
+            pass
+
     if sys.platform == "win32":
         # Use WSL paths and command
         output_file_wsl = f"{WSL_RESULTS_DIR}/res_{algo}_{type_}_{pattern}_{size}.csv"
@@ -59,6 +75,8 @@ def run_single_test(algo, type_, pattern, size):
             "--output", output_file_wsl,
             "--iterations", "30"
         ]
+        if threads > 0:
+            cmd.extend(["--threads", str(threads)])
     else:
         # Native Linux/WSL execution
         output_file = get_output_filename(algo, type_, pattern, size)
@@ -71,6 +89,8 @@ def run_single_test(algo, type_, pattern, size):
             "--output", output_file,
             "--iterations", "30"
         ]
+        if threads > 0:
+            cmd.extend(["--threads", str(threads)])
 
     try:
         subprocess.run(cmd, check=True)
@@ -105,6 +125,13 @@ def run_benchmark():
 
         print(f"[{i+1}/{total}] Running {algo} {type_} {pattern} {size}...")
 
+        threads = 0
+        if algo.startswith("dual_pivot_parallel_"):
+            try:
+                threads = int(algo.split("_")[-1])
+            except ValueError:
+                pass
+
         cmd = [
             RUNNER,
             "--algorithm", algo,
@@ -114,6 +141,8 @@ def run_benchmark():
             "--output", output_file,
             "--iterations", "30"
         ]
+        if threads > 0:
+            cmd.extend(["--threads", str(threads)])
 
         try:
             subprocess.run(cmd, check=True)

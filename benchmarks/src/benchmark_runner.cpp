@@ -38,7 +38,7 @@ std::map<std::string, std::string> parse_args(int argc, char* argv[]) {
 }
 
 template <typename T>
-void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size_t size, const std::string& output_file, const std::string& type_name, int iterations) {
+void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size_t size, const std::string& output_file, const std::string& type_name, int iterations, int threads) {
     auto data = benchmark_data::generate_data<T>(size, pattern);
 
     // Warmup
@@ -49,8 +49,8 @@ void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size
         std::stable_sort(warmup_data.begin(), warmup_data.end());
     } else if (algo == "qsort") {
         std::qsort(warmup_data.data(), warmup_data.size(), sizeof(T), compare<T>);
-    } else if (algo == "dual_pivot_parallel") {
-        dual_pivot::sort(warmup_data);
+    } else if (algo.find("dual_pivot_parallel") != std::string::npos) {
+        dual_pivot::sort(warmup_data, threads);
     } else if (algo == "dual_pivot_sequential") {
         dual_pivot::sort(warmup_data, 1);
     } else {
@@ -77,8 +77,8 @@ void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size
             std::stable_sort(test_data.begin(), test_data.end());
         } else if (algo == "qsort") {
             std::qsort(test_data.data(), test_data.size(), sizeof(T), compare<T>);
-        } else if (algo == "dual_pivot_parallel") {
-            dual_pivot::sort(test_data);
+        } else if (algo.find("dual_pivot_parallel") != std::string::npos) {
+            dual_pivot::sort(test_data, threads);
         } else if (algo == "dual_pivot_sequential") {
             dual_pivot::sort(test_data, 1);
         } else {
@@ -125,6 +125,11 @@ int main(int argc, char* argv[]) {
         iterations = std::stoi(args["iterations"]);
     }
 
+    int threads = std::thread::hardware_concurrency();
+    if (args.find("threads") != args.end()) {
+        threads = std::stoi(args["threads"]);
+    }
+
     benchmark_data::DataPattern pattern;
     if (pattern_str == "RANDOM") pattern = benchmark_data::DataPattern::RANDOM;
     else if (pattern_str == "NEARLY_SORTED") pattern = benchmark_data::DataPattern::NEARLY_SORTED;
@@ -139,11 +144,11 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     if (type == "int") {
-        run_test<int>(algo, pattern, size, output, "int", iterations);
+        run_test<int>(algo, pattern, size, output, "int", iterations, threads);
     } else if (type == "long") {
-        run_test<long>(algo, pattern, size, output, "long", iterations);
+        run_test<long>(algo, pattern, size, output, "long", iterations, threads);
     } else if (type == "double") {
-        run_test<double>(algo, pattern, size, output, "double", iterations);
+        run_test<double>(algo, pattern, size, output, "double", iterations, threads);
     } else {
         std::cerr << "Unknown type: " << type << std::endl;
         return 1;
