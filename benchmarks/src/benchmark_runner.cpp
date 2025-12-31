@@ -87,6 +87,14 @@ void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size
         auto end = std::chrono::high_resolution_clock::now();
         durations.push_back(std::chrono::duration<double, std::milli>(end - start).count());
 
+        // Verify (lightweight check to prevent optimization and catch bugs)
+        if (test_data.size() > 1 && test_data[0] > test_data[1]) {
+             std::cerr << "Warning: Iteration " << i << " potentially not sorted (first elements check)" << std::endl;
+        }
+        // Force data dependency
+        volatile auto sink = test_data.front();
+        (void)sink;
+
         // Sleep for 10ms to allow system noise to pass and ensure diverse sampling
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }

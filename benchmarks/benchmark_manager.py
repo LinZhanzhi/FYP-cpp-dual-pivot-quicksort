@@ -25,7 +25,7 @@ while t <= max_threads:
     parallel_algos.append(f"dual_pivot_parallel_{t}")
     t *= 2
 
-ALGORITHMS = ["std_sort", "std_stable_sort", "qsort", "dual_pivot_sequential"] + parallel_algos
+ALGORITHMS = parallel_algos + ["std_sort", "std_stable_sort", "qsort", "dual_pivot_sequential"]
 TYPES = ["int", "double"]
 PATTERNS = [
     "RANDOM", "NEARLY_SORTED", "REVERSE_SORTED",

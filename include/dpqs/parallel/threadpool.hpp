@@ -67,7 +67,7 @@ private:
     std::vector<std::unique_ptr<WorkStealingQueue>> queues;
     std::vector<std::thread> workers;
     std::atomic<bool> stop{false};
-    std::atomic<int> active_tasks{0};
+    std::atomic<long> incomplete_tasks{0};
 
     // For wait_for_completion
     std::mutex wait_mutex;
@@ -130,21 +130,20 @@ public:
                     }
 
                     if (found) {
-                        active_tasks++;
                         try {
                             task();
                         } catch (...) {
-                            // Ensure active_tasks is decremented even if task throws
-                            active_tasks--;
-                            if (active_tasks == 0) {
+                            // Ensure incomplete_tasks is decremented even if task throws
+                            long remaining = --incomplete_tasks;
+                            if (remaining == 0) {
                                 wait_cv.notify_all();
                             }
-                            throw; // Re-throw or handle? Ideally log and continue, but for now let's just ensure cleanup
+                            throw;
                         }
-                        active_tasks--;
-                        tasks_executed++;
 
-                        if (active_tasks == 0) {
+                        tasks_executed++;
+                        long remaining = --incomplete_tasks;
+                        if (remaining == 0) {
                              wait_cv.notify_all();
                         }
                     } else {
@@ -164,6 +163,7 @@ public:
 
     template<typename F>
     void submit(F&& f) {
+        incomplete_tasks++;
         int idx = thread_index;
         if (idx == -1) idx = 0;
         if (idx >= static_cast<int>(queues.size())) idx = 0;
@@ -174,17 +174,8 @@ public:
 
     void wait_for_completion() {
         while (true) {
-            if (active_tasks == 0) {
-                bool all_empty = true;
-                for (const auto& q : queues) {
-                    if (!q->empty()) {
-                        all_empty = false;
-                        break;
-                    }
-                }
-                // Double-check active_tasks to avoid race condition where a task was popped
-                // while we were checking queues.
-                if (all_empty && active_tasks == 0) return;
+            if (incomplete_tasks == 0) {
+                return;
             }
 
             // DISABLE HELPING for Main Thread to avoid "Queue 0 Bottleneck"
