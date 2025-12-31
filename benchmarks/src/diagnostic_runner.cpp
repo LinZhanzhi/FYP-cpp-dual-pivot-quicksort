@@ -40,7 +40,7 @@ void run_test(size_t size, int threads) {
 }
 
 int main() {
-    const size_t SIZE = 50000000; // 50 Million
+    const size_t SIZE = 10000000; // 10 Million
     std::cout << "Diagnostic Benchmark (Size: " << SIZE << ")" << std::endl;
     std::cout << "Hardware Concurrency: " << std::thread::hardware_concurrency() << std::endl;
     std::cout << "------------------------------------------------" << std::endl;

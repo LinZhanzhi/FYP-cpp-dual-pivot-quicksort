@@ -54,12 +54,8 @@ void sort(T* a, int parallelism, std::ptrdiff_t low, std::ptrdiff_t high, Compar
     // Case 2: Parallel Sort (for types > 2 bytes)
     if (parallelism > 1 && size > MIN_PARALLEL_SORT_SIZE) {
         int depth = getDepth(parallelism, size >> 12);
-        std::vector<T> b(depth == 0 ? 0 : size);
-
-        // Use stack allocation instead of heap allocation for safety and performance
-        AdvancedSorter<T, Compare> sorter(nullptr, a, depth == 0 ? nullptr : b.data(), low, size, low, depth, comp);
-        sorter.invoke();
-        sorter.wait();
+        // Use V3 Parallel QuickSort directly (Work Stealing)
+        parallelQuickSort(a, depth, low, high, comp, parallelism);
         return;
     }
 

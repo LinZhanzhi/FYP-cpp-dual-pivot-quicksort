@@ -49,7 +49,7 @@ public:
 
     void fork() {
         auto& pool = getThreadPool();
-        pool.enqueue([this]() { invoke(); });
+        pool.submit([this]() { invoke(); });
     }
 
     // Enhanced completion with proper propagation (matching Java's sophistication)
