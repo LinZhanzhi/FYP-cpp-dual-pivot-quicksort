@@ -113,16 +113,41 @@ void sort_sequential(Sorter<T, Compare>* sorter, T* a, int bits, std::ptrdiff_t 
             lower = pivotIndices.first;
             upper = pivotIndices.second;
 
-            // Verify partitioning
-            // Fork parallel tasks if sorter available
-            if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
-                // sorter->addToPendingCount(1); // Prevent premature completion
-                sorter->forkSorter(bits | 1, lower + 1, upper);
-                sorter->forkSorter(bits | 1, upper + 1, high);
-                // sorter->addToPendingCount(-1); // Release hold
+            // Optimized Tail Recursion: Recurse on smaller parts, loop on largest
+            std::ptrdiff_t left_len = lower - low;
+            std::ptrdiff_t mid_len = upper - (lower + 1);
+            std::ptrdiff_t right_len = high - (upper + 1);
+
+            if (left_len >= mid_len && left_len >= right_len) {
+                // Left is largest. Recurse Mid and Right. Loop Left.
+                if (sorter && mid_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits | 1, lower + 1, upper);
+                else sort_sequential(sorter, a, bits | 1, lower + 1, upper, comp);
+
+                if (sorter && right_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits | 1, upper + 1, high);
+                else sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
+
+                high = lower;
+            } else if (mid_len >= right_len) {
+                // Mid is largest. Recurse Left and Right. Loop Mid.
+                if (sorter && left_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits, low, lower);
+                else sort_sequential(sorter, a, bits, low, lower, comp);
+
+                if (sorter && right_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits | 1, upper + 1, high);
+                else sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
+
+                low = lower + 1;
+                high = upper;
+                bits |= 1;
             } else {
-                sort_sequential(sorter, a, bits | 1, lower + 1, upper, comp);
-                sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
+                // Right is largest. Recurse Left and Mid. Loop Right.
+                if (sorter && left_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits, low, lower);
+                else sort_sequential(sorter, a, bits, low, lower, comp);
+
+                if (sorter && mid_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits | 1, lower + 1, upper);
+                else sort_sequential(sorter, a, bits | 1, lower + 1, upper, comp);
+
+                low = upper + 1;
+                bits |= 1;
             }
         } else {
             // Single-pivot partitioning
@@ -130,14 +155,22 @@ void sort_sequential(Sorter<T, Compare>* sorter, T* a, int bits, std::ptrdiff_t 
             lower = pivotIndices.first;
             upper = pivotIndices.second;
 
-            if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
-                sorter->forkSorter(bits | 1, upper + 1, high);
+            std::ptrdiff_t left_len = lower - low;
+            std::ptrdiff_t right_len = high - (upper + 1);
+
+            if (left_len >= right_len) {
+                // Left is largest. Recurse Right. Loop Left.
+                if (sorter && right_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits | 1, upper + 1, high);
+                else sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
+                high = lower;
             } else {
-                sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
+                // Right is largest. Recurse Left. Loop Right.
+                if (sorter && left_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits, low, lower);
+                else sort_sequential(sorter, a, bits, low, lower, comp);
+                low = upper + 1;
+                bits |= 1;
             }
         }
-
-        high = lower; // Continue with left part (tail recursion elimination)
     }
 }
 

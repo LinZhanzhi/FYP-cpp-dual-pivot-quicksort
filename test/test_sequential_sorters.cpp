@@ -24,7 +24,7 @@ void test_sort_int() {
     std::mt19937 g(123);
     std::shuffle(arr.begin(), arr.end(), g);
 
-    sort_sequential<int>(nullptr, arr.data(), 0, 0, arr.size());
+    sort_sequential<int, std::less<int>>(nullptr, arr.data(), 0, 0, arr.size(), std::less<int>());
 
     assert(is_sorted(arr));
     std::cout << "Passed." << std::endl;
@@ -39,7 +39,7 @@ void test_sort_double() {
 
     for(auto& x : arr) x = dis(g);
 
-    sort_sequential<double>(nullptr, arr.data(), 0, 0, arr.size());
+    sort_sequential<double, std::less<double>>(nullptr, arr.data(), 0, 0, arr.size(), std::less<double>());
 
     assert(is_sorted(arr));
     std::cout << "Passed." << std::endl;
