@@ -242,97 +242,6 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ res.runtime.toFixed(4) }}</td>
                             </tr>
-
-            // Speedup State
-            const speedupConfig = ref({ baseline: '', compare: [], type: '', pattern: '' })
-            let speedupChartInstance = null
-
-            const initSpeedupChart = () => {
-                const ctx = document.getElementById('speedupChart')
-                if (!ctx) return
-
-                speedupChartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: { datasets: [] },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: {
-                                type: 'logarithmic',
-                                position: 'bottom',
-                                title: { display: true, text: 'Array Size (Log Scale)' }
-                            },
-                            y: {
-                                title: { display: true, text: 'Speedup (Baseline / Algo)' },
-                                min: 0
-                            }
-                        },
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}x`;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                })
-            }
-
-            const updateSpeedupPlot = () => {
-                if (!speedupChartInstance) return
-                const { baseline, compare, type, pattern } = speedupConfig.value
-
-                if (!baseline || compare.length === 0 || !type || !pattern) {
-                    alert("Please select all fields.")
-                    return
-                }
-
-                // Get Baseline Data
-                const baselineData = results.value
-                    .filter(r => r.algo === baseline && r.type === type && r.pattern === pattern && r.done && r.runtime !== '-')
-                    .map(r => ({ size: parseInt(r.size), runtime: parseFloat(r.runtime.replace(' ms', '')) }))
-
-                const baselineMap = new Map(baselineData.map(i => [i.size, i.runtime]))
-
-                const datasets = []
-                const usedColors = []
-
-                compare.forEach(algo => {
-                    const algoData = results.value
-                        .filter(r => r.algo === algo && r.type === type && r.pattern === pattern && r.done && r.runtime !== '-')
-                        .map(r => ({ size: parseInt(r.size), runtime: parseFloat(r.runtime.replace(' ms', '')) }))
-                        .sort((a, b) => a.size - b.size)
-
-                    const points = []
-                    algoData.forEach(pt => {
-                        if (baselineMap.has(pt.size)) {
-                            const baseRuntime = baselineMap.get(pt.size)
-                            // Speedup = Baseline / Algo
-                            const speedup = baseRuntime / pt.runtime
-                            points.push({ x: pt.size, y: speedup })
-                        }
-                    })
-
-                    if (points.length > 0) {
-                        const color = getDistinctColor(usedColors)
-                        usedColors.push(color)
-                        datasets.push({
-                            label: algo,
-                            data: points,
-                            borderColor: color,
-                            backgroundColor: color,
-                            fill: false,
-                            tension: 0.1
-                        })
-                    }
-                })
-
-                speedupChartInstance.data.datasets = datasets
-                speedupChartInstance.update()
-            }
                         </tbody>
                     </table>
 
@@ -404,6 +313,9 @@
                             }
                         },
                         plugins: {
+                            legend: {
+                                position: 'right'
+                            },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
@@ -773,6 +685,7 @@
                         },
                         plugins: {
                             legend: {
+                                position: 'right',
                                 labels: {
                                     filter: function(item, data) {
                                         // Only show legend for the scatter points
