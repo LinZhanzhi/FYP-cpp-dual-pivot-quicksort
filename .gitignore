@@ -10,3 +10,4 @@ benchmarks/benchmark_log.txt
 diagnostic_runner
 test_dpqs
 *:Zone.Identifier
+test_sequential_sorters
