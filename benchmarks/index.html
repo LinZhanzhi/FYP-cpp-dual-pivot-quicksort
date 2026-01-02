@@ -19,6 +19,9 @@
                 <button @click="activeTab = 'visualize'" :class="[activeTab === 'visualize' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
                     Visualization
                 </button>
+                <button @click="activeTab = 'speedup'" :class="[activeTab === 'speedup' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
+                    Speedup Analysis
+                </button>
                 <button @click="activeTab = 'playground'" :class="[activeTab === 'playground' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
                     Playground
                 </button>
@@ -129,6 +132,50 @@
             </div>
         </div>
 
+        <!-- Speedup Tab -->
+        <div v-show="activeTab === 'speedup'">
+            <div class="bg-white rounded-lg shadow p-6 mb-6">
+                <h2 class="text-xl font-bold mb-4">Speedup Analysis</h2>
+                <div class="grid grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Baseline Algorithm</label>
+                        <select v-model="speedupConfig.baseline" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+                            <option v-for="opt in config.algorithms" :key="opt" :value="opt">{{ opt }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Comparison Algorithms</label>
+                        <div class="mt-1 block w-full rounded-md border-gray-300 shadow-sm border max-h-32 overflow-y-auto p-2 bg-white">
+                            <label v-for="opt in config.algorithms" :key="opt" class="flex items-center space-x-2 text-sm cursor-pointer hover:bg-gray-50 p-1">
+                                <input type="checkbox" :value="opt" v-model="speedupConfig.compare" class="rounded text-blue-600 focus:ring-blue-500 border-gray-300">
+                                <span>{{ opt }}</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Type</label>
+                        <select v-model="speedupConfig.type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+                            <option v-for="opt in config.types" :key="opt" :value="opt">{{ opt }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Pattern</label>
+                        <select v-model="speedupConfig.pattern" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+                            <option v-for="opt in config.patterns" :key="opt" :value="opt">{{ opt }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end mb-4">
+                     <button @click="updateSpeedupPlot" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Plot Speedup</button>
+                </div>
+
+                <!-- Canvas -->
+                <div class="relative h-[600px] w-full">
+                    <canvas id="speedupChart"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- Playground Tab -->
         <div v-show="activeTab === 'playground'">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
@@ -188,6 +235,97 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">{{ res.runtime.toFixed(4) }}</td>
                             </tr>
+
+            // Speedup State
+            const speedupConfig = ref({ baseline: '', compare: [], type: '', pattern: '' })
+            let speedupChartInstance = null
+
+            const initSpeedupChart = () => {
+                const ctx = document.getElementById('speedupChart')
+                if (!ctx) return
+
+                speedupChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: { datasets: [] },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'logarithmic',
+                                position: 'bottom',
+                                title: { display: true, text: 'Array Size (Log Scale)' }
+                            },
+                            y: {
+                                title: { display: true, text: 'Speedup (Baseline / Algo)' },
+                                min: 0
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}x`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                })
+            }
+
+            const updateSpeedupPlot = () => {
+                if (!speedupChartInstance) return
+                const { baseline, compare, type, pattern } = speedupConfig.value
+
+                if (!baseline || compare.length === 0 || !type || !pattern) {
+                    alert("Please select all fields.")
+                    return
+                }
+
+                // Get Baseline Data
+                const baselineData = results.value
+                    .filter(r => r.algo === baseline && r.type === type && r.pattern === pattern && r.done && r.runtime !== '-')
+                    .map(r => ({ size: parseInt(r.size), runtime: parseFloat(r.runtime.replace(' ms', '')) }))
+
+                const baselineMap = new Map(baselineData.map(i => [i.size, i.runtime]))
+
+                const datasets = []
+                const usedColors = []
+
+                compare.forEach(algo => {
+                    const algoData = results.value
+                        .filter(r => r.algo === algo && r.type === type && r.pattern === pattern && r.done && r.runtime !== '-')
+                        .map(r => ({ size: parseInt(r.size), runtime: parseFloat(r.runtime.replace(' ms', '')) }))
+                        .sort((a, b) => a.size - b.size)
+
+                    const points = []
+                    algoData.forEach(pt => {
+                        if (baselineMap.has(pt.size)) {
+                            const baseRuntime = baselineMap.get(pt.size)
+                            // Speedup = Baseline / Algo
+                            const speedup = baseRuntime / pt.runtime
+                            points.push({ x: pt.size, y: speedup })
+                        }
+                    })
+
+                    if (points.length > 0) {
+                        const color = getDistinctColor(usedColors)
+                        usedColors.push(color)
+                        datasets.push({
+                            label: algo,
+                            data: points,
+                            borderColor: color,
+                            backgroundColor: color,
+                            fill: false,
+                            tension: 0.1
+                        })
+                    }
+                })
+
+                speedupChartInstance.data.datasets = datasets
+                speedupChartInstance.update()
+            }
                         </tbody>
                     </table>
 
@@ -232,6 +370,97 @@
             const vizConfig = ref({ algo: '', type: '', pattern: '' })
             const vizDatasets = ref([])
             let chartInstance = null
+
+            // Speedup State
+            const speedupConfig = ref({ baseline: '', compare: [], type: '', pattern: '' })
+            let speedupChartInstance = null
+
+            const initSpeedupChart = () => {
+                const ctx = document.getElementById('speedupChart')
+                if (!ctx) return
+
+                speedupChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: { datasets: [] },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'logarithmic',
+                                position: 'bottom',
+                                title: { display: true, text: 'Array Size (Log Scale)' }
+                            },
+                            y: {
+                                title: { display: true, text: 'Speedup (Baseline / Algo)' },
+                                min: 0
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.y.toFixed(2)}x`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                })
+            }
+
+            const updateSpeedupPlot = () => {
+                if (!speedupChartInstance) return
+                const { baseline, compare, type, pattern } = speedupConfig.value
+
+                if (!baseline || compare.length === 0 || !type || !pattern) {
+                    alert("Please select all fields.")
+                    return
+                }
+
+                // Get Baseline Data
+                const baselineData = results.value
+                    .filter(r => r.algo === baseline && r.type === type && r.pattern === pattern && r.done && r.runtime !== '-')
+                    .map(r => ({ size: parseInt(r.size), runtime: parseFloat(r.runtime.replace(' ms', '')) }))
+
+                const baselineMap = new Map(baselineData.map(i => [i.size, i.runtime]))
+
+                const datasets = []
+                const usedColors = []
+
+                compare.forEach(algo => {
+                    const algoData = results.value
+                        .filter(r => r.algo === algo && r.type === type && r.pattern === pattern && r.done && r.runtime !== '-')
+                        .map(r => ({ size: parseInt(r.size), runtime: parseFloat(r.runtime.replace(' ms', '')) }))
+                        .sort((a, b) => a.size - b.size)
+
+                    const points = []
+                    algoData.forEach(pt => {
+                        if (baselineMap.has(pt.size)) {
+                            const baseRuntime = baselineMap.get(pt.size)
+                            // Speedup = Baseline / Algo
+                            const speedup = baseRuntime / pt.runtime
+                            points.push({ x: pt.size, y: speedup })
+                        }
+                    })
+
+                    if (points.length > 0) {
+                        const color = getDistinctColor(usedColors)
+                        usedColors.push(color)
+                        datasets.push({
+                            label: algo,
+                            data: points,
+                            borderColor: color,
+                            backgroundColor: color,
+                            fill: false,
+                            tension: 0.1
+                        })
+                    }
+                })
+
+                speedupChartInstance.data.datasets = datasets
+                speedupChartInstance.update()
+            }
 
             // Playground State
             const playgroundConfig = ref({
@@ -313,6 +542,13 @@
                 if (data.algorithms.length) vizConfig.value.algo = data.algorithms[0]
                 if (data.types.length) vizConfig.value.type = data.types[0]
                 if (data.patterns.length) vizConfig.value.pattern = data.patterns[0]
+
+                // Set defaults for speedup
+                if (data.algorithms.length) {
+                    speedupConfig.value.baseline = data.algorithms.includes('std_sort') ? 'std_sort' : data.algorithms[0]
+                }
+                if (data.types.length) speedupConfig.value.type = data.types[0]
+                if (data.patterns.length) speedupConfig.value.pattern = data.patterns[0]
             }
 
             const toggleAll = (key) => {
@@ -551,6 +787,10 @@
                     nextTick(() => {
                         if (!chartInstance) initChart()
                     })
+                } else if (newTab === 'speedup') {
+                    nextTick(() => {
+                        if (!speedupChartInstance) initSpeedupChart()
+                    })
                 }
             })
 
@@ -566,6 +806,8 @@
                 runFiltered, runMissing, toggleAll, deleteTest, runTest, rerunTest, showDetails,
                 // Viz
                 vizConfig, vizDatasets, addPlot, removePlot,
+                // Speedup
+                speedupConfig, updateSpeedupPlot,
                 // Playground
                 playgroundConfig, playgroundResult, playgroundRunning, playgroundError,
                 playgroundGeneratedData, generatePlayground, sortPlayground
