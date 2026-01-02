@@ -34,15 +34,15 @@
 
 // Constants
 constexpr std::ptrdiff_t MAX_RECURSION_DEPTH = 64;
-constexpr std::ptrdiff_t INSERTION_SORT_THRESHOLD = 44;
-constexpr std::ptrdiff_t MIXED_INSERTION_SORT_THRESHOLD = 65;
+constexpr std::ptrdiff_t INSERTION_SORT_THRESHOLD = 32;
+constexpr std::ptrdiff_t MIXED_INSERTION_SORT_THRESHOLD = 48;
 constexpr std::ptrdiff_t MAX_RUN_CAPACITY = 500;
 constexpr std::ptrdiff_t MIN_FIRST_RUN_SIZE = 16;
 constexpr std::ptrdiff_t MIN_RUN_COUNT = 5;
 constexpr std::ptrdiff_t MIN_BYTE_COUNTING_SORT_SIZE = 64;
 constexpr std::ptrdiff_t MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE = 1750;
-constexpr std::ptrdiff_t MAX_MIXED_INSERTION_SORT_SIZE = 65;
-constexpr std::ptrdiff_t MAX_INSERTION_SORT_SIZE = 44;
+constexpr std::ptrdiff_t MAX_MIXED_INSERTION_SORT_SIZE = 48;
+constexpr std::ptrdiff_t MAX_INSERTION_SORT_SIZE = 32;
 constexpr std::ptrdiff_t MIN_TRY_MERGE_SIZE = 64;
 constexpr std::ptrdiff_t DELTA = 3; // Recursion depth delta
 constexpr std::ptrdiff_t MIN_PARALLEL_SORT_SIZE = 4096; // Threshold for parallel sorting

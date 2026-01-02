@@ -50,18 +50,26 @@ DPQS_FORCE_INLINE std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_dual_pivot
 
     std::ptrdiff_t lt = low + 1;
     std::ptrdiff_t gt = high - 2;
-    std::ptrdiff_t i = lt;
+    std::ptrdiff_t k = lt;
 
-    while (i <= gt) {
-        if (comp(a[i], pivot1)) {
-            std::swap(a[i], a[lt]);
+    while (k <= gt) {
+        if (comp(a[k], pivot1)) {
+            std::swap(a[k], a[lt]);
             lt++;
-            i++;
-        } else if (comp(pivot2, a[i])) {
-            std::swap(a[i], a[gt]);
+            k++;
+        } else if (comp(pivot2, a[k])) {
+            while (k < gt && comp(pivot2, a[gt])) {
+                gt--;
+            }
+            std::swap(a[k], a[gt]);
             gt--;
+            if (comp(a[k], pivot1)) {
+                std::swap(a[k], a[lt]);
+                lt++;
+            }
+            k++;
         } else {
-            i++;
+            k++;
         }
     }
 
@@ -87,7 +95,11 @@ std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_single_pivot(T* a, std::ptrd
         if (comp(a[i], pivot)) {
             std::swap(a[lt++], a[i++]);
         } else if (comp(pivot, a[i])) {
-            std::swap(a[i], a[--gt]);
+            gt--;
+            while (i < gt && comp(pivot, a[gt])) {
+                gt--;
+            }
+            std::swap(a[i], a[gt]);
         } else {
             i++;
         }
