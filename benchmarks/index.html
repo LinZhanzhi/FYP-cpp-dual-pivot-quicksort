@@ -125,6 +125,11 @@
                     </div>
                 </div>
 
+                <div class="flex justify-end space-x-2 mb-2">
+                     <button @click="clearVizPlots" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 text-sm">Clear Plot</button>
+                     <button @click="exportChart('benchmarkChart', 'runtime_plot.png')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm">Export PNG</button>
+                </div>
+
                 <!-- Canvas -->
                 <div class="relative h-[600px] w-full">
                     <canvas id="benchmarkChart"></canvas>
@@ -165,8 +170,10 @@
                         </select>
                     </div>
                 </div>
-                <div class="flex justify-end mb-4">
-                     <button @click="updateSpeedupPlot" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Plot Speedup</button>
+                <div class="flex justify-end space-x-2 mb-4">
+                     <button @click="updateSpeedupPlot" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Plot Speedup</button>
+                     <button @click="clearSpeedupPlot" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Clear Plot</button>
+                     <button @click="exportChart('speedupChart', 'speedup_plot.png')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Export PNG</button>
                 </div>
 
                 <!-- Canvas -->
@@ -716,16 +723,17 @@
                 vizDatasets.value.forEach(ds => {
                     // Scatter points
                     datasets.push({
-                        label: ds.label + ' (Points)',
+                        label: ds.label,
                         data: ds.points,
                         backgroundColor: ds.color,
                         type: 'scatter',
-                        order: 1
+                        order: 1,
+                        isPoint: true
                     })
                     // Fitted curve
                     if (ds.curvePoints.length) {
                         datasets.push({
-                            label: ds.label + ' (Fit)',
+                            label: ds.label,
                             data: ds.curvePoints,
                             borderColor: ds.color,
                             borderWidth: 2,
@@ -733,7 +741,8 @@
                             type: 'line',
                             fill: false,
                             order: 2,
-                            tension: 0.4
+                            tension: 0.4,
+                            isFit: true
                         })
                     }
                 })
@@ -763,6 +772,37 @@
                             }
                         },
                         plugins: {
+                            legend: {
+                                labels: {
+                                    filter: function(item, data) {
+                                        // Only show legend for the scatter points
+                                        const dataset = data.datasets[item.datasetIndex];
+                                        return dataset.isPoint;
+                                    }
+                                },
+                                onClick: function(e, legendItem, legend) {
+                                    const index = legendItem.datasetIndex;
+                                    const ci = legend.chart;
+                                    const isVisible = ci.isDatasetVisible(index);
+
+                                    if (isVisible) {
+                                        ci.hide(index);
+                                    } else {
+                                        ci.show(index);
+                                    }
+
+                                    const pointDataset = ci.data.datasets[index];
+                                    ci.data.datasets.forEach((ds, i) => {
+                                        if (ds.isFit && ds.label === pointDataset.label) {
+                                            if (isVisible) {
+                                                ci.hide(i);
+                                            } else {
+                                                ci.show(i);
+                                            }
+                                        }
+                                    });
+                                }
+                            },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
@@ -794,6 +834,27 @@
                 }
             })
 
+            const exportChart = (chartId, filename) => {
+                const canvas = document.getElementById(chartId)
+                if (!canvas) return
+                const link = document.createElement('a')
+                link.download = filename
+                link.href = canvas.toDataURL('image/png')
+                link.click()
+            }
+
+            const clearVizPlots = () => {
+                vizDatasets.value = []
+                updateChart()
+            }
+
+            const clearSpeedupPlot = () => {
+                if (speedupChartInstance) {
+                    speedupChartInstance.data.datasets = []
+                    speedupChartInstance.update()
+                }
+            }
+
             onMounted(() => {
                 fetchConfig()
                 fetchResults()
@@ -805,9 +866,9 @@
                 showModal, detailsContent,
                 runFiltered, runMissing, toggleAll, deleteTest, runTest, rerunTest, showDetails,
                 // Viz
-                vizConfig, vizDatasets, addPlot, removePlot,
+                vizConfig, vizDatasets, addPlot, removePlot, clearVizPlots, exportChart,
                 // Speedup
-                speedupConfig, updateSpeedupPlot,
+                speedupConfig, updateSpeedupPlot, clearSpeedupPlot,
                 // Playground
                 playgroundConfig, playgroundResult, playgroundRunning, playgroundError,
                 playgroundGeneratedData, generatePlayground, sortPlayground
