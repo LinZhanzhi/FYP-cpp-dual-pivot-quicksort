@@ -118,36 +118,49 @@ void sort_sequential(Sorter<T, Compare>* sorter, T* a, int bits, std::ptrdiff_t 
             std::ptrdiff_t mid_len = upper - (lower + 1);
             std::ptrdiff_t right_len = high - (upper + 1);
 
-            if (left_len >= mid_len && left_len >= right_len) {
-                // Left is largest. Recurse Mid and Right. Loop Left.
-                if (sorter && mid_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits | 1, lower + 1, upper);
-                else sort_sequential(sorter, a, bits | 1, lower + 1, upper, comp);
-
-                if (sorter && right_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits | 1, upper + 1, high);
-                else sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
-
-                high = lower;
-            } else if (mid_len >= right_len) {
-                // Mid is largest. Recurse Left and Right. Loop Mid.
-                if (sorter && left_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits, low, lower);
-                else sort_sequential(sorter, a, bits, low, lower, comp);
-
-                if (sorter && right_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits | 1, upper + 1, high);
-                else sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
-
-                low = lower + 1;
-                high = upper;
-                bits |= 1;
-            } else {
-                // Right is largest. Recurse Left and Mid. Loop Right.
-                if (sorter && left_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits, low, lower);
-                else sort_sequential(sorter, a, bits, low, lower, comp);
-
-                if (sorter && mid_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits | 1, lower + 1, upper);
-                else sort_sequential(sorter, a, bits | 1, lower + 1, upper, comp);
-
-                low = upper + 1;
-                bits |= 1;
+            // PARALLEL STRATEGY: Offload largest, keep smallest (Load Balancing)
+            if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
+                if (left_len <= mid_len && left_len <= right_len) {
+                    // Left is smallest. Fork Mid and Right. Loop Left.
+                    sorter->forkSorter(bits | 1, lower + 1, upper);
+                    sorter->forkSorter(bits | 1, upper + 1, high);
+                    high = lower;
+                } else if (mid_len <= right_len) {
+                    // Mid is smallest. Fork Left and Right. Loop Mid.
+                    sorter->forkSorter(bits, low, lower);
+                    sorter->forkSorter(bits | 1, upper + 1, high);
+                    low = lower + 1;
+                    high = upper;
+                    bits |= 1;
+                } else {
+                    // Right is smallest. Fork Left and Mid. Loop Right.
+                    sorter->forkSorter(bits, low, lower);
+                    sorter->forkSorter(bits | 1, lower + 1, upper);
+                    low = upper + 1;
+                    bits |= 1;
+                }
+            }
+            // SEQUENTIAL STRATEGY: Recurse smallest, loop largest (Stack Optimization)
+            else {
+                if (left_len >= mid_len && left_len >= right_len) {
+                    // Left is largest. Recurse Mid and Right. Loop Left.
+                    sort_sequential(sorter, a, bits | 1, lower + 1, upper, comp);
+                    sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
+                    high = lower;
+                } else if (mid_len >= right_len) {
+                    // Mid is largest. Recurse Left and Right. Loop Mid.
+                    sort_sequential(sorter, a, bits, low, lower, comp);
+                    sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
+                    low = lower + 1;
+                    high = upper;
+                    bits |= 1;
+                } else {
+                    // Right is largest. Recurse Left and Mid. Loop Right.
+                    sort_sequential(sorter, a, bits, low, lower, comp);
+                    sort_sequential(sorter, a, bits | 1, lower + 1, upper, comp);
+                    low = upper + 1;
+                    bits |= 1;
+                }
             }
         } else {
             // Single-pivot partitioning
@@ -158,17 +171,30 @@ void sort_sequential(Sorter<T, Compare>* sorter, T* a, int bits, std::ptrdiff_t 
             std::ptrdiff_t left_len = lower - low;
             std::ptrdiff_t right_len = high - (upper + 1);
 
-            if (left_len >= right_len) {
-                // Left is largest. Recurse Right. Loop Left.
-                if (sorter && right_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits | 1, upper + 1, high);
-                else sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
-                high = lower;
+            if (sorter != nullptr && size > MIN_PARALLEL_SORT_SIZE) {
+                // Parallel: Loop Smaller
+                if (left_len <= right_len) {
+                    // Left is smaller. Fork Right. Loop Left.
+                    sorter->forkSorter(bits | 1, upper + 1, high);
+                    high = lower;
+                } else {
+                    // Right is smaller. Fork Left. Loop Right.
+                    sorter->forkSorter(bits, low, lower);
+                    low = upper + 1;
+                    bits |= 1;
+                }
             } else {
-                // Right is largest. Recurse Left. Loop Right.
-                if (sorter && left_len > MIN_PARALLEL_SORT_SIZE) sorter->forkSorter(bits, low, lower);
-                else sort_sequential(sorter, a, bits, low, lower, comp);
-                low = upper + 1;
-                bits |= 1;
+                // Sequential: Loop Larger
+                if (left_len >= right_len) {
+                    // Left is larger. Recurse Right. Loop Left.
+                    sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
+                    high = lower;
+                } else {
+                    // Right is larger. Recurse Left. Loop Right.
+                    sort_sequential(sorter, a, bits, low, lower, comp);
+                    low = upper + 1;
+                    bits |= 1;
+                }
             }
         }
     }
