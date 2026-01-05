@@ -11,3 +11,8 @@ diagnostic_runner
 test_dpqs
 *:Zone.Identifier
 test_sequential_sorters
+PaperWork/InterimReport/InterimReport.aux
+PaperWork/InterimReport/InterimReport.fdb_latexmk
+PaperWork/InterimReport/InterimReport.fls
+PaperWork/InterimReport/InterimReport.log
+PaperWork/InterimReport/InterimReport.out
