@@ -1,10 +1,6 @@
-\documentclass[12pt, a4paper]{article}
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
 
-\usepackage[left=25mm, top=20mm, bottom=20mm, right=20mm]{geometry}
-\usepackage{setspace}
-\onehalfspacing
-\usepackage{times}
-\usepackage{fancyhdr}
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithmic}
@@ -16,16 +12,8 @@
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \usepackage[hidelinks]{hyperref}
-\usepackage{titling}
 
-% Pagination setup
-\setlength{\headheight}{15pt}
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[R]{\thepage}
-\renewcommand{\headrulewidth}{0pt}
-
-% Code listing configuration
+% Configuration for code listings
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
@@ -52,40 +40,37 @@
 
 \lstset{style=mystyle}
 
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
 \begin{document}
 
 \title{Implementing Dual-Pivot Quicksort in C++23 and Comparing its Performance with Standard Sorting Libraries\\
-{\large Interim Report for Capstone Project}
+{\footnotesize \textsuperscript{*}Interim Report for Capstone Project}
 }
 
-\author{
-    \textbf{LIN Zhanzhi (22097456D)} \\
-    \textit{Department of Computing} \\
-    \textit{The Hong Kong Polytechnic University}\\
-    Hong Kong, China \\
-    zhanzhi.lin@connect.polyu.hk
-    \and
-    \textbf{Supervisor: Dr. CAO Yixin} \\
-    \textit{Department of Computing} \\
-    \textit{The Hong Kong Polytechnic University}\\
-    Hong Kong, China \\
-    yixin.cao@polyu.edu.hk
+\author{\IEEEauthorblockN{LIN Zhanzhi (22097456D)}
+\IEEEauthorblockA{\textit{Department of Computing} \\
+\textit{The Hong Kong Polytechnic University}\\
+Hong Kong, China \\
+zhanzhi.lin@connect.polyu.hk}
+\and
+\IEEEauthorblockN{Supervisor: Dr. CAO Yixin}
+\IEEEauthorblockA{\textit{Department of Computing} \\
+\textit{The Hong Kong Polytechnic University}\\
+Hong Kong, China \\
+yixin.cao@polyu.edu.hk}
 }
-
-\date{}
 
 \maketitle
-\thispagestyle{empty}
 
 \begin{abstract}
-\noindent This document serves as the Interim Report for the Capstone Project focused on optimizing Dual-Pivot Quicksort. The project investigates the transition from classical Single-Pivot strategies to the Dual-Pivot approach, which was adopted by Java 7 in 2009 but remains absent from the C++ Standard Template Library (STL). The primary goal is to determine if a modern, generic C++23 implementation of Dual-Pivot Quicksort can outperform the highly optimized \texttt{std::sort} and state-of-the-art PDQSort. To date, we have completed a generic implementation using C++23 (leveraging Concepts from C++20) and established a robust benchmarking framework. Preliminary results indicate a performance gain of up to 8\% on large random datasets ($N > 10^6$), attributed to improved cache locality. This project contributes (1) a modern C++23 dual-pivot quicksort implementation, (2) a destructive-sorting benchmark harness, and (3) an empirical study against \texttt{std::sort} and PDQSort, including parallel scaling analysis. This report details the architectural decisions, the sequential optimization strategies employed, and the current status of the project, including an analysis of memory bandwidth limitations in parallel execution.
+This document serves as the Interim Report for the Capstone Project focused on optimizing Dual-Pivot Quicksort. The project investigates the transition from classical Single-Pivot strategies to the Dual-Pivot approach, which was adopted by Java 7 in 2009 but remains absent from the C++ Standard Template Library (STL). The primary goal is to determine if a modern, generic C++23 implementation of Dual-Pivot Quicksort can outperform the highly optimized \texttt{std::sort} and state-of-the-art PDQSort. To date, we have completed a generic implementation using C++23 (leveraging Concepts from C++20) and established a robust benchmarking framework. Preliminary results indicate a performance gain of up to 8\% on large random datasets ($N > 10^6$), attributed to improved cache locality. This project contributes (1) a modern C++23 dual-pivot quicksort implementation, (2) a destructive-sorting benchmark harness, and (3) an empirical study against \texttt{std::sort} and PDQSort, including parallel scaling analysis. This report details the architectural decisions, the sequential optimization strategies employed, and the current status of the project, including an analysis of memory bandwidth limitations in parallel execution.
 \end{abstract}
 
-\vspace{1em}
-\noindent\textbf{Keywords:} Dual-Pivot Quicksort, C++23, Algorithm Engineering, Parallel Sorting, Cache Locality, Benchmarking
-
-\clearpage
-\setcounter{page}{2}
+\begin{IEEEkeywords}
+Dual-Pivot Quicksort, C++23, Algorithm Engineering, Parallel Sorting, Cache Locality, Benchmarking
+\end{IEEEkeywords}
 
 \section{Introduction}
 
