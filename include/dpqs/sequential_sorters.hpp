@@ -29,6 +29,44 @@ namespace dual_pivot {
  * @param e5 Index of the 5th element.
  * @param comp Comparator instance.
  */
+/**
+ * @brief Sorts 5 elements using an optimal sorting network.
+ *
+ * This function implements a hardcoded sorting network for exactly 5 elements located
+ * at the specified indices within the array `a`. Sorting networks are sequence of
+ * comparisons and swaps that are data-independent in terms of control flow (though the
+ * swaps themselves depend on the data).
+ *
+ * The algorithm used is the standard optimal 9-comparator network for 5 items (often
+ * attributed to Bose-Nelson or related optimal network studies).
+ *
+ * The logic proceeds as follows to ensure minimal comparisons:
+ * 1.  **Pairwise Sorting (Comparators 1-2):**
+ *     - Compare (e1, e2) and (e4, e5). This creates two sorted pairs.
+ * 2.  **Element Insertion/Pivot Determination (Comparators 3-4):**
+ *     - We insert e3 into the sorted pair (e1, e2) to establish a partial order among limits.
+ *     - After these swaps, e1 is guaranteed to be smaller than e3.
+ * 3.  **Cross-Comparison (Comparators 5-7):**
+ *     - e4 is compared against e1 and e3 to place the lower bound of the second pair.
+ *     - e5 is compared against e2 to resolve upper bounds.
+ * 4.  **Final Resolution (Comparators 8-9):**
+ *     - The remaining internal elements (e2, e3) and (e4, e5) are checked to resolve the
+ *       final middle elements.
+ *
+ * The sequence forces the smallest element to index e1, the second to e2, ..., and the
+ * largest to e5 using exactly 9 comparisons/swaps in the worst case, which is the theoretical
+ * lower bound for sorting 5 elements.
+ *
+ * @tparam T The type of elements in the array.
+ * @tparam Compare The type of the comparison function object.
+ * @param a Pointer to the base of the array.
+ * @param e1 Index of the first element.
+ * @param e2 Index of the second element.
+ * @param e3 Index of the third element.
+ * @param e4 Index of the fourth element.
+ * @param e5 Index of the fifth element.
+ * @param comp Comparison function object which returns true if the first argument is less than the second.
+ */
 template<typename T, typename Compare>
 DPQS_FORCE_INLINE void sort5_network(T* a, std::ptrdiff_t e1, std::ptrdiff_t e2, std::ptrdiff_t e3, std::ptrdiff_t e4, std::ptrdiff_t e5, Compare comp) {
     if (comp(a[e2], a[e1])) std::swap(a[e1], a[e2]);

@@ -3,3 +3,9 @@ graph show C n ln n , show the C
 swap graph show C n ln n, show the C
 run test in my pc  .
 
+space optimization
+
+
+report pivot selection
+
+report runtime comparison on 3 machine. desktop. asus laptop. apple laptop.

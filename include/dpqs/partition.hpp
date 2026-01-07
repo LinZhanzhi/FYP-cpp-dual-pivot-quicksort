@@ -81,20 +81,62 @@ DPQS_FORCE_INLINE std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_dual_pivot
     return std::make_pair(lt, gt);
 }
 
+/**
+ * @brief Partitions a range of elements based on a single pivot using a 3-way partitioning scheme.
+ *
+ * This function rearranges the elements in the array `a` within the range `[low, high)` such that
+ * the array is divided into three consecutive parts based on a chosen pivot element:
+ * 1. Elements strictly less than the pivot.
+ * 2. Elements equal to the pivot.
+ * 3. Elements strictly greater than the pivot.
+ *
+ * This specific implementation resembles Dijkstra's "Dutch National Flag" problem solution.
+ *
+ * @tparam T The type of elements in the array.
+ * @tparam Compare The type of the comparison function object.
+ *
+ * @param a Pointer to the first element of the array/subarray to be partitioned.
+ * @param low The starting index (inclusive) of the range to partition.
+ * @param high The ending index (exclusive) of the range to partition.
+ * @param pivotIndex1 The index of the element chosen as the pivot.
+ * @param UnnamedParameter Currently unused parameter (likely kept for API compatibility with dual-pivot functions).
+ * @param comp A binary predicate that takes two arguments of type T and returns true if the first argument is strictly less than the second.
+ *
+ * @return std::pair<std::ptrdiff_t, std::ptrdiff_t> A pair of indices `{lt, gt}` defining the range of elements equal to the pivot.
+ *         - `lt`: The index of the first element equal to the pivot.
+ *         - `gt`: The index of the last element equal to the pivot.
+ *
+ * @note **Why return a pair of indices?**
+ *       Unlike standard 2-way partitioning (which returns a single split point), this function performs
+ *       **3-way partitioning**. The array is split into three sections:
+ *       `[low, lt-1]` (less than pivot), `[lt, gt]` (equal to pivot), and `[gt+1, high-1]` (greater than pivot).
+ *       Returning the start and end of the "equal" range allows the recursive sorting steps to skip
+ *       all elements equal to the pivot, significantly improving performance on inputs with many duplicate keys.
+ *
+ * @note **Further Sorting Requirements:**
+ *       After this function returns, the array is partitioned into 3 parts.
+ *       Only **2 parts** require further sorting:
+ *       1. The left partition: `[low, lt)` containing elements `< pivot`.
+ *       2. The right partition: `[gt + 1, high)` containing elements `> pivot`.
+ *       The middle part `[lt, gt]` is already in its final sorted position.
+ */
 template<typename T, typename Compare>
 std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_single_pivot(T* a, std::ptrdiff_t low, std::ptrdiff_t high, std::ptrdiff_t pivotIndex1, std::ptrdiff_t, Compare comp) {
-    std::ptrdiff_t lt = low;
-    std::ptrdiff_t gt = high;
-    T pivot = a[pivotIndex1];
+    std::ptrdiff_t lt = low; // the start of the middle sub range
+    std::ptrdiff_t gt = high; // the start of the right sub range
+    T pivot = a[pivotIndex1]; // pivot value
 
     // Move pivot to start
     std::swap(a[low], a[pivotIndex1]);
 
     std::ptrdiff_t i = low + 1;
     while (i < gt) {
+        // when a[i] is smaller than pivot, it needs to be swapped to the left sub range, so lt shall increment
         if (comp(a[i], pivot)) {
             std::swap(a[lt++], a[i++]);
         } else if (comp(pivot, a[i])) {
+            // when pivot is smaller than a[i], a[i] shall be swapped to the right sub range. and gt shall decrement.
+            // simply swap will do . but we use while loop to skip elements already in right sub range, which saves some future efforts
             gt--;
             while (i < gt && comp(pivot, a[gt])) {
                 gt--;
