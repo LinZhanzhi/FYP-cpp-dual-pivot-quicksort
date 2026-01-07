@@ -11,7 +11,7 @@
 <body class="bg-gray-100 p-8">
     <div id="app" class="max-w-7xl mx-auto">
         <!-- Navigation -->
-        <div class="mb-6 border-b border-gray-200">
+        <div class="mb-6 border-b border-gray-200 flex justify-between items-end">
             <nav class="-mb-px flex space-x-8">
                 <button @click="activeTab = 'manage'" :class="[activeTab === 'manage' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300', 'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm']">
                     Manage Tests
@@ -26,6 +26,13 @@
                     Playground
                 </button>
             </nav>
+            <div class="pb-3 flex items-center space-x-2">
+                <label class="text-sm font-medium text-gray-700">Data Source:</label>
+                <select v-model="selectedTestbed" class="rounded border-gray-300 text-sm p-1 border focus:ring-blue-500 focus:border-blue-500">
+                    <option :value="null">Local (Raw Results)</option>
+                    <option v-for="tb in testbeds" :key="tb" :value="tb">{{ tb }}</option>
+                </select>
+            </div>
         </div>
 
         <!-- Manage Tab -->
@@ -59,7 +66,18 @@
             </div>
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Algorithm</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pattern</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Runtime</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th></tr></thead>
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th @click="toggleSort('algo')" :class="headerClass('algo')">Algorithm {{ sortIcon('algo') }}</th>
+                            <th @click="toggleSort('type')" :class="headerClass('type')">Type {{ sortIcon('type') }}</th>
+                            <th @click="toggleSort('pattern')" :class="headerClass('pattern')">Pattern {{ sortIcon('pattern') }}</th>
+                            <th @click="toggleSort('size')" :class="headerClass('size')">Size {{ sortIcon('size') }}</th>
+                            <th @click="toggleSort('done')" :class="headerClass('done')">Status {{ sortIcon('done') }}</th>
+                            <th @click="toggleSort('runtime')" :class="headerClass('runtime')">Runtime {{ sortIcon('runtime') }}</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         <tr v-for="test in filteredTests.slice(0, 100)" :key="test.id">
                             <td class="px-6 py-4 whitespace-nowrap">{{ test.algo }}</td>
@@ -277,6 +295,8 @@
             const activeTab = ref('manage')
             const config = ref({})
             const results = ref([])
+            const testbeds = ref([])
+            const selectedTestbed = ref(null)
             const status = ref({ is_running: false, message: "", current: 0, total: 0 })
             const filters = ref({ algorithms: [], types: [], patterns: [], sizes: [] })
             const showModal = ref(false)
@@ -470,6 +490,11 @@
                 if (data.patterns.length) speedupConfig.value.pattern = data.patterns[0]
             }
 
+            const fetchTestbeds = async () => {
+                const res = await fetch("/api/testbeds")
+                testbeds.value = await res.json()
+            }
+
             const toggleAll = (key) => {
                 if (filters.value[key].length === config.value[key].length) {
                     filters.value[key] = []
@@ -479,9 +504,20 @@
             }
 
             const fetchResults = async () => {
-                const res = await fetch("/api/results")
+                let url = "/api/results"
+                if (selectedTestbed.value) {
+                    url += `?testbed=${selectedTestbed.value}`
+                }
+                const res = await fetch(url)
                 results.value = await res.json()
             }
+
+            watch(selectedTestbed, () => {
+                fetchResults()
+                clearVizPlots()
+                clearSpeedupPlot()
+            })
+
             const fetchStatus = async () => {
                 const res = await fetch("/api/status")
                 status.value = await res.json()
@@ -508,7 +544,8 @@
                     algo: test.algo,
                     type: test.type,
                     pattern: test.pattern,
-                    size: test.size
+                    size: test.size,
+                    testbed: selectedTestbed.value || 'null'
                 })
                 const res = await fetch(`/api/details?${params.toString()}`)
                 if (res.ok) {
@@ -519,17 +556,106 @@
                 }
             }
 
+            // Sorting State
+            const sortKey = ref('')
+            const sortOrder = ref('asc')
+
+            const toggleSort = (key) => {
+                if (sortKey.value === key) {
+                    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+                } else {
+                    sortKey.value = key
+                    sortOrder.value = 'asc'
+                }
+            }
+
+            const headerClass = () => {
+                return "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-200 select-none"
+            }
+
+            const sortIcon = (key) => {
+                if (sortKey.value !== key) return ''
+                return sortOrder.value === 'asc' ? ' ▲' : ' ▼'
+            }
+
             const filteredTests = computed(() => {
-                if (!filters.value.algorithms) return []
-                return results.value.filter(t => {
-                    return filters.value.algorithms.includes(t.algo) &&
-                           filters.value.types.includes(t.type) &&
-                           filters.value.patterns.includes(t.pattern) &&
-                           filters.value.sizes.includes(t.size)
-                }).sort((a, b) => {
-                    if (a.done === b.done) return 0
-                    return a.done ? 1 : -1
+                if (!filters.value.algorithms) return [] // Safety check
+                let res = results.value.filter(t => {
+                    // Note: Check existing logic validity.
+                    // Previous logic relied on filters being populated.
+                    // If toggleAll populates them initially, this is fine.
+                    // But here we use safer checks:
+                    const f = filters.value
+                    return (!f.algorithms.length || f.algorithms.includes(t.algo)) &&
+                           (!f.types.length || f.types.includes(t.type)) &&
+                           (!f.patterns.length || f.patterns.includes(t.pattern)) &&
+                           (!f.sizes.length || f.sizes.includes(t.size)) // t.size is string or number? usually int in JSON
                 })
+
+                // Sorting Logic
+                res.sort((a, b) => {
+                    // Comparison Helper
+                    const compare = (key, type = 'string') => {
+                        let va = a[key]
+                        let vb = b[key]
+
+                        // Parse runtime string "0.123 ms" -> 0.123
+                        if (key === 'runtime') {
+                             // Handle missing or '-'
+                             let valA = (va && va !== '-') ? parseFloat(va.split(' ')[0]) : -1
+                             let valB = (vb && vb !== '-') ? parseFloat(vb.split(' ')[0]) : -1
+                             return valA - valB
+                        }
+
+                        if (type === 'number') {
+                            // Size is usually numeric in JSON
+                            return (parseFloat(va) || 0) - (parseFloat(vb) || 0)
+                        } else if (type === 'status') {
+                            // Missing (false) < Done (true)
+                            return (a.done === b.done) ? 0 : a.done ? 1 : -1
+                        } else {
+                            // String
+                            if (va < vb) return -1
+                            if (va > vb) return 1
+                            return 0
+                        }
+                    }
+
+                    // User selected sort key overrides default primary
+                    if (sortKey.value) {
+                         // Determine type based on key
+                         let type = 'string'
+                         if (sortKey.value === 'size') type = 'number'
+                         if (sortKey.value === 'done') type = 'status'
+                         if (sortKey.value === 'runtime') type = 'runtime'
+
+                         const val = compare(sortKey.value, type)
+                         if (val !== 0) return sortOrder.value === 'asc' ? val : -val
+                    }
+
+                    // Default Hierarchical Sort
+                    // 1. Algorithm (asc)
+                    let cmp = compare('algo')
+                    if (cmp !== 0) return cmp
+
+                    // 2. Data Type (asc)
+                    cmp = compare('type')
+                    if (cmp !== 0) return cmp
+
+                    // 3. Pattern (asc)
+                    cmp = compare('pattern')
+                    if (cmp !== 0) return cmp
+
+                    // 4. Size (asc)
+                    cmp = compare('size', 'number')
+                    if (cmp !== 0) return cmp
+
+                    // 5. Status (asc)
+                    cmp = compare('done', 'status')
+                    return cmp
+                })
+
+                return res
             })
             const missingTests = computed(() => filteredTests.value.filter(t => !t.done))
             const runFiltered = () => runTests(filteredTests.value)
@@ -770,13 +896,16 @@
 
             onMounted(() => {
                 fetchConfig()
+                fetchTestbeds()
                 fetchResults()
                 fetchStatus()
             })
 
             return {
-                activeTab, config, results, status, filters, filteredTests, missingTests,
+                activeTab, config, results, status, filters, filteredTests, missingTests, testbeds, selectedTestbed,
                 showModal, detailsContent,
+                // Sorting
+                sortKey, sortOrder, toggleSort, headerClass, sortIcon,
                 runFiltered, runMissing, toggleAll, deleteTest, runTest, rerunTest, showDetails,
                 // Viz
                 vizConfig, vizDatasets, addPlot, removePlot, clearVizPlots, exportChart,

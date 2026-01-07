@@ -3,6 +3,9 @@ import os
 import itertools
 import sys
 import multiprocessing
+import glob
+import statistics
+import csv
 
 # Get the directory where the script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -11,6 +14,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BUILD_DIR = os.path.join(SCRIPT_DIR, "build")
 RUNNER = os.path.join(BUILD_DIR, "benchmark_runner")
 RESULTS_DIR = os.path.join(SCRIPT_DIR, "results", "raw")
+AGGREGATE_DIR = os.path.join(SCRIPT_DIR, "results", "aggregate")
 
 # WSL Paths (Hardcoded for this environment)
 WSL_BASE_DIR = "/home/lzz725/FYP/benchmarks"
@@ -99,18 +103,101 @@ def run_single_test(algo, type_, pattern, size):
     except subprocess.CalledProcessError as e:
         return False, str(e)
 
+def aggregate_results():
+    """
+    Combines all individual CSV benchmark results into two summary files:
+    1. summary_full.csv: Contains all 30 iterations for every test case.
+    2. summary_representative.csv: Contains one line per test case using the median time.
+    """
+    print("Aggregating results...")
+
+    if not os.path.exists(AGGREGATE_DIR):
+        os.makedirs(AGGREGATE_DIR)
+
+    full_summary_path = os.path.join(AGGREGATE_DIR, "summary_full.csv")
+    rep_summary_path = os.path.join(AGGREGATE_DIR, "summary_representative.csv")
+
+    # CSV Headers
+    header_full = ["Algorithm", "Type", "Pattern", "Size", "Iteration", "Time(ms)"]
+    # For representative, we drop Iteration and keep Time(ms) as the median
+    header_rep = ["Algorithm", "Type", "Pattern", "Size", "Time(ms)"]
+
+    csv_files = glob.glob(os.path.join(RESULTS_DIR, "*.csv"))
+    csv_files.sort() # Ensure deterministic order
+
+    print(f"Found {len(csv_files)} result files.")
+
+    with open(full_summary_path, 'w', newline='') as f_full, \
+         open(rep_summary_path, 'w', newline='') as f_rep:
+
+        writer_full = csv.writer(f_full)
+        writer_rep = csv.writer(f_rep)
+
+        writer_full.writerow(header_full)
+        writer_rep.writerow(header_rep)
+
+        count = 0
+        for file_path in csv_files:
+            try:
+                times = []
+                algo = ""
+                type_ = ""
+                pattern = ""
+                size = ""
+
+                rep_val = None
+                with open(file_path, 'r') as csv_in:
+                    reader = csv.reader(csv_in)
+                    headers = next(reader, None) # Skip header
+
+                    if not headers:
+                        continue
+
+                    for row in reader:
+                        if len(row) < 6: continue
+
+                        # Capture metadata if not set
+                        if not algo:
+                            algo = row[0]
+                            type_ = row[1]
+                            pattern = row[2]
+                            size = row[3]
+
+                        # Check for Representative row
+                        if row[4] == "Representative":
+                            try:
+                                rep_val = float(row[5])
+                            except ValueError:
+                                pass
+                            continue
+
+                        # Copy row to full summary (excluding Representative line)
+                        writer_full.writerow(row)
+
+                        try:
+                            times.append(float(row[5]))
+                        except ValueError:
+                            pass
+
+                if rep_val is not None:
+                     writer_rep.writerow([algo, type_, pattern, size, f"{rep_val:.5f}"])
+                     count += 1
+                elif times:
+                    min_time = min(times)
+                    writer_rep.writerow([algo, type_, pattern, size, f"{min_time:.5f}"])
+                    count += 1
+            except Exception as e:
+                print(f"Error processing {file_path}: {e}")
+
+    print(f"Aggregation complete. Processed {count} files.")
+    print(f"Full summary: {full_summary_path}")
+    print(f"Representative summary: {rep_summary_path}")
+
 def run_benchmark():
     ensure_directories()
 
-    # Cleanup old dual_pivot results to force rerun
-    print("Cleaning up old dual_pivot results...")
-    if os.path.exists(RESULTS_DIR):
-        for f in os.listdir(RESULTS_DIR):
-            if f.startswith("res_dual_pivot"):
-                try:
-                    os.remove(os.path.join(RESULTS_DIR, f))
-                except OSError as e:
-                    print(f"Error removing {f}: {e}")
+    # Cleanup block removed to allow incremental benchmarking
+    # Old behavior was to delete "res_dual_pivot*" files here.
 
     combinations = list(itertools.product(ALGORITHMS, TYPES, PATTERNS, SIZES))
     total = len(combinations)
@@ -150,6 +237,9 @@ def run_benchmark():
         except subprocess.CalledProcessError as e:
             print(f"Error running benchmark: {e}")
             # Optional: stop or continue? Let's continue.
+
+    # Aggregate results after the run check
+    aggregate_results()
 
 if __name__ == "__main__":
     run_benchmark()

@@ -7,6 +7,8 @@ import sys
 import time
 import datetime
 import subprocess
+import glob
+import csv
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import benchmark_manager
@@ -26,34 +28,88 @@ class BenchmarkHandler(http.server.SimpleHTTPRequestHandler):
             config = {"algorithms": benchmark_manager.ALGORITHMS, "types": benchmark_manager.TYPES, "patterns": benchmark_manager.PATTERNS, "sizes": benchmark_manager.SIZES}
             self.wfile.write(json.dumps(config).encode())
             return
-        if self.path == "/api/results":
+        if self.path == "/api/testbeds":
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            aggregate_dir = benchmark_manager.AGGREGATE_DIR
+            testbeds = []
+            if os.path.exists(aggregate_dir):
+                for name in os.listdir(aggregate_dir):
+                    if os.path.isdir(os.path.join(aggregate_dir, name)):
+                        testbeds.append(name)
+            self.wfile.write(json.dumps(testbeds).encode())
+            return
+        if self.path.startswith("/api/results"):
+            from urllib.parse import urlparse, parse_qs
+            query = parse_qs(urlparse(self.path).query)
+            testbed = query.get("testbed", [None])[0]
+
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.end_headers()
             results = []
-            import itertools
-            combinations = list(itertools.product(benchmark_manager.ALGORITHMS, benchmark_manager.TYPES, benchmark_manager.PATTERNS, benchmark_manager.SIZES))
-            for algo, type_, pattern, size in combinations:
-                filename = benchmark_manager.get_output_filename(algo, type_, pattern, size)
-                done = os.path.exists(filename)
-                timestamp = ""
-                runtime = "-"
-                if done:
-                    mtime = os.path.getmtime(filename)
-                    timestamp = datetime.datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M:%S')
+
+            # Mapping from Display Names (CSV) to Config Keys (benchmark_manager)
+            pattern_map = {
+                "Random": "RANDOM",
+                "Nearly Sorted": "NEARLY_SORTED",
+                "Reverse Sorted": "REVERSE_SORTED",
+                "Organ Pipe": "ORGAN_PIPE",
+                "Sawtooth": "SAWTOOTH",
+                "10% Unique": "MANY_DUPLICATES_10",
+                "50% Unique": "MANY_DUPLICATES_50",
+                "90% Unique": "MANY_DUPLICATES_90"
+            }
+
+            if testbed and testbed != "null":
+                # Serve from aggregate file
+                csv_path = os.path.join(benchmark_manager.AGGREGATE_DIR, testbed, "summary_representative.csv")
+                if os.path.exists(csv_path):
                     try:
-                        with open(filename, 'r') as f:
-                            lines = f.readlines()
-                            if len(lines) > 1:
-                                last_line = lines[-1].strip()
-                                parts = last_line.split(',')
-                                if len(parts) >= 5:
-                                    runtime = parts[-1] + " ms"
-                    except Exception:
-                        pass
-                results.append({"id": f"{algo}_{type_}_{pattern}_{size}", "algo": algo, "type": type_, "pattern": pattern, "size": size, "done": done, "timestamp": timestamp, "runtime": runtime})
+                        with open(csv_path, 'r') as f:
+                            reader = csv.DictReader(f)
+                            for row in reader:
+                                raw_pattern = row['Pattern']
+                                normalized_pattern = pattern_map.get(raw_pattern, raw_pattern)
+
+                                results.append({
+                                    "id": f"{row['Algorithm']}_{row['Type']}_{normalized_pattern}_{row['Size']}",
+                                    "algo": row['Algorithm'],
+                                    "type": row['Type'],
+                                    "pattern": normalized_pattern,
+                                    "size": int(row['Size']),
+                                    "done": True,
+                                    "timestamp": "", # Not available in aggregate
+                                    "runtime": row['Time(ms)'] + " ms"
+                                })
+                    except Exception as e:
+                        print(f"Error reading aggregate CSV: {e}")
+            else:
+                import itertools
+                combinations = list(itertools.product(benchmark_manager.ALGORITHMS, benchmark_manager.TYPES, benchmark_manager.PATTERNS, benchmark_manager.SIZES))
+                for algo, type_, pattern, size in combinations:
+                    filename = benchmark_manager.get_output_filename(algo, type_, pattern, size)
+                    done = os.path.exists(filename)
+                    timestamp = ""
+                    runtime = "-"
+                    if done:
+                        mtime = os.path.getmtime(filename)
+                        timestamp = datetime.datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M:%S')
+                        try:
+                            with open(filename, 'r') as f:
+                                lines = f.readlines()
+                                if len(lines) > 1:
+                                    last_line = lines[-1].strip()
+                                    parts = last_line.split(',')
+                                    if len(parts) >= 5:
+                                        runtime = parts[-1] + " ms"
+                        except Exception:
+                            pass
+                    results.append({"id": f"{algo}_{type_}_{pattern}_{size}", "algo": algo, "type": type_, "pattern": pattern, "size": size, "done": done, "timestamp": timestamp, "runtime": runtime})
             self.wfile.write(json.dumps(results).encode())
             return
+
         if self.path.startswith("/api/details"):
             from urllib.parse import urlparse, parse_qs
             query = parse_qs(urlparse(self.path).query)
@@ -82,8 +138,55 @@ class BenchmarkHandler(http.server.SimpleHTTPRequestHandler):
             type_ = query.get("type", [None])[0]
             pattern = query.get("pattern", [None])[0]
             size = query.get("size", [None])[0]
+            testbed = query.get("testbed", [None])[0]
 
             if algo and type_ and pattern and size:
+                if testbed and testbed != "null":
+                    # Read from aggregate full summary
+                    csv_path = os.path.join(benchmark_manager.AGGREGATE_DIR, testbed, "summary_full.csv")
+                    if os.path.exists(csv_path):
+                        try:
+                            # Parse full summary and filter
+                            output_lines = ["Algorithm,Type,Pattern,Size,Iteration,Time(ms)"]
+
+                            # Same mapping needed
+                            pattern_map = {
+                                "Random": "RANDOM",
+                                "Nearly Sorted": "NEARLY_SORTED",
+                                "Reverse Sorted": "REVERSE_SORTED",
+                                "Organ Pipe": "ORGAN_PIPE",
+                                "Sawtooth": "SAWTOOTH",
+                                "10% Unique": "MANY_DUPLICATES_10",
+                                "50% Unique": "MANY_DUPLICATES_50",
+                                "90% Unique": "MANY_DUPLICATES_90"
+                            }
+
+                            with open(csv_path, 'r') as f:
+                                reader = csv.DictReader(f)
+                                for row in reader:
+                                    raw_pattern = row['Pattern']
+                                    norm_pattern = pattern_map.get(raw_pattern, raw_pattern)
+
+                                    if (row['Algorithm'] == algo and
+                                        row['Type'] == type_ and
+                                        norm_pattern == pattern and
+                                        row['Size'] == size):
+                                        output_lines.append(f"{row['Algorithm']},{row['Type']},{row['Pattern']},{row['Size']},{row['Iteration']},{row['Time(ms)']}")
+
+                            self.send_response(200)
+                            self.send_header("Content-type", "text/csv")
+                            self.end_headers()
+                            self.wfile.write("\n".join(output_lines).encode())
+                            return
+                        except Exception as e:
+                            self.send_response(500)
+                            self.wfile.write(str(e).encode())
+                            return
+                    else:
+                        self.send_response(404)
+                        self.wfile.write(b"Aggregate file not found")
+                        return
+
                 filename = benchmark_manager.get_output_filename(algo, type_, pattern, int(size))
                 if os.path.exists(filename):
                     try:
@@ -263,6 +366,9 @@ def run_tests_background(tests):
             runner_status["total"] = 0
 
 if __name__ == "__main__":
+    # Ensure we run from the directory where server.py and index.html are located
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
     PORT = 8000
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", PORT), BenchmarkHandler) as httpd:

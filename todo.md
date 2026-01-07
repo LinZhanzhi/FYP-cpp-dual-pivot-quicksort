@@ -9,3 +9,4 @@ space optimization
 report pivot selection
 
 report runtime comparison on 3 machine. desktop. asus laptop. apple laptop.
+report operations of the algorithm. making a new counting implementation that sacrifice performance. to the count is portable.
