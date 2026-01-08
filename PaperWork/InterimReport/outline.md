@@ -67,15 +67,21 @@
     *   Completed: Generic Dual-Pivot Quicksort (Sequential) (Ref: `docs/completion_summary.md`, `docs/implementation_report.md`).
     *   Completed: Custom Benchmarking Harness with Python automation.
     *   Completed: Initial Parallel prototype (Thread Pool) (Ref: `report/parallel_implementation_comparison.md`).
-*   **8.2 Performance Analysis**
-    *   **Experiment 1: Large Random Arrays:** Comparison of DPQS vs `std::sort`. (Graph: Time vs Size) (Ref: `docs/scaling_analysis_v3.md`).
-    *   **Experiment 2: Memory Bandwidth & Mutex Contention:** Analysis of why scaling diminishes after 4 threads (Ref: `docs/scaling_analysis_report.md`, `docs/mutex_contention_analysis.md`).
-    *   **Experiment 3: Sequential vs Parallel (1 Thread):** Investigation of overhead costs (Ref: `docs/sequential_vs_parallel_1thread.md`).
-    *   **Experiment 4: Scalability Analysis:** Detailed study of parallel speedup (Ref: `report/parallel_scalability_analysis.md`, `report/parallel_performance_investigation.md`).
-    *   **Experiment 5: Corner Cases:** Performance on sorted/reverse arrays (Ref: `report/dual-pivot-reverse-sorted.md`) and duplicates (Ref: `report/different-datatype-duplicate.md`).
-*   **8.3 Key Findings**
-    *   DPQS shows slight improvement over `std::sort` on large random inputs due to cache locality.
-    *   Memory bandwidth is the primary bottleneck for parallel scaling on the test machine.
+*   **8.2 Performance Analysis: Sequential Algorithms**
+    *   **Objective:** Validate that the C++ port of Yaroslavskiy's algorithm maintains its theoretical advantages over Introsort (`std::sort`).
+    *   **Baseline Comparison (Random Data):** Log-log plot of Execution Time vs Array Size ($10^3$ to $10^7$) for both `int` and `double`. Validate that the template-based generic implementation maintains high performance across data types (Ref: `docs/scaling_analysis_v3.md`).
+    *   **Algorithmic Intelligence (Pattern Detection):**
+        *   **Sorted/Reverse detection:** Bar chart comparing `std::sort` vs DPQS on `SORTED` and `REVERSE_SORTED` inputs. Highlight the $O(N)$ vs $O(N \log N)$ complexity gap (Ref: `report/dual-pivot-reverse-sorted.md`).
+        *   **Duplicate Handling:** Performance analysis on `MANY_DUPLICATES` datasets (10%, 50%, 90% repetition). Verify the efficiency of 3-way partitioning in "grouping" equal elements (Ref: `report/different-datatype-duplicate.md`).
+        *   **Robustness Verification:** Performance stability verification on adversarial patterns (`ORGAN_PIPE`, `SAWTOOTH`, `NEARLY_SORTED`) to confirm the "Median-of-5" pivot selection successfully avoids worst-case degradation.
+*   **8.3 Performance Analysis: Parallel Architectures**
+    *   **Objective:** Evaluate the scalability of the V2 "Fire-and-Forget" thread pool implementation.
+    *   **Strong Scaling Analysis:** Plotting Speedup Factor ($T_1 / T_N$) vs Thread Count (1 to 16) for fixed large inputs ($10^7$ ints). Identify the linear scaling region and the saturation point (memory bandwidth limit) (Ref: `report/parallel_scalability_analysis.md`).
+    *   **Overhead Investigation:** Comparison of Sequential vs Parallel (1 Thread) to quantify the cost of task management and atomic synchronization (Ref: `docs/sequential_vs_parallel_1thread.md`).
+*   **8.4 Key Findings & Achievement Summary**
+    *   **Data Volume:** synthesized over **5,000 benchmark results** across 41 array sizes and 8 patterns to ensure statistical validity.
+    *   **Algorithmic Wins:** Confirmed 10x+ speedup on structured data (Sorted/Reverse) due to the Run Merger optimization.
+    *   **Parallel Wins:** Achieved ~4.95x speedup on 10M integers, effectively utilizing multi-core hardware before hitting the memory wall.
 
 ## 9. Discussion & Future Improvements
 *   **9.1 Parallelization Refinement**

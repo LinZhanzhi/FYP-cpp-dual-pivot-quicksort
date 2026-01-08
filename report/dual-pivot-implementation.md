@@ -22,7 +22,7 @@ The implementation is header-only to support generic templating.
 ### Sequential Algorithms (`include/dpqs/`)
 - **`partition.hpp`**: Implements Yaroslavskiy's dual-pivot partitioning logic. This is the core mathematical engine of the library.
 - **`sequential_sorters.hpp`**: Contains the recursive `sort_sequential` function. It manages the recursion stack and switches to insertion sort for small subarrays.
-- **`insertion_sort.hpp`**: A highly optimized insertion sort for small arrays (typically < 47 elements).
+- **`insertion_sort.hpp`**: A highly optimized insertion sort for small arrays (thresholds 32/48).
 - **`counting_sort.hpp`**: Specialized O(n) sorter for `int8_t`, `uint8_t`, `int16_t`, and `uint16_t`.
 - **`float_sort.hpp`**: Handles floating-point specific edge cases like `NaN` (moved to end) and `-0.0` vs `0.0`.
 
@@ -46,7 +46,7 @@ When a user calls `dual_pivot::sort(arr, size)`, the following happens:
 
 ### Step 2: Sequential Dual-Pivot Sort
 Used for small arrays or as the base case for parallel sort.
-1.  **Check Size**: If size < 47 (INSERTION_SORT_THRESHOLD), run `insertion_sort`.
+1.  **Check Size**: If size < 32 (INSERTION_SORT_THRESHOLD), run `insertion_sort`.
 2.  **Partition**: Call `partition_dual_pivot` (in `partition.hpp`).
     - Selects two pivots (P1, P2).
     - Reorders array into: `[ < P1 | P1 <= x <= P2 | > P2 ]`.

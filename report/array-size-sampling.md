@@ -2,11 +2,11 @@
 
 ## 1. Design Choice
 
-For the benchmarking of the Dual-Pivot Quicksort algorithm, we have selected a set of **31 array sizes** ranging from **1,000 to 1,000,000**. The sizes are distributed **geometrically (logarithmically)** to ensure uniform coverage across different orders of magnitude.
+For the benchmarking of the Dual-Pivot Quicksort algorithm, we have selected a set of **41 array sizes** ranging from **1,000 to 10,000,000**. The sizes are distributed **geometrically (logarithmically)** to ensure uniform coverage across different orders of magnitude.
 
 -   **Minimum Size**: 1,000 ($10^3$)
--   **Maximum Size**: 1,000,000 ($10^6$)
--   **Total Points**: 31
+-   **Maximum Size**: 10,000,000 ($10^7$)
+-   **Total Points**: 41
 -   **Distribution**: Logarithmic spacing with a step size of 0.1 in base-10 log scale.
 
 ## 2. Justification
