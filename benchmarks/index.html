@@ -29,7 +29,7 @@
             <div class="pb-3 flex items-center space-x-2">
                 <label class="text-sm font-medium text-gray-700">Data Source:</label>
                 <select v-model="selectedTestbed" class="rounded border-gray-300 text-sm p-1 border focus:ring-blue-500 focus:border-blue-500">
-                    <option :value="null">Local (Raw Results)</option>
+                    <option :value="null">Local Results</option>
                     <option v-for="tb in testbeds" :key="tb" :value="tb">{{ tb }}</option>
                 </select>
             </div>

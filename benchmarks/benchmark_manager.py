@@ -6,6 +6,7 @@ import multiprocessing
 import glob
 import statistics
 import csv
+from collections import defaultdict
 
 # Get the directory where the script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -13,13 +14,15 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Configuration
 BUILD_DIR = os.path.join(SCRIPT_DIR, "build")
 RUNNER = os.path.join(BUILD_DIR, "benchmark_runner")
-RESULTS_DIR = os.path.join(SCRIPT_DIR, "results", "raw")
 AGGREGATE_DIR = os.path.join(SCRIPT_DIR, "results", "aggregate")
+SUMMARY_FULL = os.path.join(AGGREGATE_DIR, "summary_full.csv")
+SUMMARY_REP = os.path.join(AGGREGATE_DIR, "summary_representative.csv")
 
 # WSL Paths (Hardcoded for this environment)
 WSL_BASE_DIR = "/home/lzz725/FYP/benchmarks"
 WSL_RUNNER = f"{WSL_BASE_DIR}/build/benchmark_runner"
-WSL_RESULTS_DIR = f"{WSL_BASE_DIR}/results/raw"
+WSL_TEMP_RESULT = f"{WSL_BASE_DIR}/temp_runner_output.csv"
+TEMP_RESULT = os.path.join(SCRIPT_DIR, "temp_runner_output.csv")
 
 # Generate parallel algorithms based on hardware threads
 max_threads = multiprocessing.cpu_count()
@@ -44,174 +47,104 @@ SIZES = [
     10000000
 ]
 
-# Debug: Run only failing cases
-# ALGORITHMS = ["dual_pivot_parallel"]
-# TYPES = ["int", "double"]
-# PATTERNS = ["RANDOM", "NEARLY_SORTED", "MANY_DUPLICATES_10", "MANY_DUPLICATES_50", "MANY_DUPLICATES_90"]
-# SIZES = [7943, 50119, 79433, 125893, 251189, 316228, 398107, 794328, 1000000]
+class BenchmarkManager:
+    def __init__(self):
+        self.ensure_dirs()
+        self.results_cache = defaultdict(list) # Key: (algo, type, pattern, size) -> List of times
+        self.rep_cache = {} # Key: (algo, type, pattern, size) -> rep_time
+        self.load_history()
 
-def ensure_directories():
-    if not os.path.exists(RESULTS_DIR):
-        os.makedirs(RESULTS_DIR)
+    def ensure_dirs(self):
+        if not os.path.exists(AGGREGATE_DIR):
+            os.makedirs(AGGREGATE_DIR)
 
-def get_output_filename(algo, type_, pattern, size):
-    return os.path.join(RESULTS_DIR, f"res_{algo}_{type_}_{pattern}_{size}.csv")
+    def load_history(self):
+        # Load Full Summary
+        if os.path.exists(SUMMARY_FULL):
+            with open(SUMMARY_FULL, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    try:
+                        key = (row['Algorithm'], row['Type'], row['Pattern'], int(row['Size']))
+                        self.results_cache[key].append(float(row['Time(ms)']))
+                    except (ValueError, KeyError):
+                        pass # Header or bad data
+        else:
+            # Create header
+            with open(SUMMARY_FULL, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(["Algorithm", "Type", "Pattern", "Size", "Iteration", "Time(ms)"])
 
-def run_single_test(algo, type_, pattern, size):
-    ensure_directories()
+        # Load Representative
+        if os.path.exists(SUMMARY_REP):
+             with open(SUMMARY_REP, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    try:
+                        key = (row['Algorithm'], row['Type'], row['Pattern'], int(row['Size']))
+                        self.rep_cache[key] = float(row['Time(ms)'])
+                    except (ValueError, KeyError): pass
+        else:
+             with open(SUMMARY_REP, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(["Algorithm", "Type", "Pattern", "Size", "Time(ms)"])
 
-    threads = 0
-    if algo.startswith("dual_pivot_parallel_"):
-        try:
-            threads = int(algo.split("_")[-1])
-        except ValueError:
-            pass
+    def get_needed_iterations(self, algo, type_, pattern, size):
+        existing = len(self.results_cache[(algo, type_, pattern, size)])
+        return max(0, 30 - existing)
 
-    if sys.platform == "win32":
-        # Use WSL paths and command
-        output_file_wsl = f"{WSL_RESULTS_DIR}/res_{algo}_{type_}_{pattern}_{size}.csv"
-        cmd = [
-            "wsl",
-            WSL_RUNNER,
-            "--algorithm", algo,
-            "--type", type_,
-            "--pattern", pattern,
-            "--size", str(size),
-            "--output", output_file_wsl,
-            "--iterations", "30"
-        ]
-        if threads > 0:
-            cmd.extend(["--threads", str(threads)])
-    else:
-        # Native Linux/WSL execution
-        output_file = get_output_filename(algo, type_, pattern, size)
-        cmd = [
-            RUNNER,
-            "--algorithm", algo,
-            "--type", type_,
-            "--pattern", pattern,
-            "--size", str(size),
-            "--output", output_file,
-            "--iterations", "30"
-        ]
-        if threads > 0:
-            cmd.extend(["--threads", str(threads)])
+    def save_results(self, algo, type_, pattern, size, times):
+        if not times:
+            return
 
-    try:
-        subprocess.run(cmd, check=True)
-        return True, "Success"
-    except subprocess.CalledProcessError as e:
-        return False, str(e)
+        # Append to Full Summary
+        with open(SUMMARY_FULL, 'a', newline='') as f:
+            writer = csv.writer(f)
+            # Find next iteration index based on cache
+            existing = len(self.results_cache[(algo, type_, pattern, size)])
+            for i, t in enumerate(times):
+                writer.writerow([algo, type_, pattern, size, existing + i + 1, t])
 
-def aggregate_results():
-    """
-    Combines all individual CSV benchmark results into two summary files:
-    1. summary_full.csv: Contains all 30 iterations for every test case.
-    2. summary_representative.csv: Contains one line per test case using the median time.
-    """
-    print("Aggregating results...")
+        # Update Cache
+        self.results_cache[(algo, type_, pattern, size)].extend(times)
 
-    if not os.path.exists(AGGREGATE_DIR):
-        os.makedirs(AGGREGATE_DIR)
+        # Update Representative
+        all_times = self.results_cache[(algo, type_, pattern, size)]
+        rep_val = min(all_times)
+        self.rep_cache[(algo, type_, pattern, size)] = rep_val
+        self.update_representative_file()
 
-    full_summary_path = os.path.join(AGGREGATE_DIR, "summary_full.csv")
-    rep_summary_path = os.path.join(AGGREGATE_DIR, "summary_representative.csv")
+    def update_representative_file(self):
+        # Rewrite the representative file
+        sorted_keys = sorted(self.rep_cache.keys(), key=lambda k: (k[0], k[1], k[2], k[3]))
 
-    # CSV Headers
-    header_full = ["Algorithm", "Type", "Pattern", "Size", "Iteration", "Time(ms)"]
-    # For representative, we drop Iteration and keep Time(ms) as the median
-    header_rep = ["Algorithm", "Type", "Pattern", "Size", "Time(ms)"]
-
-    csv_files = glob.glob(os.path.join(RESULTS_DIR, "*.csv"))
-    csv_files.sort() # Ensure deterministic order
-
-    print(f"Found {len(csv_files)} result files.")
-
-    with open(full_summary_path, 'w', newline='') as f_full, \
-         open(rep_summary_path, 'w', newline='') as f_rep:
-
-        writer_full = csv.writer(f_full)
-        writer_rep = csv.writer(f_rep)
-
-        writer_full.writerow(header_full)
-        writer_rep.writerow(header_rep)
-
-        count = 0
-        for file_path in csv_files:
-            try:
-                times = []
-                algo = ""
-                type_ = ""
-                pattern = ""
-                size = ""
-
-                rep_val = None
-                with open(file_path, 'r') as csv_in:
-                    reader = csv.reader(csv_in)
-                    headers = next(reader, None) # Skip header
-
-                    if not headers:
-                        continue
-
-                    for row in reader:
-                        if len(row) < 6: continue
-
-                        # Capture metadata if not set
-                        if not algo:
-                            algo = row[0]
-                            type_ = row[1]
-                            pattern = row[2]
-                            size = row[3]
-
-                        # Check for Representative row
-                        if row[4] == "Representative":
-                            try:
-                                rep_val = float(row[5])
-                            except ValueError:
-                                pass
-                            continue
-
-                        # Copy row to full summary (excluding Representative line)
-                        writer_full.writerow(row)
-
-                        try:
-                            times.append(float(row[5]))
-                        except ValueError:
-                            pass
-
-                if rep_val is not None:
-                     writer_rep.writerow([algo, type_, pattern, size, f"{rep_val:.5f}"])
-                     count += 1
-                elif times:
-                    min_time = min(times)
-                    writer_rep.writerow([algo, type_, pattern, size, f"{min_time:.5f}"])
-                    count += 1
-            except Exception as e:
-                print(f"Error processing {file_path}: {e}")
-
-    print(f"Aggregation complete. Processed {count} files.")
-    print(f"Full summary: {full_summary_path}")
-    print(f"Representative summary: {rep_summary_path}")
+        with open(SUMMARY_REP, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(["Algorithm", "Type", "Pattern", "Size", "Time(ms)"])
+            for key in sorted_keys:
+                algo, type_, pattern, size = key
+                writer.writerow([algo, type_, pattern, size, f"{self.rep_cache[key]:.5f}"])
 
 def run_benchmark():
-    ensure_directories()
-
-    # Cleanup block removed to allow incremental benchmarking
-    # Old behavior was to delete "res_dual_pivot*" files here.
+    manager = BenchmarkManager()
 
     combinations = list(itertools.product(ALGORITHMS, TYPES, PATTERNS, SIZES))
-    total = len(combinations)
+    total_configs = len(combinations)
 
-    print(f"Found {total} benchmark combinations.")
+    print(f"Plan: {total_configs} configurations locally.")
 
     for i, (algo, type_, pattern, size) in enumerate(combinations):
-        output_file = get_output_filename(algo, type_, pattern, size)
+        needed = manager.get_needed_iterations(algo, type_, pattern, size)
 
-        if os.path.exists(output_file):
-            print(f"[{i+1}/{total}] Skipping {algo} {type_} {pattern} {size} (Already exists)")
+        if needed == 0:
+            # print(f"[{i+1}/{total_configs}] Skipping {algo} {type_} {pattern} {size} (Done)")
+            # Only print every 100 or so if skipping, to avoid spam?
+            # Or just print skipping.
+            if i % 100 == 0:
+                print(f"[{i+1}/{total_configs}] Skipping {algo} {type_} {pattern} {size}...")
             continue
 
-        print(f"[{i+1}/{total}] Running {algo} {type_} {pattern} {size}...")
+        print(f"[{i+1}/{total_configs}] Running {algo} {type_} {pattern} {size} ({needed} iterations)...")
 
         threads = 0
         if algo.startswith("dual_pivot_parallel_"):
@@ -220,26 +153,61 @@ def run_benchmark():
             except ValueError:
                 pass
 
-        cmd = [
-            RUNNER,
+        # Determine output file path
+        # output_file_arg = WSL_TEMP_RESULT if sys.platform == "win32" else TEMP_RESULT
+
+        # Prepare command
+        cmd = []
+        if sys.platform == "win32":
+            cmd = ["wsl", WSL_RUNNER]
+        else:
+            cmd = [RUNNER]
+
+        cmd.extend([
             "--algorithm", algo,
             "--type", type_,
             "--pattern", pattern,
             "--size", str(size),
-            "--output", output_file,
-            "--iterations", "30"
-        ]
+            "--output", WSL_TEMP_RESULT if sys.platform == "win32" else TEMP_RESULT,
+            "--iterations", str(needed)
+        ])
+
         if threads > 0:
             cmd.extend(["--threads", str(threads)])
 
         try:
+            # Run the benchmark
             subprocess.run(cmd, check=True)
+
+            # Read back the results from the temp file
+            if os.path.exists(TEMP_RESULT):
+                new_times = []
+                with open(TEMP_RESULT, 'r') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        # Ignore "Representative" line from C++ runner, we calculate our own
+                        if row.get('Iteration') == 'Representative':
+                            continue
+                        try:
+                            t_val = float(row['Time(ms)'])
+                            new_times.append(t_val)
+                        except ValueError:
+                            pass
+
+                # Save to aggregate
+                manager.save_results(algo, type_, pattern, size, new_times)
+
+                # Clean up temp file
+                os.remove(TEMP_RESULT)
+            else:
+                print(f"Error: Output file not created for {algo} {type_} {pattern} {size}")
+
         except subprocess.CalledProcessError as e:
             print(f"Error running benchmark: {e}")
-            # Optional: stop or continue? Let's continue.
+            # Continue to next config
 
-    # Aggregate results after the run check
-    aggregate_results()
+    print("Benchmark run complete.")
+
 
 if __name__ == "__main__":
     run_benchmark()

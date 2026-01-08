@@ -36,8 +36,11 @@ class BenchmarkHandler(http.server.SimpleHTTPRequestHandler):
             testbeds = []
             if os.path.exists(aggregate_dir):
                 for name in os.listdir(aggregate_dir):
-                    if os.path.isdir(os.path.join(aggregate_dir, name)):
-                        testbeds.append(name)
+                    dir_path = os.path.join(aggregate_dir, name)
+                    if os.path.isdir(dir_path):
+                         if os.path.exists(os.path.join(dir_path, "summary_full.csv")) and \
+                            os.path.exists(os.path.join(dir_path, "summary_representative.csv")):
+                            testbeds.append(name)
             self.wfile.write(json.dumps(testbeds).encode())
             return
         if self.path.startswith("/api/results"):
@@ -59,54 +62,69 @@ class BenchmarkHandler(http.server.SimpleHTTPRequestHandler):
                 "Sawtooth": "SAWTOOTH",
                 "10% Unique": "MANY_DUPLICATES_10",
                 "50% Unique": "MANY_DUPLICATES_50",
-                "90% Unique": "MANY_DUPLICATES_90"
+                "90% Unique": "MANY_DUPLICATES_90",
+                "RANDOM": "RANDOM",
+                "NEARLY_SORTED": "NEARLY_SORTED",
+                "REVERSE_SORTED": "REVERSE_SORTED",
+                "ORGAN_PIPE": "ORGAN_PIPE",
+                "SAWTOOTH": "SAWTOOTH",
+                "MANY_DUPLICATES_10": "MANY_DUPLICATES_10",
+                "MANY_DUPLICATES_50": "MANY_DUPLICATES_50",
+                "MANY_DUPLICATES_90": "MANY_DUPLICATES_90"
             }
 
-            if testbed and testbed != "null":
-                # Serve from aggregate file
-                csv_path = os.path.join(benchmark_manager.AGGREGATE_DIR, testbed, "summary_representative.csv")
-                if os.path.exists(csv_path):
-                    try:
-                        with open(csv_path, 'r') as f:
-                            reader = csv.DictReader(f)
-                            for row in reader:
-                                raw_pattern = row['Pattern']
-                                normalized_pattern = pattern_map.get(raw_pattern, raw_pattern)
-
-                                results.append({
-                                    "id": f"{row['Algorithm']}_{row['Type']}_{normalized_pattern}_{row['Size']}",
-                                    "algo": row['Algorithm'],
-                                    "type": row['Type'],
-                                    "pattern": normalized_pattern,
-                                    "size": int(row['Size']),
-                                    "done": True,
-                                    "timestamp": "", # Not available in aggregate
-                                    "runtime": row['Time(ms)'] + " ms"
-                                })
-                    except Exception as e:
-                        print(f"Error reading aggregate CSV: {e}")
+            csv_path = None
+            if testbed and testbed != "null" and testbed != "local":
+                 csv_path = os.path.join(benchmark_manager.AGGREGATE_DIR, testbed, "summary_representative.csv")
             else:
-                import itertools
-                combinations = list(itertools.product(benchmark_manager.ALGORITHMS, benchmark_manager.TYPES, benchmark_manager.PATTERNS, benchmark_manager.SIZES))
-                for algo, type_, pattern, size in combinations:
-                    filename = benchmark_manager.get_output_filename(algo, type_, pattern, size)
-                    done = os.path.exists(filename)
-                    timestamp = ""
-                    runtime = "-"
-                    if done:
-                        mtime = os.path.getmtime(filename)
-                        timestamp = datetime.datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M:%S')
-                        try:
-                            with open(filename, 'r') as f:
-                                lines = f.readlines()
-                                if len(lines) > 1:
-                                    last_line = lines[-1].strip()
-                                    parts = last_line.split(',')
-                                    if len(parts) >= 5:
-                                        runtime = parts[-1] + " ms"
-                        except Exception:
-                            pass
-                    results.append({"id": f"{algo}_{type_}_{pattern}_{size}", "algo": algo, "type": type_, "pattern": pattern, "size": size, "done": done, "timestamp": timestamp, "runtime": runtime})
+                 csv_path = os.path.join(benchmark_manager.AGGREGATE_DIR, "summary_representative.csv")
+
+            if os.path.exists(csv_path):
+                try:
+                    with open(csv_path, 'r') as f:
+                        reader = csv.DictReader(f)
+                        for row in reader:
+                            raw_pattern = row['Pattern']
+                            # Some CSVs might have different casing, handle it
+                            normalized_pattern = pattern_map.get(raw_pattern, raw_pattern)
+
+                            results.append({
+                                "id": f"{row['Algorithm']}_{row['Type']}_{normalized_pattern}_{row['Size']}",
+                                "algo": row['Algorithm'],
+                                "type": row['Type'],
+                                "pattern": normalized_pattern,
+                                "size": int(row['Size']),
+                                "done": True,
+                                "timestamp": "",
+                                "runtime": row['Time(ms)'] + " ms"
+                            })
+                except Exception as e:
+                    print(f"Error reading aggregate CSV: {e}")
+
+            # For management UI, we also need to show what is missing.
+            # Only do this if we are looking at 'local' results, or if we want to show holes in other testbeds too.
+            # The previous logic listed ALL combinations and checked file existence.
+            # Now we have the results list of what IS done. We need to fill in the rest.
+
+            import itertools
+            combinations = list(itertools.product(benchmark_manager.ALGORITHMS, benchmark_manager.TYPES, benchmark_manager.PATTERNS, benchmark_manager.SIZES))
+
+            existing_ids = {r["id"] for r in results}
+
+            for algo, type_, pattern, size in combinations:
+                test_id = f"{algo}_{type_}_{pattern}_{size}"
+                if test_id not in existing_ids:
+                    results.append({
+                        "id": test_id,
+                        "algo": algo,
+                        "type": type_,
+                        "pattern": pattern,
+                        "size": size,
+                        "done": False,
+                        "timestamp": "",
+                        "runtime": "-"
+                    })
+
             self.wfile.write(json.dumps(results).encode())
             return
 
