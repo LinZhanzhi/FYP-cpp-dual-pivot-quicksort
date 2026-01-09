@@ -1,6 +1,8 @@
 #ifndef DUAL_PIVOT_QUICKSORT_HPP
 #define DUAL_PIVOT_QUICKSORT_HPP
 
+#include <concepts>
+#include <concepts>
 #include "dpqs/utils.hpp"
 #include "dpqs/types.hpp"
 #include "dpqs/parallel/parallel_sort.hpp"
@@ -167,12 +169,8 @@ void sort(Container& container, int parallelism, Compare comp) {
     sort(container.data(), parallelism, 0, static_cast<std::ptrdiff_t>(container.size()), comp);
 }
 
-template<typename RandomAccessIterator>
+template<std::random_access_iterator RandomAccessIterator>
 void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last) {
-    static_assert(std::is_same_v<typename std::iterator_traits<RandomAccessIterator>::iterator_category,
-                                std::random_access_iterator_tag>,
-                  "dual_pivot_quicksort requires random access iterators");
-
     if (first >= last) return;
     std::ptrdiff_t size = last - first;
     if (size <= 1) return;
@@ -186,12 +184,8 @@ void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last)
     }
 }
 
-template<typename RandomAccessIterator, typename Compare>
+template<std::random_access_iterator RandomAccessIterator, typename Compare>
 void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last, Compare comp) {
-    static_assert(std::is_same_v<typename std::iterator_traits<RandomAccessIterator>::iterator_category,
-                                std::random_access_iterator_tag>,
-                  "dual_pivot_quicksort requires random access iterators");
-
     if (first >= last) return;
     std::ptrdiff_t size = last - first;
     if (size <= 1) return;
@@ -210,12 +204,10 @@ void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last,
     }
 }
 
-template<typename RandomAccessIterator>
+template<std::random_access_iterator RandomAccessIterator>
 void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessIterator last,
                                   int parallelism = std::thread::hardware_concurrency()) {
-    static_assert(std::is_same_v<typename std::iterator_traits<RandomAccessIterator>::iterator_category,
-                                std::random_access_iterator_tag>,
-                  "dual_pivot_quicksort requires random access iterators");
+    // Concept ensures random access iterator requirements
 
     if (first >= last) return;
     std::ptrdiff_t size = last - first;
@@ -232,12 +224,10 @@ void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessItera
     }
 }
 
-template<typename RandomAccessIterator, typename Compare>
+template<std::random_access_iterator RandomAccessIterator, typename Compare>
 void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessIterator last, Compare comp,
                                   int parallelism = std::thread::hardware_concurrency()) {
-    static_assert(std::is_same_v<typename std::iterator_traits<RandomAccessIterator>::iterator_category,
-                                std::random_access_iterator_tag>,
-                  "dual_pivot_quicksort requires random access iterators");
+    // Concept ensures random access iterator requirements
 
     if (first >= last) return;
     std::ptrdiff_t size = last - first;

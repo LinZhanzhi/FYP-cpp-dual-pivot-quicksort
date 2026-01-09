@@ -15,3 +15,5 @@ report operations of the algorithm. making a new counting implementation that sa
 recursion depth cap still 2log2 n  ?
 
 use data to find boundary for small array to use insertion sort ?
+
+why can merge on reverse sorted , cannot merge on nearly sorted ?

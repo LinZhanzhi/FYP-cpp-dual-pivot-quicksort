@@ -1,0 +1,31 @@
+graph LR
+    subgraph Core1 [Owner Thread - Busy]
+        direction TB
+        T1((Thread 1)):::busy
+        D1{Local Deque}
+        
+        T1 <== "Push/Pop (LIFO)" ==> D1
+        
+        subgraph Stack [Task Stack]
+            direction TB
+            K1[Task A]:::task
+            K2[Task B]:::task
+            K3[Task C]:::task
+        end
+
+        D1 --- K1
+        K1 -.- K2
+        K2 -.- K3
+    end
+
+    subgraph Core2 [Thief Thread - Idle]
+        direction TB
+        T2((Thread 2)):::idle
+        D2{Deque - Empty}
+    end
+
+    T2 -. "Steal from Tail (FIFO)" .-> K3
+
+    classDef busy fill:#28a745,stroke:#333,color:white
+    classDef idle fill:#dc3545,stroke:#333,color:white
+    classDef task fill:#ffc107,stroke:#333,color:black
