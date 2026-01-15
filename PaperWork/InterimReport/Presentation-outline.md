@@ -12,23 +12,23 @@
 *   **Visual:** Project Title, Student ID/Name, Supervisor Name. "Interim Assessment 2025/26".
 *   **Audio Hook:**
     "Hello and welcome to my interim presentation. I am LIN Zhanzhi, and my project is 'Implementing Dual Pivot Quicksort in C++23: Validating Theoretically Superior Sorting Strategies in Modern Systems'.
-    This project re-evaluates the standard sorting algorithms used in C++ in the context of modern hardware architectures."
+    "
 
 ### Slide 2: Agenda
 *   **Visual:** Bulleted list of the presentation sections.
 *   **Script:**
-    "To guide you through my work, here is the agenda for today's presentation.
+    " here is the agenda for today's presentation.
     I will begin with the **Background & Motivation**, where I will explain the historical context of Quicksort and why the Dual-Pivot approach—which has been standard in Java for over a decade—remains unexplored in the C++ standard library.
     Following that, I will share the **Sequential Performance** results. I will demonstrate how my implementation achieves a consistent 15% speedup on random data and a dramatic 28x speedup on structured distributions.
-    Third, we will examine the **Parallel Architecture**. I will detail the design of my 'Version 3' work-stealing scheduler and discuss a critical finding: the 'Memory Wall' bottleneck that naturally limits scalability on multi-core systems.
+    Third, we will examine the **Parallel Architecture**. I will detail the design of my  work-stealing scheduler and discuss a critical finding: the 'Memory Wall' bottleneck that naturally limits scalability on multi-core systems.
     Finally, I will conclude with the **Roadmap for Semester 2**, specifically focusing on how I plan to use AVX-512 vectorization to break through that memory wall."
 
 ### Slide 3: The Status Quo vs. The Innovation
 *   **Visual:** Comparison split screen. `std::sort` (1 Pivot) vs Project (2 Pivots).
 *   **Script:**
-    "To truly appreciate the innovation here, we must first examine the status quo. For decades, the C++ Standard Library's `std::sort` has relied on **Introsort**. This is a hybrid algorithm that starts with single-pivot Quicksort and switches to Heapsort if recursion goes too deep. It is a robust, battle-tested algorithm, but it was optimized for the hardware of the 1990s—an era when CPU clock cycles were the scarcest resource and memory latency was negligible.
+    " we  first examine the status quo. For decades, the C++ Standard Library's `std::sort` has relied on **Introsort**. This is a hybrid algorithm that starts with single-pivot Quicksort and switches to Heapsort if recursion goes too deep. It is a robust, battle-tested algorithm, but it was optimized for the hardware of the 1990s—an era when CPU clock cycles were the scarcest resource and memory latency was negligible.
 
-    My implementation challenges this legacy by adopting Vladimir Yaroslavskiy's **Dual-Pivot Quicksort**. Instead of picking one pivot, we pick two, $P_1$ and $P_2$. This allows us to partition the array into *three* distinct regions in a single pass: elements smaller than $P_1$, those in the middle, and those larger than $P_2$.
+    My implementation challenges this legacy by adopting Vladimir Yaroslavskiy's **Dual-Pivot Quicksort**. Instead of picking one pivot, we pick two, $P_1$ and $P_2$ to partition the array into *three* distinct regions in a single pass: elements smaller than $P_1$, those in the middle, and those larger than $P_2$.
 
     Now, from a classical algorithm analysis perspective, this seems counter-intuitive. Dual-pivot requires *more* comparisons per element than single-pivot. However, on modern hardware, the rules of the game have changed. Today, **arithmetic is virtually free, but memory access is expensive**. Writing to RAM or even L3 cache costs significantly more latency than a simple CPU register comparison.
 
