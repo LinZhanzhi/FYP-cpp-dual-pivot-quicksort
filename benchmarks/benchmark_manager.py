@@ -225,7 +225,7 @@ def run_ops_counting():
     patterns = PATTERNS # defined globally
 
     # All sizes
-    sizes = SIZES 
+    sizes = SIZES
 
     print(f"Running Operation Counting for {len(algos)} algos, {len(patterns)} patterns, {len(sizes)} sizes.")
 
