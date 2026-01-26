@@ -9,3 +9,5 @@ include_directories(../include)
 
 add_executable(benchmark_runner src/benchmark_runner.cpp)
 add_executable(interactive_runner src/interactive_runner.cpp)
+add_executable(count_ops_runner src/count_ops_runner.cpp)
+add_executable(op_cost_runner src/op_cost_runner.cpp)

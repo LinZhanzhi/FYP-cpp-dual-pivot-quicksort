@@ -69,15 +69,16 @@ namespace dual_pivot {
  */
 template<typename T, typename Compare>
 DPQS_FORCE_INLINE void sort5_network(T* a, std::ptrdiff_t e1, std::ptrdiff_t e2, std::ptrdiff_t e3, std::ptrdiff_t e4, std::ptrdiff_t e5, Compare comp) {
-    if (comp(a[e2], a[e1])) std::swap(a[e1], a[e2]);
-    if (comp(a[e5], a[e4])) std::swap(a[e4], a[e5]);
-    if (comp(a[e3], a[e1])) std::swap(a[e1], a[e3]);
-    if (comp(a[e3], a[e2])) std::swap(a[e2], a[e3]);
-    if (comp(a[e4], a[e1])) std::swap(a[e1], a[e4]);
-    if (comp(a[e4], a[e3])) std::swap(a[e3], a[e4]);
-    if (comp(a[e5], a[e2])) std::swap(a[e2], a[e5]);
-    if (comp(a[e3], a[e2])) std::swap(a[e2], a[e3]);
-    if (comp(a[e5], a[e4])) std::swap(a[e4], a[e5]);
+    using std::swap;
+    if (comp(a[e2], a[e1])) swap(a[e1], a[e2]);
+    if (comp(a[e5], a[e4])) swap(a[e4], a[e5]);
+    if (comp(a[e3], a[e1])) swap(a[e1], a[e3]);
+    if (comp(a[e3], a[e2])) swap(a[e2], a[e3]);
+    if (comp(a[e4], a[e1])) swap(a[e1], a[e4]);
+    if (comp(a[e4], a[e3])) swap(a[e3], a[e4]);
+    if (comp(a[e5], a[e2])) swap(a[e2], a[e5]);
+    if (comp(a[e3], a[e2])) swap(a[e2], a[e3]);
+    if (comp(a[e5], a[e4])) swap(a[e4], a[e5]);
 }
 
 /**

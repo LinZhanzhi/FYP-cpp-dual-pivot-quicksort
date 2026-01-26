@@ -41,9 +41,10 @@ namespace dual_pivot {
  */
 template<typename T, typename Compare>
 DPQS_FORCE_INLINE std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_dual_pivot(T* a, std::ptrdiff_t low, std::ptrdiff_t high, std::ptrdiff_t pivotIndex1, std::ptrdiff_t pivotIndex2, Compare comp) {
+    using std::swap;
     // Move pivots to ends
-    std::swap(a[low], a[pivotIndex1]);
-    std::swap(a[high - 1], a[pivotIndex2]);
+    swap(a[low], a[pivotIndex1]);
+    swap(a[high - 1], a[pivotIndex2]);
 
     T pivot1 = a[low];
     T pivot2 = a[high - 1];
@@ -54,17 +55,17 @@ DPQS_FORCE_INLINE std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_dual_pivot
 
     while (k <= gt) {
         if (comp(a[k], pivot1)) {
-            std::swap(a[k], a[lt]);
+            swap(a[k], a[lt]);
             lt++;
             k++;
         } else if (comp(pivot2, a[k])) {
             while (k < gt && comp(pivot2, a[gt])) {
                 gt--;
             }
-            std::swap(a[k], a[gt]);
+            swap(a[k], a[gt]);
             gt--;
             if (comp(a[k], pivot1)) {
-                std::swap(a[k], a[lt]);
+                swap(a[k], a[lt]);
                 lt++;
             }
             k++;
@@ -75,8 +76,8 @@ DPQS_FORCE_INLINE std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_dual_pivot
 
     --lt;
     ++gt;
-    std::swap(a[low], a[lt]);
-    std::swap(a[high - 1], a[gt]);
+    swap(a[low], a[lt]);
+    swap(a[high - 1], a[gt]);
 
     return std::make_pair(lt, gt);
 }
@@ -122,18 +123,19 @@ DPQS_FORCE_INLINE std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_dual_pivot
  */
 template<typename T, typename Compare>
 std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_single_pivot(T* a, std::ptrdiff_t low, std::ptrdiff_t high, std::ptrdiff_t pivotIndex1, std::ptrdiff_t, Compare comp) {
+    using std::swap;
     std::ptrdiff_t lt = low; // the start of the middle sub range
     std::ptrdiff_t gt = high; // the start of the right sub range
     T pivot = a[pivotIndex1]; // pivot value
 
     // Move pivot to start
-    std::swap(a[low], a[pivotIndex1]);
+    swap(a[low], a[pivotIndex1]);
 
     std::ptrdiff_t i = low + 1;
     while (i < gt) {
         // when a[i] is smaller than pivot, it needs to be swapped to the left sub range, so lt shall increment
         if (comp(a[i], pivot)) {
-            std::swap(a[lt++], a[i++]);
+            swap(a[lt++], a[i++]);
         } else if (comp(pivot, a[i])) {
             // when pivot is smaller than a[i], a[i] shall be swapped to the right sub range. and gt shall decrement.
             // simply swap will do . but we use while loop to skip elements already in right sub range, which saves some future efforts
@@ -141,7 +143,7 @@ std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_single_pivot(T* a, std::ptrd
             while (i < gt && comp(pivot, a[gt])) {
                 gt--;
             }
-            std::swap(a[i], a[gt]);
+            swap(a[i], a[gt]);
         } else {
             i++;
         }

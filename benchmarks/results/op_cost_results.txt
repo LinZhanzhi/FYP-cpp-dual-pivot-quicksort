@@ -1,0 +1,14 @@
+
+------------------------------------------------
+Measuring: L2 Cache Resident
+Array Size: 65536 ints (256 KB)
+  Comparison: 2.698 ns
+  Assignment: 0.061 ns
+  Swap:       0.123 ns
+
+------------------------------------------------
+Measuring: Main Memory (RAM)
+Array Size: 16777216 ints (65536 KB)
+  Comparison: 2.902 ns
+  Assignment: 0.187 ns
+  Swap:       0.422 ns

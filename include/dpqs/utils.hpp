@@ -66,13 +66,6 @@ constexpr bool is_contiguous_iterator_v = is_contiguous_iterator<Iter>::value;
 
 // Utility functions
 template<typename T>
-DPQS_FORCE_INLINE void swap(T& a, T& b) {
-    T tmp = a;
-    a = b;
-    b = tmp;
-}
-
-template<typename T>
 void checkNotNull(T* ptr, const std::string& name) {
     if (ptr == nullptr) {
         throw std::invalid_argument(name + " must not be null");
