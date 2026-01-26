@@ -218,14 +218,14 @@ OPS_RESULT_FILE = os.path.join(AGGREGATE_DIR, "ops_counts.csv")
 # ... (Previous code until run_benchmark)
 
 def run_ops_counting():
-    # Only meaningful for sequential algos
-    algos = ["dual_pivot_sequential", "std_sort", "std_stable_sort"]
+    # Run for ALL algorithms (parallel included)
+    algos = ALGORITHMS
 
     # All patterns
     patterns = PATTERNS # defined globally
 
     # All sizes
-    sizes = SIZES # defined globally
+    sizes = SIZES 
 
     print(f"Running Operation Counting for {len(algos)} algos, {len(patterns)} patterns, {len(sizes)} sizes.")
 
@@ -277,12 +277,15 @@ def run_ops_counting():
                             with open(OPS_RESULT_FILE, 'a') as f:
                                 f.write(f"{algo},{pattern},{size},{comps},{swaps},{assigns}\n")
                         else:
-                             # Fallback for old runners? No, we just updated it.
                              print(f"Error parsing output (parts): {output}")
+                except subprocess.CalledProcessError as e:
                     print(f"Error running {algo} {pattern} {size}: {e}")
 
 if __name__ == "__main__":
     if "--count-ops" in sys.argv:
         run_ops_counting()
     else:
-        run_benchmark()
+        # Default behavior: Run standard benchmarks
+        # Create an instance and run
+        manager = BenchmarkManager(AGGREGATE_DIR)
+        manager.run_tests()

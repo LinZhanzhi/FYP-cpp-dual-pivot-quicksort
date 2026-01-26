@@ -107,7 +107,16 @@
         <div v-show="activeTab === 'visualize'">
             <div class="bg-white rounded-lg shadow p-6 mb-6">
                 <h2 class="text-xl font-bold mb-4">Plot Configuration</h2>
-                <div class="grid grid-cols-4 gap-4 mb-4">
+                <div class="grid grid-cols-5 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Metric</label>
+                        <select v-model="vizMetric" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
+                            <option value="runtime">Runtime (ms)</option>
+                            <option value="comparisons">Comparisons</option>
+                            <option value="swaps">Swaps</option>
+                            <option value="assignments">Assignments</option>
+                        </select>
+                    </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Algorithm</label>
                         <select v-model="vizConfig.algo" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border">
@@ -318,6 +327,8 @@
 
             // Visualization State
             const vizConfig = ref({ algo: '', type: '', pattern: '' })
+            const vizMetric = ref('runtime')
+            const opsResults = ref([])
             const vizDatasets = ref([])
             let chartInstance = null
 
@@ -524,6 +535,16 @@
                 }
                 const res = await fetch(url)
                 results.value = await res.json()
+
+                // Fetch Ops Data
+                try {
+                    const resOps = await fetch("/api/ops")
+                    if (resOps.ok) {
+                        opsResults.value = await resOps.json()
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch ops data", e)
+                }
             }
 
             watch(selectedTestbed, () => {
@@ -726,7 +747,21 @@
 
             const addPlot = () => {
                 const { algo, type, pattern } = vizConfig.value
-                const label = `${algo} - ${type} - ${pattern}`
+                const metric = vizMetric.value
+                let label = ""
+                let points = []
+
+                if (metric === 'runtime') {
+                    label = `${algo} - ${type} - ${pattern}`
+                    points = results.value
+                        .filter(r => r.algo === algo && r.type === type && r.pattern === pattern && r.done && r.runtime !== '-')
+                        .map(r => ({ x: parseInt(r.size), y: parseFloat(r.runtime.replace(' ms', '')) }))
+                } else {
+                    label = `${algo} - ${pattern} (${metric})`
+                    points = opsResults.value
+                        .filter(r => r.algo === algo && r.pattern === pattern)
+                        .map(r => ({ x: r.size, y: r[metric] }))
+                }
 
                 // Check if already added
                 if (vizDatasets.value.some(d => d.label === label)) {
@@ -734,11 +769,7 @@
                     return
                 }
 
-                // Filter data
-                const points = results.value
-                    .filter(r => r.algo === algo && r.type === type && r.pattern === pattern && r.done && r.runtime !== '-')
-                    .map(r => ({ x: parseInt(r.size), y: parseFloat(r.runtime.replace(' ms', '')) }))
-                    .sort((a, b) => a.x - b.x)
+                points.sort((a, b) => a.x - b.x)
 
                 if (points.length === 0) {
                     alert("No data found for this configuration.")
@@ -771,6 +802,13 @@
                     fit,
                     visible: true
                 })
+
+                // Update Y-Axis Title to match the metric of the latest plot
+                if (chartInstance) {
+                    chartInstance.options.scales.y.title.text = metric === 'runtime' ? 'Runtime (ms)' : metric.charAt(0).toUpperCase() + metric.slice(1);
+                    chartInstance.update();
+                }
+
                 updateChart()
             }
 
@@ -948,7 +986,7 @@
                 sortKey, sortOrder, toggleSort, headerClass, sortIcon,
                 runFiltered, runMissing, toggleAll, deleteTest, runTest, rerunTest, showDetails,
                 // Viz
-                vizConfig, vizDatasets, addPlot, removePlot, clearVizPlots, exportChart,
+                vizConfig, vizMetric, vizDatasets, addPlot, removePlot, clearVizPlots, exportChart, toggleVisibility,
                 // Speedup
                 speedupConfig, updateSpeedupPlot, clearSpeedupPlot,
                 // Playground

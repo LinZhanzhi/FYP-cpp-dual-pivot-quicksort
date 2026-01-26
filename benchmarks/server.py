@@ -43,6 +43,31 @@ class BenchmarkHandler(http.server.SimpleHTTPRequestHandler):
                             testbeds.append(name)
             self.wfile.write(json.dumps(testbeds).encode())
             return
+        if self.path.startswith("/api/ops"):
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+
+            ops_path = os.path.join(benchmark_manager.AGGREGATE_DIR, "ops_counts.csv")
+            data = []
+            if os.path.exists(ops_path):
+                try:
+                    with open(ops_path, 'r') as f:
+                        reader = csv.DictReader(f)
+                        for row in reader:
+                            data.append({
+                                "algo": row["Algorithm"],
+                                "pattern": row["Pattern"],
+                                "size": int(row["Size"]),
+                                "comparisons": int(row["Comparisons"]),
+                                "swaps": int(row["Swaps"]),
+                                "assignments": int(row["Assignments"])
+                            })
+                except Exception as e:
+                    print(f"Error reading ops_counts.csv: {e}")
+
+            self.wfile.write(json.dumps(data).encode())
+            return
         if self.path.startswith("/api/results"):
             from urllib.parse import urlparse, parse_qs
             query = parse_qs(urlparse(self.path).query)
