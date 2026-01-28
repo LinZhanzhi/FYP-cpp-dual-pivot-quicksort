@@ -24,7 +24,7 @@ constexpr int MIN_FIRST_RUN_SIZE = 16;
 #endif
 
 #ifndef MIN_FIRST_RUNS_FACTOR
-constexpr int MIN_FIRST_RUNS_FACTOR = 7;
+constexpr int MIN_FIRST_RUNS_FACTOR = 6;
 #endif
 
 #ifndef MAX_RUN_CAPACITY

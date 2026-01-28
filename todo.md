@@ -26,6 +26,11 @@ report operations of the algorithm. making a new counting implementation that sa
     - Benchmarks on "Runs of length 32" showed Merging (37ms) was faster than Quicksort (39ms).
     - Random data performance was invariant (110ms) across values 4-64.
     - Conclusion: 16 safely enables optimization for runs >16 without penalizing random data.
-- [ ] Tune `MIN_FIRST_RUNS_FACTOR` (currently 7). Controls the density check for run detection.
+- [x] Tune `MIN_FIRST_RUNS_FACTOR`: **Updated to 6** (was 7).
+    - Benchmarks on 10M integers showed the performance crossover point is between run lengths of 32 and 64.
+    - At Run Length 64: Merge (75ms) > Quicksort (77ms).
+    - At Run Length 32: Quicksort (78ms) > Merge (82ms).
+    - Random Data (Run Length 2): Unaffected (remains on Quicksort path).
+    - Updating from 7 (limit 128) to 6 (limit 64) captures the optimization for run lengths 64-128.
 - [ ] Tune `MIN_PARALLEL_MERGE_PARTS_SIZE` (currently 4096). Controls granularity of parallel merging.
 
