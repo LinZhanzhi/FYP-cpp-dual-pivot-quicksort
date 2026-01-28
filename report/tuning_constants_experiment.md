@@ -102,3 +102,20 @@ For the larger dataset (10M), the optimal insertion sort threshold shifts slight
 
 **Confirmed Action**:
 Updated `MAX_INSERTION_SORT_SIZE` to **60**.
+
+## Verification on 1M Workload
+A final cross-verification was performed to ensure that the new global optimal constant (60), tuned for 10M elements, does not degrade performance on the smaller 1M element workload.
+
+**Workload**: Sequential sort, 1,000,000 integers.
+
+### 1M Verification Results
+| Threshold | Time (ms) | vs Baseline (32) | vs 1M-Opt (55) |
+|-----------|-----------|------------------|----------------|
+| 32 (Base) | 46.64 | - | -0.85 ms |
+| 55 (1M-Opt)| **45.79** | **-0.85 ms** | - |
+| 60 (10M-Opt)| 46.44 | -0.20 ms | +0.65 ms |
+
+**Conclusion**:
+- **Threshold 60** is robust. While it is slightly slower than the specialized 1M-optimal value (55) on small data (+0.65ms), it still outperforms the original baseline (32) (-0.20ms).
+- Crucially, 60 was the *only* value to provide gains on the larger 10M dataset, whereas 55 caused a regression.
+- Therefore, **60** is confirmed as the best overall constant for general usage, providing specific optimizations for heavy workloads without regressing on lighter ones.
