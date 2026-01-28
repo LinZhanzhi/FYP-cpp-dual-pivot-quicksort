@@ -9,13 +9,13 @@ BENCH_EXE = "./tune_merge_granularity"
 def update_constant(new_val):
     with open(CONSTANTS_FILE, 'r') as f:
         content = f.read()
-    
+
     new_content = re.sub(
         r'constexpr int MIN_PARALLEL_MERGE_PARTS_SIZE = \d+;',
         f'constexpr int MIN_PARALLEL_MERGE_PARTS_SIZE = {new_val};',
         content
     )
-    
+
     with open(CONSTANTS_FILE, 'w') as f:
         f.write(new_content)
 
@@ -40,7 +40,7 @@ def main():
     try:
         values = [128, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536]
         results = {}
-        
+
         print(f"| Value | Time (ms) |")
         print(f"|-------|-----------|")
 
