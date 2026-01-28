@@ -68,7 +68,7 @@ constexpr int DELTA = 3;
 #endif
 
 #ifndef MAX_RECURSION_DEPTH
-constexpr int MAX_RECURSION_DEPTH = 64;
+constexpr int MAX_RECURSION_DEPTH = 64 * DELTA;
 #endif
 
 #ifndef MIN_BYTE_COUNTING_SORT_SIZE
