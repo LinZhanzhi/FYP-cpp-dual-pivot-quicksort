@@ -6,7 +6,7 @@ namespace dual_pivot {
 // Constants with #ifndef guards to allow compiler flag overrides
 
 #ifndef MAX_INSERTION_SORT_SIZE
-constexpr int MAX_INSERTION_SORT_SIZE = 55;
+constexpr int MAX_INSERTION_SORT_SIZE = 60;
 #endif
 
 #ifndef MIN_PARALLEL_SORT_SIZE

@@ -80,3 +80,25 @@ The extended test confirms that **65536** is indeed the optimal threshold. Incre
 
 **Confirmed Action**:
 Retain **65536** as the optimal `MIN_PARALLEL_SORT_SIZE`.
+
+## Update: Re-tuning MAX_INSERTION_SORT_SIZE for 10M Workload
+Initial verification showed that the optimal threshold for 1M elements (55) did not perfectly scale to 10M elements (showing slight regression vs baseline 32). A specific tuning run for the 10M workload was conducted.
+
+**Workload**: Sequential sort, 10,000,000 integers.
+**Range**: 10 to 80.
+
+### 10M Results
+| Threshold | Time (ms) | Notes |
+|-----------|-----------|-------|
+| 30 | 565.69 | |
+| 35 | 564.15 | Good |
+| 45 | 572.96 | |
+| 55 | 568.70 | (1M optimal) |
+| **60** | **560.01** | **New Global Optimal** |
+| 65 | 578.61 | Degradation |
+
+**Analysis**:
+For the larger dataset (10M), the optimal insertion sort threshold shifts slightly higher to **60**. This value provided stable performance improvements over both the baseline (32) and the previous 1M-optimized value (55). Even though the curve is relatively flat, 60 consistently appeared as a local minimum.
+
+**Confirmed Action**:
+Updated `MAX_INSERTION_SORT_SIZE` to **60**.

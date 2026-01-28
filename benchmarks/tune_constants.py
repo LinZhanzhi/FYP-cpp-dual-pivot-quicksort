@@ -145,12 +145,12 @@ def tune_constant(constant_name, start, end, step, algo, size, reps):
 if __name__ == "__main__":
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
-    # 1. Base Case Tuning
-    tune_constant("MAX_INSERTION_SORT_SIZE", 10, 80, 5, "dual_pivot_sequential", 1000000, 10)
+    # 1. Base Case Tuning - Updated for 10M workload size based on feedback
+    tune_constant("MAX_INSERTION_SORT_SIZE", 10, 80, 5, "dual_pivot_sequential", 10000000, 10)
 
     # 2. Parallel Threshold Tuning - Extended Range based on feedback
     # Previous range stopped at 65536 which was the best. We need to go higher to find the U-curve bottom.
-    tune_constant("MIN_PARALLEL_SORT_SIZE", 32768, 1048576, "log", "dual_pivot_parallel_4", 10000000, 5)
+    # tune_constant("MIN_PARALLEL_SORT_SIZE", 32768, 1048576, "log", "dual_pivot_parallel_4", 10000000, 5)
 
 
 
