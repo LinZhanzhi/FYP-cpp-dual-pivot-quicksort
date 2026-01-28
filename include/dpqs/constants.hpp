@@ -13,14 +13,6 @@ constexpr int MAX_INSERTION_SORT_SIZE = 60;
 constexpr int MIN_PARALLEL_SORT_SIZE = 65536;
 #endif
 
-#ifndef COUNTING_SORT_THRESHOLD_BYTE
-constexpr int COUNTING_SORT_THRESHOLD_BYTE = 64;
-#endif
-
-#ifndef COUNTING_SORT_THRESHOLD_SHORT
-constexpr int COUNTING_SORT_THRESHOLD_SHORT = 1750;
-#endif
-
 // Missing constants added during refactoring
 
 #ifndef MIN_PARALLEL_MERGE_PARTS_SIZE
