@@ -32,5 +32,9 @@ report operations of the algorithm. making a new counting implementation that sa
     - At Run Length 32: Quicksort (78ms) > Merge (82ms).
     - Random Data (Run Length 2): Unaffected (remains on Quicksort path).
     - Updating from 7 (limit 128) to 6 (limit 64) captures the optimization for run lengths 64-128.
-- [ ] Tune `MIN_PARALLEL_MERGE_PARTS_SIZE` (currently 4096). Controls granularity of parallel merging.
+- [x] Tune `MIN_PARALLEL_MERGE_PARTS_SIZE`: **Retained 4096.**
+    - Benchmarked sorting 50M integers (in runs of 256) across threshold values [128, 65536].
+    - Performance was flat: 512 (244ms), 4096 (249ms), 65536 (251ms).
+    - While 512 was marginally faster (~2%), it increases task count and synchronization overhead by 8x.
+    - Retaining 4096 ensures lower mutex contention while providing sufficient parallelism for large arrays.
 
