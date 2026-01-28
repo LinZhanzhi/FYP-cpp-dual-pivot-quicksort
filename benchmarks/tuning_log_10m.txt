@@ -1,0 +1,22 @@
+--- Tuning MAX_INSERTION_SORT_SIZE [10, 80] step 5 ---
+Val: 10 -> 566.7676 ms (Cached)
+Val: 15 -> 567.2091 ms (Cached)
+Val: 20 -> 569.6634 ms (Cached)
+Val: 25 -> 566.9059 ms (Cached)
+Val: 30 -> 565.6907 ms (Cached)
+Val: 35 -> 564.1476 ms (Cached)
+Val: 40 -> 568.8379 ms (Cached)
+Val: 45 -> 572.9579 ms (Cached)
+Val: 50 -> 566.9094 ms (Cached)
+Val: 55 -> 568.7046 ms (Cached)
+Compiling with MAX_INSERTION_SORT_SIZE=60...
+Val: 60 -> 560.0070 ms
+Compiling with MAX_INSERTION_SORT_SIZE=65...
+Val: 65 -> 578.6063 ms
+Compiling with MAX_INSERTION_SORT_SIZE=70...
+Val: 70 -> 584.1875 ms
+Compiling with MAX_INSERTION_SORT_SIZE=75...
+Val: 75 -> 572.9056 ms
+Compiling with MAX_INSERTION_SORT_SIZE=80...
+Val: 80 -> 571.0763 ms
+Best MAX_INSERTION_SORT_SIZE: 60 (560.0070 ms)

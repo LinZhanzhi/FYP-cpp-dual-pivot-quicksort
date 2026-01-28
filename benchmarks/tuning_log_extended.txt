@@ -1,0 +1,29 @@
+--- Tuning MAX_INSERTION_SORT_SIZE [10, 80] step 5 ---
+Val: 10 -> 45.8251 ms (Cached)
+Val: 15 -> 46.4518 ms (Cached)
+Val: 20 -> 45.6694 ms (Cached)
+Val: 25 -> 46.1555 ms (Cached)
+Val: 30 -> 45.8881 ms (Cached)
+Val: 35 -> 45.5222 ms (Cached)
+Val: 40 -> 45.7118 ms (Cached)
+Val: 45 -> 45.2621 ms (Cached)
+Val: 50 -> 45.3974 ms (Cached)
+Val: 55 -> 45.2476 ms (Cached)
+Val: 60 -> 45.3367 ms (Cached)
+Val: 65 -> 46.1228 ms (Cached)
+Val: 70 -> 46.2209 ms (Cached)
+Val: 75 -> 49.1593 ms (Cached)
+Val: 80 -> 47.0511 ms (Cached)
+Best MAX_INSERTION_SORT_SIZE: 55.0 (45.2476 ms)
+--- Tuning MIN_PARALLEL_SORT_SIZE [32768, 1048576] step log ---
+Val: 32768 -> 112.3560 ms (Cached)
+Val: 65536 -> 111.3076 ms (Cached)
+Compiling with MIN_PARALLEL_SORT_SIZE=131072...
+Val: 131072 -> 114.4734 ms
+Compiling with MIN_PARALLEL_SORT_SIZE=262144...
+Val: 262144 -> 132.2456 ms
+Compiling with MIN_PARALLEL_SORT_SIZE=524288...
+Val: 524288 -> 148.8340 ms
+Compiling with MIN_PARALLEL_SORT_SIZE=1048576...
+Val: 1048576 -> 186.6924 ms
+Best MIN_PARALLEL_SORT_SIZE: 65536.0 (111.3076 ms)

@@ -1,0 +1,31 @@
+--- Tuning MAX_INSERTION_SORT_SIZE [10, 80] step 5 ---
+Compiling with MAX_INSERTION_SORT_SIZE=10...
+Val: 10 -> 45.8620 ms
+Compiling with MAX_INSERTION_SORT_SIZE=15...
+Val: 15 -> 46.2917 ms
+Compiling with MAX_INSERTION_SORT_SIZE=20...
+Val: 20 -> 46.0361 ms
+Compiling with MAX_INSERTION_SORT_SIZE=25...
+Val: 25 -> 46.2395 ms
+Compiling with MAX_INSERTION_SORT_SIZE=30...
+Val: 30 -> 45.9459 ms
+Compiling with MAX_INSERTION_SORT_SIZE=35...
+Val: 35 -> 45.8660 ms
+Compiling with MAX_INSERTION_SORT_SIZE=40...
+Val: 40 -> 46.6233 ms
+Compiling with MAX_INSERTION_SORT_SIZE=45...
+Traceback (most recent call last):
+  File "/home/lzz725/FYP/benchmarks/tune_constants.py", line 119, in <module>
+    tune_constant("MAX_INSERTION_SORT_SIZE", 10, 80, 5, "dual_pivot_sequential", 1000000, 10)
+  File "/home/lzz725/FYP/benchmarks/tune_constants.py", line 93, in tune_constant
+    if not compile_benchmark(definition):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lzz725/FYP/benchmarks/tune_constants.py", line 32, in compile_benchmark
+    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+  File "/usr/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1199, in communicate
+    stderr = self.stderr.read()
+             ^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

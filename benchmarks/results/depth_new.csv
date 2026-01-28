@@ -1,0 +1,7 @@
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+dual_pivot_sequential,int,Random,10000000,1,507.395
+dual_pivot_sequential,int,Random,10000000,2,515.883
+dual_pivot_sequential,int,Random,10000000,3,531.82
+dual_pivot_sequential,int,Random,10000000,4,544.305
+dual_pivot_sequential,int,Random,10000000,5,524.196
+dual_pivot_sequential,int,Random,10000000,Representative,507.395

@@ -1,0 +1,41 @@
+--- Tuning MAX_INSERTION_SORT_SIZE [10, 80] step 5 ---
+Val: 10 -> 45.8251 ms (Cached)
+Val: 15 -> 46.4518 ms (Cached)
+Val: 20 -> 45.6694 ms (Cached)
+Val: 25 -> 46.1555 ms (Cached)
+Val: 30 -> 45.8881 ms (Cached)
+Val: 35 -> 45.5222 ms (Cached)
+Val: 40 -> 45.7118 ms (Cached)
+Val: 45 -> 45.2621 ms (Cached)
+Compiling with MAX_INSERTION_SORT_SIZE=50...
+Val: 50 -> 45.3974 ms
+Compiling with MAX_INSERTION_SORT_SIZE=55...
+Val: 55 -> 45.2476 ms
+Compiling with MAX_INSERTION_SORT_SIZE=60...
+Val: 60 -> 45.3367 ms
+Compiling with MAX_INSERTION_SORT_SIZE=65...
+Val: 65 -> 46.1228 ms
+Compiling with MAX_INSERTION_SORT_SIZE=70...
+Val: 70 -> 46.2209 ms
+Compiling with MAX_INSERTION_SORT_SIZE=75...
+Val: 75 -> 49.1593 ms
+Compiling with MAX_INSERTION_SORT_SIZE=80...
+Val: 80 -> 47.0511 ms
+Best MAX_INSERTION_SORT_SIZE: 55 (45.2476 ms)
+--- Tuning MIN_PARALLEL_SORT_SIZE [1024, 65536] step log ---
+Compiling with MIN_PARALLEL_SORT_SIZE=1024...
+Traceback (most recent call last):
+  File "/home/lzz725/FYP/benchmarks/tune_constants.py", line 152, in <module>
+    tune_constant("MIN_PARALLEL_SORT_SIZE", 1024, 65536, "log", "dual_pivot_parallel_4", 10000000, 5)
+  File "/home/lzz725/FYP/benchmarks/tune_constants.py", line 120, in tune_constant
+    if not compile_benchmark(definition):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lzz725/FYP/benchmarks/tune_constants.py", line 32, in compile_benchmark
+    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+  File "/usr/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1199, in communicate
+    stderr = self.stderr.read()
+             ^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
