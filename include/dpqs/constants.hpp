@@ -13,18 +13,6 @@ constexpr int MAX_INSERTION_SORT_SIZE = 60;
 constexpr int MIN_PARALLEL_SORT_SIZE = 65536;
 #endif
 
-#ifndef MAX_RUN_COUNT
-constexpr int MAX_RUN_COUNT = 67;
-#endif
-
-#ifndef MAX_RUN_LENGTH
-constexpr int MAX_RUN_LENGTH = 33;
-#endif
-
-#ifndef QUICKSORT_THRESHOLD
-constexpr int QUICKSORT_THRESHOLD = 286;
-#endif
-
 #ifndef COUNTING_SORT_THRESHOLD_BYTE
 constexpr int COUNTING_SORT_THRESHOLD_BYTE = 64;
 #endif
