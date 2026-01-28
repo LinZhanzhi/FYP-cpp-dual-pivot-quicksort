@@ -19,3 +19,9 @@ report operations of the algorithm. making a new counting implementation that sa
     - Threshold 1750 correctly enables this optimization while protecting very small arrays from the 256KB table initialization cost.
     - Also validated `MIN_BYTE_COUNTING_SORT_SIZE` (64) as optimal.
 
+## Upcoming Tanning Experiments
+- [ ] **Cleanup**: Unify duplicate constants `COUNTING_SORT_THRESHOLD_BYTE` / `MIN_BYTE_COUNTING_SORT_SIZE` and `COUNTING_SORT_THRESHOLD_SHORT` / `MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE`.
+- [ ] Tune `MIN_FIRST_RUN_SIZE` (currently 16). Controls early exit for run detection.
+- [ ] Tune `MIN_FIRST_RUNS_FACTOR` (currently 7). Controls the density check for run detection.
+- [ ] Tune `MIN_PARALLEL_MERGE_PARTS_SIZE` (currently 4096). Controls granularity of parallel merging.
+

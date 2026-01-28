@@ -1,0 +1,9 @@
+Type,Threshold,Time(ms)
+Short,500,183
+Short,1000,190
+Short,1500,183
+Short,1750,185
+Short,2000,184
+Short,2500,245
+Short,3000,241
+Short,4000,241
