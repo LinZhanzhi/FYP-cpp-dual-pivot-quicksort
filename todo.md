@@ -14,5 +14,8 @@ report operations of the algorithm. making a new counting implementation that sa
     - Benchmarks (20 runs x 10M ints) showed a slight improvement (110ms -> 109ms).
     - Unifies the insertion sort entry threshold across the algorithm.
     - Higher values (65+) caused regression (113ms).
-- [ ] Tune `MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE` (currently 1750).
+- [x] Tune `MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE`: **Retained 1750**.
+    - Experiments confirmed that for `short` arrays of size 2000, Counting Sort (185ms) is ~32% faster than Quicksort (245ms).
+    - Threshold 1750 correctly enables this optimization while protecting very small arrays from the 256KB table initialization cost.
+    - Also validated `MIN_BYTE_COUNTING_SORT_SIZE` (64) as optimal.
 
