@@ -44,7 +44,7 @@ constexpr int MIN_RUN_COUNT = 5;
 #endif
 
 #ifndef MAX_MIXED_INSERTION_SORT_SIZE
-constexpr int MAX_MIXED_INSERTION_SORT_SIZE = 48;
+constexpr int MAX_MIXED_INSERTION_SORT_SIZE = 60;
 #endif
 
 #ifndef MIN_TRY_MERGE_SIZE

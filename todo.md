@@ -10,6 +10,9 @@ report operations of the algorithm. making a new counting implementation that sa
     - Tested higher values (up to 1000). While 600 was slightly faster for random data (105ms), it caused a **20% regression** on small sorted arrays (size 500) by skipping the O(N) run merger optimization.
     - Conclusion: 286 is the optimal safe balance.
 - [x] Cleanup dead/legacy constants: Removed `QUICKSORT_THRESHOLD` (286), `MAX_RUN_COUNT` (67), `MAX_RUN_LENGTH` (33) as they were unused in the C++ implementation.
-- [ ] Tune `MAX_MIXED_INSERTION_SORT_SIZE` (currently 48). Compare against the tuned `MAX_INSERTION_SORT_SIZE` (60).
+- [x] Tune `MAX_MIXED_INSERTION_SORT_SIZE`: **Updated to 60** (Matches `MAX_INSERTION_SORT_SIZE`).
+    - Benchmarks (20 runs x 10M ints) showed a slight improvement (110ms -> 109ms).
+    - Unifies the insertion sort entry threshold across the algorithm.
+    - Higher values (65+) caused regression (113ms).
 - [ ] Tune `MIN_SHORT_OR_CHAR_COUNTING_SORT_SIZE` (currently 1750).
 
