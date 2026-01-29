@@ -71,7 +71,24 @@ A smoke test was conducted using the `benchmark_runner_adaptive` binary.
 *   **Result**: Successful execution in ~14ms.
 *   **Observation**: The system remained stable. The atomic load instruction overhead was negligible.
 
-## 5. Future Work
+## 5. Scaling Performance Analysis
+
+Following the smoke test, a full benchmark was run on a 10,000,000 integer dataset (Pattern: RANDOM, Type: int32) to evaluate scaling efficiency with the new adaptive threshold.
+
+| Threads | Time (ms) | Speedup vs Seq | Efficiency | Implications |
+|---------|-----------|----------------|------------|--------------|
+| 1       | 486.75    | 1.00x          | 100%       | Baseline (Sequential) |
+| 2       | 265.14    | 1.84x          | 92%        | Near-linear scaling |
+| 4       | 165.31    | 2.94x          | 74%        | Good scaling, overhead minimal |
+| 8       | 120.96    | 4.02x          | 50%        | Diminishing returns (Bandwidth limit?) |
+| 16      | 110.42    | 4.41x          | 28%        | Saturation. Adaptive threshold active. |
+
+**Analysis:**
+The adaptive granularity successfully prevented performance regression at 16 threads (where "negative scaling" was previously a risk). However, the speedup plateauing between 8 and 16 threads (4.02x $\to$ 4.41x) confirms that simply reducing scheduler overhead is not enough. The system is likely hitting the **Memory Wall**.
+*   The transition from 8 $\to$ 16 threads yields only ~9% performance gain.
+*   This strongly validates the need for the next planned optimization: **Memory-Aware Scheduling** or **Vectorized Partitioning** to address bandwidth efficiency rather than just thread management.
+
+## 6. Future Work
 
 *   **Tune Multiplier**: The saturation multiplier (currently 4x) should be empirically tuned across different hardware (e.g., 64-core server vs. 4-core laptop).
 *   **Linear Scaling**: Investigating if a graduated threshold (e.g.,  \propto Load$) offers smoother performance than the current binary switch.
