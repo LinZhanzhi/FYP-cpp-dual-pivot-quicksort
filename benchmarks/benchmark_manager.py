@@ -227,13 +227,16 @@ def run_ops_counting():
     # All sizes
     sizes = SIZES
 
-    print(f"Running Operation Counting for {len(algos)} algos, {len(patterns)} patterns, {len(sizes)} sizes.")
+    # All types
+    types = TYPES
+
+    print(f"Running Operation Counting for {len(algos)} algos, {len(types)} types, {len(patterns)} patterns, {len(sizes)} sizes.")
 
     # Check if header exists in OPS_RESULT_FILE
     if not os.path.exists(OPS_RESULT_FILE):
         os.makedirs(os.path.dirname(OPS_RESULT_FILE), exist_ok=True)
         with open(OPS_RESULT_FILE, 'w') as f:
-            f.write("Algorithm,Pattern,Size,Comparisons,Swaps,Assignments\n")
+            f.write("Algorithm,Type,Pattern,Size,Comparisons,Swaps,Assignments\n")
 
     # Read first to avoid duplicates
     existing_keys = set()
@@ -241,51 +244,51 @@ def run_ops_counting():
         with open(OPS_RESULT_FILE, 'r') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                existing_keys.add((row['Algorithm'], row['Pattern'], int(row['Size'])))
+                existing_keys.add((row['Algorithm'], row['Type'], row['Pattern'], int(row['Size'])))
 
     for algo in algos:
-        for pattern in patterns:
-            for size in sizes:
-                if (algo, pattern, size) in existing_keys:
-                    # Optional: Uncomment to see skips
-                    # print(f"Skipping {algo} {pattern} {size} (Exists)")
-                    continue
+        for type_ in types:
+            for pattern in patterns:
+                for size in sizes:
+                    if (algo, type_, pattern, size) in existing_keys:
+                        # Optional: Uncomment to see skips
+                        # print(f"Skipping {algo} {type_} {pattern} {size} (Exists)")
+                        continue
 
-                print(f"Counting {algo} {pattern} {size}...")
+                    print(f"Counting {algo} {type_} {pattern} {size}...")
 
-                cmd = []
-                if sys.platform == "win32":
-                     # Assuming typical WSL mapping if needed, or rely on caller
-                     cmd = ["wsl", f"{WSL_BASE_DIR}/build/count_ops_runner"]
-                else:
-                    cmd = [RUNNER_COUNT]
+                    cmd = []
+                    if sys.platform == "win32":
+                         # Assuming typical WSL mapping if needed, or rely on caller
+                         cmd = ["wsl", f"{WSL_BASE_DIR}/build/count_ops_runner"]
+                    else:
+                        cmd = [RUNNER_COUNT]
 
-                cmd.extend([
-                    "--size", str(size),
-                    "--pattern", pattern,
-                    "--algo", algo
-                ])
+                    cmd.extend([
+                        "--size", str(size),
+                        "--pattern", pattern,
+                        "--algo", algo,
+                        "--type", type_
+                    ])
 
-                try:
-                    res = subprocess.run(cmd, capture_output=True, text=True, check=True)
-                    output = res.stdout.strip()
-                    # Output is "comparisons,swaps,assignments"
-                    if "," in output:
-                        parts = output.split(',')
-                        if len(parts) == 3:
-                            comps, swaps, assigns = parts
-                            with open(OPS_RESULT_FILE, 'a') as f:
-                                f.write(f"{algo},{pattern},{size},{comps},{swaps},{assigns}\n")
-                        else:
-                             print(f"Error parsing output (parts): {output}")
-                except subprocess.CalledProcessError as e:
-                    print(f"Error running {algo} {pattern} {size}: {e}")
+                    try:
+                        res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                        output = res.stdout.strip()
+                        # Output is "comparisons,swaps,assignments"
+                        if "," in output:
+                            parts = output.split(',')
+                            if len(parts) == 3:
+                                comps, swaps, assigns = parts
+                                with open(OPS_RESULT_FILE, 'a') as f:
+                                    f.write(f"{algo},{type_},{pattern},{size},{comps},{swaps},{assigns}\n")
+                            else:
+                                 print(f"Error parsing output (parts): {output}")
+                    except subprocess.CalledProcessError as e:
+                        print(f"Error running {algo} {type_} {pattern} {size}: {e}")
 
 if __name__ == "__main__":
     if "--count-ops" in sys.argv:
         run_ops_counting()
     else:
         # Default behavior: Run standard benchmarks
-        # Create an instance and run
-        manager = BenchmarkManager(AGGREGATE_DIR)
-        manager.run_tests()
+        run_benchmark()

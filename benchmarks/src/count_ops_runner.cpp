@@ -4,9 +4,20 @@
 #include <map>
 #include <numeric>
 #include <algorithm>
+#include <cstdlib>
 #include "dual_pivot_quicksort.hpp"
 #include "data_generator.hpp"
 #include "instrumented.hpp"
+
+// Comparator for qsort with Instrumented<T>
+template <typename T>
+int compare_instrumented(const void* a, const void* b) {
+    const auto* x = static_cast<const Instrumented<T>*>(a);
+    const auto* y = static_cast<const Instrumented<T>*>(b);
+    if (*x < *y) return -1;
+    if (*y < *x) return 1;
+    return 0;
+}
 
 // Argument parsing
 std::map<std::string, std::string> parse_args(int argc, char* argv[]) {
@@ -47,13 +58,36 @@ int main(int argc, char* argv[]) {
     size_t size = std::stoull(args["size"]);
     std::string pattern_str = args["pattern"];
     std::string algo = args["algo"];
+    std::string type_str = (args.find("type") != args.end()) ? args["type"] : "int";
 
-    // We only support dual_pivot_sequential logic here for counting.
-    // If user passed std_sort, we technically could support it if we wrap it.
-    // But for now let's focus on checking *our* algorithm's counts.
+    if (type_str == "double") {
+        auto raw_data = benchmark_data::generate_data<double>(size, get_pattern(pattern_str));
+        std::vector<Instrumented<double>> data;
+        data.reserve(size);
+        for (auto x : raw_data) data.emplace_back(x);
 
-    // Generate raw data
-    // Use int as standard proxy for operations count
+        Instrumented<double>::reset();
+
+        int parallelism = 0;
+        if (algo.find("dual_pivot_parallel_") == 0) {
+            try { parallelism = std::stoi(algo.substr(20)); } catch (...) { parallelism = 0; }
+        }
+
+        if (algo == "std_sort") {
+            std::sort(data.begin(), data.end());
+        } else if (algo == "std_stable_sort") {
+            std::stable_sort(data.begin(), data.end());
+        } else if (algo == "qsort") {
+            std::qsort(data.data(), data.size(), sizeof(Instrumented<double>), compare_instrumented<double>);
+        } else {
+            dual_pivot::sort(data.data(), parallelism, 0, data.size(), std::less<Instrumented<double>>());
+        }
+
+        std::cout << Instrumented<double>::comparisons << "," << Instrumented<double>::swaps << "," << Instrumented<double>::assignments << std::flush;
+        return 0;
+    }
+
+    // Default to int
     auto raw_data = benchmark_data::generate_data<int>(size, get_pattern(pattern_str));
 
     // Convert to Instrumented
@@ -82,6 +116,8 @@ int main(int argc, char* argv[]) {
         std::sort(data.begin(), data.end());
     } else if (algo == "std_stable_sort") {
         std::stable_sort(data.begin(), data.end());
+    } else if (algo == "qsort") {
+        std::qsort(data.data(), data.size(), sizeof(Instrumented<int>), compare_instrumented<int>);
     } else {
         // Default to dual pivot (sequential or parallel based on algo string)
         dual_pivot::sort(data.data(), parallelism, 0, data.size(), std::less<Instrumented<int>>());
