@@ -91,7 +91,7 @@ class BenchmarkManager:
 
     def get_needed_iterations(self, algo, type_, pattern, size):
         existing = len(self.results_cache[(algo, type_, pattern, size)])
-        return max(0, 30 - existing)
+        return max(0, 10 - existing)
 
     def save_results(self, algo, type_, pattern, size, times):
         if not times:
