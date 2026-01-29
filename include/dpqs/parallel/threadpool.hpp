@@ -111,6 +111,11 @@ public:
             workers.emplace_back([this, i, num_threads] {
                 thread_index = static_cast<int>(i);
 
+                // Memory-Awareness: Sticky Victim Strategy
+                // We remember the last successful victim.
+                // Rationale: If a thread has one task, it likely has more from the same subtree (data locality).
+                size_t last_victim = (i + 1) % num_threads;
+
                 while (!stop) {
                     std::function<void()> task;
                     bool found = false;
@@ -123,12 +128,18 @@ public:
                     // 2. Try Steal (FIFO)
                     else {
                         steal_attempts++;
-                        // Random victim selection strategy
-                        for (size_t offset = 1; offset < num_threads; ++offset) {
-                            size_t victim = (i + offset) % num_threads;
+                        
+                        // Scan for victims starting from the LAST successful victim (Sticky)
+                        for (size_t k = 0; k < num_threads; ++k) {
+                            // Calculate via offset from last_victim to maintain cycle
+                            size_t victim = (last_victim + k) % num_threads;
+                            
+                            if (victim == i) continue; // Don't steal from self
+                            
                             if (queues[victim]->try_steal(task)) {
                                 found = true;
                                 steal_successes++;
+                                last_victim = victim; // STICK to this victim for next time
                                 break;
                             }
                         }

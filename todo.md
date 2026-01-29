@@ -4,7 +4,8 @@
 While the Work-Stealing implementation successfully enables parallel scaling, analysis identifies key areas for future optimization:
 
 - [x] **Grain Size Tuning**: The current static threshold (4096) is effective but rigid. Implemented adaptive granularity, dynamically adjusting the threshold based on current system load (queue depth) to balance overhead vs. load balancing.
-- [ ] **Memory-Aware Scheduling**: To address the bandwidth bottlenecks identified in Section 8.3.2, the scheduler could be enhanced to favor cache-affine task stealing (stealing tasks that operate on adjacent memory regions) rather than random victim selection.
+- [x] **Memory-Aware Scheduling**: To address the bandwidth bottlenecks identified in Section 8.3.2, the scheduler could be enhanced to favor cache-affine task stealing (stealing tasks that operate on adjacent memory regions) rather than random victim selection.
+    *   *Implementation:* Added "Sticky Victim" strategy (workers default to stealing from the last successful victim to preserve locality).
 - [ ] **Hybrid Parallelism**: Exploring a hybrid model that switches between "Work Stealing" (for load balancing) and "Static Partitioning" (for strict data locality) during the deeper recursion levels where L2/L3 cache misses become dominant.
 
 ## 8.2. Advanced Optimizations
