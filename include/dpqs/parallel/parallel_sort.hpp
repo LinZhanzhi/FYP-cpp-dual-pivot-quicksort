@@ -93,10 +93,22 @@ template<typename T, typename Compare>
 void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp) {
     // std::cout << "Task: " << low << "-" << high << std::endl;
 
+    // Adaptive Granularity:
+    // If the system is saturated with tasks (queued work > 4 * thread_count),
+    // increase the sequential threshold to prevent over-decomposition and reduce queue contention.
+    auto& pool = getThreadPool();
+    long active_tasks = pool.get_active_task_count();
+    size_t num_threads = pool.get_thread_count();
+    
+    std::ptrdiff_t threshold = MIN_PARALLEL_SORT_SIZE;
+    if (active_tasks > static_cast<long>(num_threads * 4)) {
+        threshold *= 2; // Double the threshold (e.g., 4096 -> 8192) to force earlier sequential fallback
+    }
+
     // Core Loop: Continue iteratively as long as the segment is large enough specific parallel handling.
     // Ideally, we process the smallest segment in this loop (Tail Call Elimination equivalent)
     // while pushing larger segments to the thread pool.
-    while (high - low > MIN_PARALLEL_SORT_SIZE) {
+    while (high - low > threshold) {
         std::ptrdiff_t size = high - low; // Size of the current range
         std::ptrdiff_t end = high - 1;    // Inclusive index of the last element
 
@@ -215,7 +227,7 @@ void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high,
     }
 
     // Process remainder sequentially.
-    // Once the segment size drops below MIN_PARALLEL_SORT_SIZE, we stop parallelizing
+    // Once the segment size drops below threshold, we stop parallelizing
     // and just run standard Sequential Dual-Pivot Quicksort.
     sort_sequential<T, Compare>(nullptr, a, bits, low, high, comp);
 }

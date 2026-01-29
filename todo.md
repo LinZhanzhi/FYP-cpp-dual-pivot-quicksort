@@ -3,9 +3,9 @@
 ## 8.1. Parallelization Refinement
 While the Work-Stealing implementation successfully enables parallel scaling, analysis identifies key areas for future optimization:
 
-*   **Grain Size Tuning**: The current static threshold (4096) is effective but rigid. Future work will investigate adaptive granularity, dynamically adjusting the threshold based on current system load (queue depth) to balance overhead vs. load balancing.
-*   **Memory-Aware Scheduling**: To address the bandwidth bottlenecks identified in Section 8.3.2, the scheduler could be enhanced to favor cache-affine task stealing (stealing tasks that operate on adjacent memory regions) rather than random victim selection.
-*   **Hybrid Parallelism**: Exploring a hybrid model that switches between "Work Stealing" (for load balancing) and "Static Partitioning" (for strict data locality) during the deeper recursion levels where L2/L3 cache misses become dominant.
+- [x] **Grain Size Tuning**: The current static threshold (4096) is effective but rigid. Implemented adaptive granularity, dynamically adjusting the threshold based on current system load (queue depth) to balance overhead vs. load balancing.
+- [ ] **Memory-Aware Scheduling**: To address the bandwidth bottlenecks identified in Section 8.3.2, the scheduler could be enhanced to favor cache-affine task stealing (stealing tasks that operate on adjacent memory regions) rather than random victim selection.
+- [ ] **Hybrid Parallelism**: Exploring a hybrid model that switches between "Work Stealing" (for load balancing) and "Static Partitioning" (for strict data locality) during the deeper recursion levels where L2/L3 cache misses become dominant.
 
 ## 8.2. Advanced Optimizations
 Beyond threading refinements, several low-level optimizations are planned to mitigate the hardware limits associated with the "Memory Wall":
