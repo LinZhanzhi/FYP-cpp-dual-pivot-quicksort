@@ -64,23 +64,29 @@ By sticking to a single victim until it is empty, the thief thread is more likel
 ### 3.2. Reduced Contention
 Random stealing spreads contention across all queues. "Sticky" stealing tends to pair thieves with victims for longer durations. This can reduce the coherence traffic on the queue locks themselves, as a thief isn't constantly checking (and invalidating cache lines for) every other thread's mutex.
 
-## 4. Initial Verification
+## 4. Benchmark Verification (10M Integers)
 
-A preliminary smoke test was conducted to ensure stability and functionality.
+After a full benchmark run on a 10,000,000 integer dataset (Pattern: RANDOM, Type: int32), we observed the following scaling behavior with **Adaptive Granularity + Memory-Aware Scheduling** enabled.
 
-*   **Test**: 1,000,000 Integers (Random), 4 Threads.
-*   **Metric**: Execution Time (Representative).
-*   **Result**:
-    *   *Adaptive Only*: ~14.34ms
-    *   *Adaptive + Memory Aware*: ~13.55ms
-*   **Improvement**: ~5.5% speedup on small data.
+| Threads | Time (ms) | Speedup vs Seq | Efficiency | Comparison (Previous) |
+|---------|-----------|----------------|------------|-----------------------|
+| 1       | 486.75    | 1.00x          | 100%       | -                     |
+| 2       | 261.21    | 1.86x          | 93%        | Slightly faster (was 265.14ms) |
+| 4       | 165.22    | 2.95x          | 74%        | Identical (was 165.31ms)       |
+| 8       | 119.79    | 4.06x          | 51%        | Marginal gain (was 120.96ms)   |
+| 16      | 110.43    | 4.41x          | 28%        | No change (was 110.42ms)       |
 
-While 5% is modest, it is significant for a simple heuristic change. The primary benefits are expected to scale better on larger datasets (100M+) where memory bandwidth is the primary bottleneck.
+### Analysis of Results
+The **Sticky Victim** strategy demonstrated:
+1.  **Low Thread Count (2-4)**: A slight improvement at 2 threads (~1.5%), suggesting that simplified victim selection helps slightly even with low contention.
+2.  **High Thread Count (16)**: **Zero impact**. The execution time at 16 threads remained exactly stable (~110ms).
+
+This indicates that simply "remembering" the victim thread is **insufficient** to overcome the Memory Wall at 16 threads. The bottlenecks at this scale are likely too severe for simple scheduling heuristics to fix. The "Sticky" strategy may be keeping a thief at a victim too long even after that victim has moved to a different part of the memory space, or the underlying hardware bandwidth is simply fully saturated regardless of access pattern.
 
 ## 5. Conclusion & Next Steps
 
-The "Sticky Victim" strategy has been successfully integrated into the logic. It provides a zero-cost optimization that aligns task scheduling with the physical reality of memory hierarchies.
+While "Memory-Aware Scheduling" via Sticky Victims was theoretically sound and cost-free to implement, it yielded **neutral results** at the bottleneck point (16 threads). It effectively serves as a cleanup/modernization of the scheduler but is not the "silver bullet" for scaling.
 
-**Next Steps:**
-1.  **Full Benchmark**: Re-run the scaling analysis (1M, 10M, 100M) to quantify the impact at 16 threads.
-2.  **Hybrid Approach**: If scaling limitation persists, we will move to the final planned optimization: **Hybrid Parallelism** (switching to static partitioning for leaf nodes).
+**Decision:**
+The plateau at ~4.4x speedup (on 16 cores) remains the critical hurdle.
+We must proceed to **Hybrid Parallelism (Static Partitioning)**. Switching to a completely different model (Static Partitioning) at the leaves will eliminate the thread pool overhead entirely for the majority of the work, which is the only remaining way to bypass the locking bottlenecks.
