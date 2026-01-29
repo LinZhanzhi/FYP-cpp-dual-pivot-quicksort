@@ -95,7 +95,7 @@ public:
     long get_steal_successes() const { return steal_successes; }
     long get_local_pops() const { return local_pops; }
     size_t get_thread_count() const { return workers.size(); }
-    
+
     // Heuristic for Adaptive Granularity
     long get_active_task_count() const {
         return incomplete_tasks.load(std::memory_order_relaxed);

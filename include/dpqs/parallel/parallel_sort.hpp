@@ -99,7 +99,7 @@ void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high,
     auto& pool = getThreadPool();
     long active_tasks = pool.get_active_task_count();
     size_t num_threads = pool.get_thread_count();
-    
+
     std::ptrdiff_t threshold = MIN_PARALLEL_SORT_SIZE;
     if (active_tasks > static_cast<long>(num_threads * 4)) {
         threshold *= 2; // Double the threshold (e.g., 4096 -> 8192) to force earlier sequential fallback
