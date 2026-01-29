@@ -128,14 +128,14 @@ public:
                     // 2. Try Steal (FIFO)
                     else {
                         steal_attempts++;
-                        
+
                         // Scan for victims starting from the LAST successful victim (Sticky)
                         for (size_t k = 0; k < num_threads; ++k) {
                             // Calculate via offset from last_victim to maintain cycle
                             size_t victim = (last_victim + k) % num_threads;
-                            
+
                             if (victim == i) continue; // Don't steal from self
-                            
+
                             if (queues[victim]->try_steal(task)) {
                                 found = true;
                                 steal_successes++;
