@@ -10,13 +10,13 @@ constexpr int MAX_INSERTION_SORT_SIZE = 60;
 #endif
 
 #ifndef MIN_PARALLEL_SORT_SIZE
-constexpr int MIN_PARALLEL_SORT_SIZE = 65536;
+constexpr int MIN_PARALLEL_SORT_SIZE = 8192;
 #endif
 
 // Missing constants added during refactoring
 
 #ifndef MIN_PARALLEL_MERGE_PARTS_SIZE
-constexpr int MIN_PARALLEL_MERGE_PARTS_SIZE = 4096;
+constexpr int MIN_PARALLEL_MERGE_PARTS_SIZE = 8192;
 #endif
 
 #ifndef MIN_FIRST_RUN_SIZE

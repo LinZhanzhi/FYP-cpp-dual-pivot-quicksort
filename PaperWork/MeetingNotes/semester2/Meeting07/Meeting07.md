@@ -3,7 +3,7 @@
 **Date:** 2026-01-29
 **Time:** 14:00 - 14:30
 **Location:** Supervision Office / Online
-**Attendees:** LZZ725, Supervisor
+**Attendees:** LIN Zhanzhi, CAO Yixin (Supervisor)
 
 ## 1. Objectives
 *   Review the implementation of the "Adaptive Granularity" optimization (Grain Size Tuning).

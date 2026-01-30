@@ -105,6 +105,14 @@ void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high,
         threshold *= 2; // Double the threshold (e.g., 4096 -> 8192) to force earlier sequential fallback
     }
 
+    // Hybrid Parallelism: Depth Cutoff (Static Partitioning at Leaves)
+    // If recursion depth exceeds a limit, switch to strictly sequential sort.
+    // This keeps the remaining subtree on this thread, maximizing L1/L2 cache locality.
+    if (bits > 20 * DELTA) {
+        sort_sequential<T, Compare>(nullptr, a, bits, low, high, comp);
+        return;
+    }
+
     // Core Loop: Continue iteratively as long as the segment is large enough specific parallel handling.
     // Ideally, we process the smallest segment in this loop (Tail Call Elimination equivalent)
     // while pushing larger segments to the thread pool.
