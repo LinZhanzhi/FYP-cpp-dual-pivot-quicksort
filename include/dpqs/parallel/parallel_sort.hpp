@@ -189,31 +189,17 @@ void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high,
             // Submit largest 2 ranges to pool
             auto& pool = getThreadPool();
 
-            // Prepare tasks directly
-            SortTask t1, t2;
-            t1.array_ptr = (void*)a; t1.low = ranges[0].l; t1.high = ranges[0].h; t1.bits = bits | 1;
-            t1.set_comparator(comp);
-            t1.executor = [](SortTask& t) {
-                parallel_sort_task<T, Compare>(static_cast<T*>(t.array_ptr), t.bits, t.low, t.high, t.get_comparator<Compare>());
-            };
-
-            t2.array_ptr = (void*)a; t2.low = ranges[1].l; t2.high = ranges[1].h; t2.bits = bits | 1;
-            t2.set_comparator(comp);
-            t2.executor = [](SortTask& t) {
-                parallel_sort_task<T, Compare>(static_cast<T*>(t.array_ptr), t.bits, t.low, t.high, t.get_comparator<Compare>());
-            };
+            // Capture values explicitly to avoid array lifetime issues or reference decay
+            std::ptrdiff_t r0_l = ranges[0].l, r0_h = ranges[0].h;
+            std::ptrdiff_t r1_l = ranges[1].l, r1_h = ranges[1].h;
 
             // Enqueue largest tasks
-            if (!pool.enqueue_task(t1)) {
-                // Buffer full -> Run synchronously
-                parallel_sort_task(a, bits | 1, ranges[0].l, ranges[0].h, comp);
-            }
-            if (!pool.enqueue_task(t2)) {
-                parallel_sort_task(a, bits | 1, ranges[1].l, ranges[1].h, comp);
-            }
+            pool.submit([=]{ parallel_sort_task(a, bits | 1, r0_l, r0_h, comp); });
+            pool.submit([=]{ parallel_sort_task(a, bits | 1, r1_l, r1_h, comp); });
 
             // LOOP OPTIMIZATION (Recursion depth capping):
             // The current thread ITERATES on the smallest range (ranges[2]).
+            // This replaces a recursive call with a loop, keeping stack usage logarithmic.
             low = ranges[2].l;
             high = ranges[2].h;
 
@@ -234,33 +220,13 @@ void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high,
             // "Push Larger, Iterate Smaller" Strategy for Single Pivot case
             if (left_size > right_size) {
                 // Left is bigger -> Push to pool
-                SortTask t;
-                t.array_ptr = (void*)a; t.low = low; t.high = lower; t.bits = bits | 1;
-                t.set_comparator(comp);
-                t.executor = [](SortTask& t) {
-                    parallel_sort_task<T, Compare>(static_cast<T*>(t.array_ptr), t.bits, t.low, t.high, t.get_comparator<Compare>());
-                };
-
-                if (!pool.enqueue_task(t)) {
-                    parallel_sort_task(a, bits | 1, low, lower, comp);
-                }
-
+                pool.submit([=]{ parallel_sort_task(a, bits | 1, low, lower, comp); });
                 // Iterate on Right (smaller)
                 low = upper + 1;
                 // high remains high
             } else {
                 // Right is bigger -> Push to pool
-                SortTask t;
-                t.array_ptr = (void*)a; t.low = upper + 1; t.high = high; t.bits = bits | 1;
-                t.set_comparator(comp);
-                t.executor = [](SortTask& t) {
-                    parallel_sort_task<T, Compare>(static_cast<T*>(t.array_ptr), t.bits, t.low, t.high, t.get_comparator<Compare>());
-                };
-
-                if (!pool.enqueue_task(t)) {
-                    parallel_sort_task(a, bits | 1, upper + 1, high, comp);
-                }
-
+                pool.submit([=]{ parallel_sort_task(a, bits | 1, upper + 1, high, comp); });
                 // Iterate on Left (smaller)
                 high = lower;
                 // low remains low
@@ -277,31 +243,8 @@ void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high,
 template<typename T, typename Compare>
 void parallelQuickSort(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp, int parallelism = 0) {
     auto& pool = getThreadPool(parallelism);
-
-    // Construct root task
-    SortTask root_task;
-    root_task.array_ptr = (void*)a;
-    root_task.low = low;
-    root_task.high = high;
-    root_task.bits = bits;
-    root_task.set_comparator(comp);
-
-    // Static wrapper function
-    root_task.executor = [](SortTask& t) {
-        parallel_sort_task<T, Compare>(
-            static_cast<T*>(t.array_ptr),
-            t.bits,
-            t.low,
-            t.high,
-            t.get_comparator<Compare>()
-        );
-    };
-
-    // Initial submission
-    if (!pool.enqueue_task(root_task)) {
-        root_task.executor(root_task);
-    }
-
+    // Initial task submission: The entire array is one task.
+    pool.submit([=]{ parallel_sort_task(a, bits, low, high, comp); });
     // Wait for all tasks to complete (barrier).
     pool.wait_for_completion();
 }

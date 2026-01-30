@@ -47,24 +47,9 @@ public:
         completion_cv.wait(lock, [this]{ return completed; });
     }
 
-    static void completer_trampoline(SortTask& task) {
-        auto* self = static_cast<CountedCompleter*>(task.array_ptr);
-        self->invoke();
-    }
-
     void fork() {
         auto& pool = getThreadPool();
-        SortTask task;
-        task.executor = &completer_trampoline;
-        task.array_ptr = this;
-        // Zero out unused fields
-        task.low = 0;
-        task.high = 0;
-        task.bits = 0;
-
-        if (!pool.enqueue_task(task)) {
-            invoke();
-        }
+        pool.submit([this]() { invoke(); });
     }
 
     // Enhanced completion with proper propagation (matching Java's sophistication)

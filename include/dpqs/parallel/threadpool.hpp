@@ -7,12 +7,10 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <functional>
 #include <atomic>
 #include <random>
 #include <chrono>
-
-#include <cstring>
-#include <new>
 
 namespace dual_pivot {
 
@@ -21,100 +19,48 @@ namespace dual_pivot {
 inline thread_local int thread_index = -1;
 
 /**
- * @brief High-Performance Task Struct
- * Designed to fit in a cache line (64 bytes) and avoid dynamic allocation.
- * Replaces std::function for sorting tasks.
- */
-struct SortTask {
-    using ExecuteFunc = void (*)(SortTask&);
-
-    ExecuteFunc executor;           // 8 bytes
-    void* array_ptr;                // 8 bytes (pointer to T)
-    std::ptrdiff_t low;             // 8 bytes
-    std::ptrdiff_t high;            // 8 bytes
-    int bits;                       // 4 bytes
-    // 36 bytes used.
-
-    // Inline storage for the Comparator object.
-    // Most comparators are 1 byte (empty struct). Stateful ones fit here.
-    // If a comparator is larger than 24 bytes, we can't support it in parallel mode without alloc.
-    static constexpr size_t STORAGE_SIZE = 24;
-    alignas(8) std::byte comparator_storage[STORAGE_SIZE];
-
-    // Helper to constructing
-    template <typename Compare>
-    void set_comparator(const Compare& comp) {
-        static_assert(sizeof(Compare) <= STORAGE_SIZE, "Comparator too large for manual task storage");
-        new (comparator_storage) Compare(comp);
-    }
-
-    template <typename Compare>
-    Compare& get_comparator() {
-        return *reinterpret_cast<Compare*>(comparator_storage);
-    }
-};
-
-/**
- * @brief Work Stealing Thread Pool (V4 - Ring Buffer & Explicit Memory)
+ * @brief Work Stealing Thread Pool (V3)
  *
- * Implements a distributed queue architecture using fixed-size Ring Buffers.
- * - Eliminates all dynamic allocation during the sort.
- * - Uses a lightweight Task struct instead of std::function.
- * - Provides fallback to synchronous execution when queues are full.
+ * Implements a distributed queue architecture where each thread has its own
+ * double-ended queue (deque).
+ * - Owner pushes/pops from bottom (LIFO) for cache locality.
+ * - Thieves steal from top (FIFO) to take largest tasks.
+ * - Eliminates global mutex contention.
  */
 class ThreadPool {
 private:
-    // Fixed capacity per thread.
-    // 8192 is large enough for deep recursion but small enough to fit in L3 cache partitions.
-    static constexpr size_t RING_CAPACITY = 8192;
-
     struct WorkStealingQueue {
-        std::vector<SortTask> buffer;
-        std::mutex mtx; // Protects this queue
+        std::deque<std::function<void()>> q;
+        std::mutex mtx; // Protects ONLY this specific queue
 
-        // Circular Buffer Indices
-        // Owner pushes/pops at 'bottom'
-        // Thieves steal from 'top'
-        size_t top = 0;
-        size_t bottom = 0;
-        size_t count = 0;
-
-        WorkStealingQueue() : buffer(RING_CAPACITY) {}
-
-        // Push to bottom (Owner only)
-        bool push(const SortTask& task) {
+        // Push a task to the bottom (Owner only)
+        void push(std::function<void()> task) {
             std::lock_guard<std::mutex> lock(mtx);
-            if (count >= RING_CAPACITY) return false;
+            q.push_back(std::move(task));
+        }
 
-            buffer[bottom] = task; // Copy task data
-            bottom = (bottom + 1) % RING_CAPACITY;
-            count++;
+        // Pop from bottom (Owner only)
+        bool try_pop(std::function<void()>& task) {
+            std::lock_guard<std::mutex> lock(mtx);
+            if (q.empty()) return false;
+            task = std::move(q.back()); // LIFO
+            q.pop_back();
             return true;
         }
 
-        // Pop from bottom (Owner only - LIFO)
-        bool try_pop(SortTask& task) {
-            std::lock_guard<std::mutex> lock(mtx);
-            if (count == 0) return false;
-
-            // Decrement bottom cyclically
-            if (bottom == 0) bottom = RING_CAPACITY - 1;
-            else bottom--;
-
-            task = buffer[bottom];
-            count--;
-            return true;
-        }
-
-        // Steal from top (Thieves - FIFO)
-        bool try_steal(SortTask& task) {
+        // Steal from top (Thieves only)
+        bool try_steal(std::function<void()>& task) {
+            // CRITICAL: Use try_lock to avoid blocking on contention
             std::unique_lock<std::mutex> lock(mtx, std::try_to_lock);
-            if (!lock || count == 0) return false;
-
-            task = buffer[top];
-            top = (top + 1) % RING_CAPACITY;
-            count--;
+            if (!lock || q.empty()) return false;
+            task = std::move(q.front()); // FIFO
+            q.pop_front();
             return true;
+        }
+
+        bool empty() {
+            std::lock_guard<std::mutex> lock(mtx);
+            return q.empty();
         }
     };
 
@@ -171,7 +117,7 @@ public:
                 size_t last_victim = (i + 1) % num_threads;
 
                 while (!stop) {
-                    SortTask task;
+                    std::function<void()> task;
                     bool found = false;
 
                     // 1. Try Local Pop (LIFO)
@@ -201,15 +147,20 @@ public:
 
                     if (found) {
                         try {
-                            task.executor(task); // Execute
+                            task();
                         } catch (...) {
-                           // Swallow
+                            // Ensure incomplete_tasks is decremented even if task throws
+                            long remaining = --incomplete_tasks;
+                            if (remaining == 0) {
+                                wait_cv.notify_all();
+                            }
+                            throw;
                         }
 
-                        long remaining = --incomplete_tasks;
                         tasks_executed++;
+                        long remaining = --incomplete_tasks;
                         if (remaining == 0) {
-                            wait_cv.notify_all();
+                             wait_cv.notify_all();
                         }
                     } else {
                         std::this_thread::yield();
@@ -226,29 +177,15 @@ public:
         }
     }
 
-    // Non-template enqueue that takes a constructed SortTask
-    bool enqueue_task(const SortTask& task) {
+    template<typename F>
+    void submit(F&& f) {
         incomplete_tasks++;
-        tasks_pushed++;
-
         int idx = thread_index;
-        if (idx != -1) {
-            if (queues[idx]->push(task)) {
-                return true;
-            }
-        } else {
-            // External injection (Round-Robin attempt)
-            size_t n = queues.size();
-            size_t start = tasks_pushed.load() % n;
-            for (size_t i = 0; i < n; ++i) {
-                if (queues[(start + i) % n]->push(task)) {
-                    return true;
-                }
-            }
-        }
+        if (idx == -1) idx = 0;
+        if (idx >= static_cast<int>(queues.size())) idx = 0;
 
-        incomplete_tasks--;
-        return false;
+        queues[idx]->push(std::forward<F>(f));
+        tasks_pushed++;
     }
 
     void wait_for_completion() {
