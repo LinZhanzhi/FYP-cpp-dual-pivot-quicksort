@@ -7,7 +7,7 @@ While the Work-Stealing implementation successfully enables parallel scaling, an
 - [x] **Memory-Aware Scheduling**: To address the bandwidth bottlenecks identified in Section 8.3.2, the scheduler could be enhanced to favor cache-affine task stealing (stealing tasks that operate on adjacent memory regions) rather than random victim selection.
     *   *Implementation:* Added "Sticky Victim" strategy (workers default to stealing from the last successful victim to preserve locality).
 - [x] **Hybrid Parallelism**: Exploring a hybrid model that switches between "Work Stealing" (for load balancing) and "Static Partitioning" (for strict data locality) during the deeper recursion levels where L2/L3 cache misses become dominant.
-    *   *Implementation:* Added depth-based strategy (switch to sequential sort when recursion depth > 20 * DELTA) to reduce task overhead and improve locality.
+    *   *Implementation:* Added depth-based strategy (switch to sequential sort when recursion depth > 20 * DELTA) and tuned granularity to 8192 to optimize for 8-thread efficiency.
 
 
 ## 8.2. Advanced Optimizations
