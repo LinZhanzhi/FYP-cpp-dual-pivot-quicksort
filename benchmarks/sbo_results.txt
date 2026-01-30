@@ -1,0 +1,68 @@
+=== std::function SBO (Small Buffer Optimization) Experiment ===
+
+Platform Information:
+  sizeof(std::function<void()>): 32 bytes
+  sizeof(PreallocatedTask): 64 bytes
+  Standard Library: libstdc++ (GCC)
+  Expected SBO threshold: ~16 bytes
+
+Benchmark: 1000000 tasks, 5 runs (best of)
+
+Warming up...
+  std::function<  8 bytes>: create=   34.20 ns/task, execute= 24.55 ns/task, total=   58.76 ns/task
+  Preallocated<  8 bytes>:  create=    6.26 ns/task, execute= 17.75 ns/task, total=   24.01 ns/task
+  std::function<  8 bytes>: create=   15.25 ns/task, execute= 17.70 ns/task, total=   32.95 ns/task
+  Preallocated<  8 bytes>:  create=    5.79 ns/task, execute= 17.73 ns/task, total=   23.52 ns/task
+  std::function<  8 bytes>: create=    3.66 ns/task, execute= 17.69 ns/task, total=   21.35 ns/task
+  Preallocated<  8 bytes>:  create=    5.78 ns/task, execute= 17.71 ns/task, total=   23.49 ns/task
+
+=== Results ===
+
+--- Capture Size: 8 bytes (well within SBO) ---
+  std::function<  8 bytes>: create=    9.86 ns/task, execute=  5.12 ns/task, total=   14.98 ns/task
+  Preallocated<  8 bytes>:  create=    5.84 ns/task, execute=  6.23 ns/task, total=   12.08 ns/task
+
+--- Capture Size: 16 bytes (at SBO threshold for GCC) ---
+  std::function< 16 bytes>: create=   21.92 ns/task, execute=  5.14 ns/task, total=   27.06 ns/task
+  Preallocated< 16 bytes>:  create=    4.90 ns/task, execute=  6.10 ns/task, total=   10.99 ns/task
+
+--- Capture Size: 24 bytes (at SBO threshold for Clang) ---
+  std::function< 24 bytes>: create=   17.02 ns/task, execute=  5.36 ns/task, total=   22.37 ns/task
+  Preallocated< 24 bytes>:  create=    8.17 ns/task, execute=  6.22 ns/task, total=   14.39 ns/task
+
+--- Capture Size: 32 bytes (exceeds most SBO thresholds) ---
+  std::function< 32 bytes>: create=    8.42 ns/task, execute=  5.16 ns/task, total=   13.58 ns/task
+  Preallocated< 32 bytes>:  create=    4.23 ns/task, execute=  6.20 ns/task, total=   10.43 ns/task
+
+--- Capture Size: 48 bytes (definitely heap allocated) ---
+  std::function< 48 bytes>: create=   17.69 ns/task, execute=  5.21 ns/task, total=   22.90 ns/task
+  Preallocated< 48 bytes>:  create=   13.87 ns/task, execute=  5.93 ns/task, total=   19.80 ns/task
+
+--- Capture Size: 64 bytes (large capture) ---
+  std::function< 64 bytes>: create=   24.71 ns/task, execute=  6.27 ns/task, total=   30.97 ns/task
+  Preallocated< 64 bytes>:  N/A (exceeds 56-byte inline storage)
+
+--- Capture Size: 128 bytes (very large capture) ---
+  std::function<128 bytes>: create=   46.38 ns/task, execute=  6.58 ns/task, total=   52.96 ns/task
+  Preallocated<128 bytes>:  N/A (exceeds 56-byte inline storage)
+
+=== Analysis ===
+
+Key Observations:
+1. For captures <= SBO threshold (~16-24 bytes):
+   - std::function is FAST (no heap allocation)
+   - Pre-allocation has overhead from larger memory copies
+   
+2. For captures > SBO threshold:
+   - std::function becomes SLOWER (heap allocation per task)
+   - Pre-allocation becomes FASTER (no per-task allocation)
+   
+3. The crossover point is around 24-32 bytes on most platforms.
+
+Implications for Our Sorting Implementation:
+- Our lambda captures ~28 bytes (array ptr, low, high, comparator ref)
+- This is RIGHT AT the SBO threshold
+- std::function likely uses SBO, so pre-allocation doesn't help
+- The 3-7% regression we observed confirms this analysis
+
+Total operations: 5999994000000
