@@ -32,9 +32,6 @@ while t <= max_threads:
     parallel_algos.append(f"dual_pivot_parallel_{t}")
     t *= 2
 
-if parallel_algos[-1] != f"dual_pivot_parallel_{max_threads}":
-    parallel_algos.append(f"dual_pivot_parallel_{max_threads}")
-
 ALGORITHMS = parallel_algos + ["std_sort", "std_stable_sort", "qsort", "dual_pivot_sequential"]
 TYPES = ["int", "double"]
 PATTERNS = [
