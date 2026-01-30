@@ -169,7 +169,7 @@ void sort(Container& container, int parallelism, Compare comp) {
     sort(container.data(), parallelism, 0, static_cast<std::ptrdiff_t>(container.size()), comp);
 }
 
-template<std::random_access_iterator RandomAccessIterator>
+template<typename RandomAccessIterator>
 void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last) {
     if (first >= last) return;
     std::ptrdiff_t size = last - first;
@@ -184,7 +184,7 @@ void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last)
     }
 }
 
-template<std::random_access_iterator RandomAccessIterator, typename Compare>
+template<typename RandomAccessIterator, typename Compare>
 void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last, Compare comp) {
     if (first >= last) return;
     std::ptrdiff_t size = last - first;
@@ -204,7 +204,7 @@ void dual_pivot_quicksort(RandomAccessIterator first, RandomAccessIterator last,
     }
 }
 
-template<std::random_access_iterator RandomAccessIterator>
+template<typename RandomAccessIterator>
 void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessIterator last,
                                   int parallelism = std::thread::hardware_concurrency()) {
     // Concept ensures random access iterator requirements
@@ -224,7 +224,7 @@ void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessItera
     }
 }
 
-template<std::random_access_iterator RandomAccessIterator, typename Compare>
+template<typename RandomAccessIterator, typename Compare>
 void dual_pivot_quicksort_parallel(RandomAccessIterator first, RandomAccessIterator last, Compare comp,
                                   int parallelism = std::thread::hardware_concurrency()) {
     // Concept ensures random access iterator requirements

@@ -19,5 +19,6 @@ Beyond threading refinements, several low-level optimizations are planned to mit
 *   **Block-Based Partitioning**:
     Adapting the strategy from BlockQuicksort, the partitioning phase can be restructured to process elements in small, cache-resident blocks [12]. This hides memory latency by overlapping computation with prefetching, ensuring the CPU execution units remain saturated.
 
-*   **Explicit Memory Management**:
+- [x] **Explicit Memory Management**:
     The current usage of `std::function` incurs heap allocation overhead for task capture [13]. A proposed optimization is to implement Linear Allocators or Pre-allocated Ring Buffers for task storage. Eliminating dynamic malloc/free calls from the hot path is expected to significantly improve efficiency for fine-grained tasks (subarrays near the 4096 threshold).
+    *   *Implementation:* Replaced `std::function<void()>` with a POD `SortTask` struct (64-byte cache-aligned) containing a function pointer and inline storage for comparators. Implemented fixed-size Ring Buffers (capacity 8192) per worker thread, pre-allocated at pool initialization. Task submission now copies task data directly into the ring buffer with zero heap allocation on the hot path.
