@@ -29,7 +29,8 @@ inline thread_local int thread_index = -1;
  */
 class ThreadPool {
 private:
-    struct WorkStealingQueue {
+    // Cache-line aligned to prevent false sharing (VTune optimization Step 1)
+    struct alignas(64) WorkStealingQueue {
         std::deque<std::function<void()>> q;
         std::mutex mtx; // Protects ONLY this specific queue
 
@@ -66,8 +67,10 @@ private:
 
     std::vector<std::unique_ptr<WorkStealingQueue>> queues;
     std::vector<std::thread> workers;
-    std::atomic<bool> stop{false};
-    std::atomic<long> incomplete_tasks{0};
+
+    // Cache-line aligned atomics to prevent false sharing
+    alignas(64) std::atomic<bool> stop{false};
+    alignas(64) std::atomic<long> incomplete_tasks{0};
 
     // For wait_for_completion
     std::mutex wait_mutex;

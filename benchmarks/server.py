@@ -365,21 +365,22 @@ class BenchmarkHandler(http.server.SimpleHTTPRequestHandler):
             data = json.loads(post_data)
             test = data.get("test", {})
             if test:
-                filename = benchmark_manager.get_output_filename(test["algo"], test["type"], test["pattern"], int(test["size"]))
-                if os.path.exists(filename):
-                    try:
-                        os.remove(filename)
+                try:
+                    deleted = benchmark_manager.delete_results(
+                        test["algo"], test["type"], test["pattern"], int(test["size"])
+                    )
+                    if deleted:
                         self.send_response(200)
                         self.end_headers()
                         self.wfile.write(b"Deleted")
-                    except Exception as e:
-                        self.send_response(500)
+                    else:
+                        self.send_response(404)
                         self.end_headers()
-                        self.wfile.write(f"Error deleting: {e}".encode())
-                else:
-                    self.send_response(404)
+                        self.wfile.write(b"No results found for this configuration")
+                except Exception as e:
+                    self.send_response(500)
                     self.end_headers()
-                    self.wfile.write(b"File not found")
+                    self.wfile.write(f"Error deleting: {e}".encode())
             else:
                 self.send_response(400)
                 self.end_headers()

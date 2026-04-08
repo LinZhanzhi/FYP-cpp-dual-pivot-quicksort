@@ -11,18 +11,36 @@ from collections import defaultdict
 # Get the directory where the script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Configuration
+# Configuration (Windows paths)
 BUILD_DIR = os.path.join(SCRIPT_DIR, "build")
 RUNNER = os.path.join(BUILD_DIR, "benchmark_runner")
 AGGREGATE_DIR = os.path.join(SCRIPT_DIR, "results", "aggregate")
+INDIVIDUAL_DIR = os.path.join(SCRIPT_DIR, "results", "individual")
 SUMMARY_FULL = os.path.join(AGGREGATE_DIR, "summary_full.csv")
 SUMMARY_REP = os.path.join(AGGREGATE_DIR, "summary_representative.csv")
-
-# WSL Paths (Hardcoded for this environment)
-WSL_BASE_DIR = "/home/lzz725/FYP/benchmarks"
-WSL_RUNNER = f"{WSL_BASE_DIR}/build/benchmark_runner"
-WSL_TEMP_RESULT = f"{WSL_BASE_DIR}/temp_runner_output.csv"
 TEMP_RESULT = os.path.join(SCRIPT_DIR, "temp_runner_output.csv")
+
+def get_output_filename(algo, type_, pattern, size):
+    """Get the filename for individual result storage."""
+    return os.path.join(INDIVIDUAL_DIR, f"{algo}_{type_}_{pattern}_{size}.csv")
+
+def windows_to_wsl_path(win_path):
+    """Convert Windows path to WSL path (e.g., C:\\Users\\... -> /mnt/c/Users/...)"""
+    # Normalize the path
+    path = os.path.normpath(win_path)
+    # Replace drive letter (e.g., C: -> /mnt/c)
+    if len(path) >= 2 and path[1] == ':':
+        drive = path[0].lower()
+        path = f"/mnt/{drive}" + path[2:]
+    # Replace backslashes with forward slashes
+    return path.replace('\\', '/')
+
+# WSL paths derived from Windows paths
+def get_wsl_runner():
+    return windows_to_wsl_path(RUNNER)
+
+def get_wsl_temp_result():
+    return windows_to_wsl_path(TEMP_RESULT)
 
 # Generate parallel algorithms based on hardware threads
 max_threads = multiprocessing.cpu_count()
@@ -125,6 +143,109 @@ class BenchmarkManager:
                 algo, type_, pattern, size = key
                 writer.writerow([algo, type_, pattern, size, f"{self.rep_cache[key]:.5f}"])
 
+    def delete_results(self, algo, type_, pattern, size):
+        """Delete all results for a specific configuration from aggregate files."""
+        key = (algo, type_, pattern, size)
+
+        # Check if results exist
+        if key not in self.results_cache or len(self.results_cache[key]) == 0:
+            return False
+
+        # Remove from cache
+        del self.results_cache[key]
+        if key in self.rep_cache:
+            del self.rep_cache[key]
+
+        # Rewrite summary_full.csv without the deleted entries
+        if os.path.exists(SUMMARY_FULL):
+            rows_to_keep = []
+            with open(SUMMARY_FULL, 'r', newline='') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if not (row['Algorithm'] == algo and
+                            row['Type'] == type_ and
+                            row['Pattern'] == pattern and
+                            str(row['Size']) == str(size)):
+                        rows_to_keep.append(row)
+
+            with open(SUMMARY_FULL, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(["Algorithm", "Type", "Pattern", "Size", "Iteration", "Time(ms)"])
+                for row in rows_to_keep:
+                    writer.writerow([row['Algorithm'], row['Type'], row['Pattern'],
+                                   row['Size'], row['Iteration'], row['Time(ms)']])
+
+        # Update representative file
+        self.update_representative_file()
+        return True
+
+# Global manager instance (singleton pattern)
+_manager_instance = None
+
+def get_manager():
+    """Get the global BenchmarkManager instance."""
+    global _manager_instance
+    if _manager_instance is None:
+        _manager_instance = BenchmarkManager()
+    return _manager_instance
+
+def delete_results(algo, type_, pattern, size):
+    """Delete results for a specific configuration."""
+    return get_manager().delete_results(algo, type_, pattern, size)
+
+def run_single_test(algo, type_, pattern, size):
+    """Run a single benchmark test configuration."""
+    manager = get_manager()
+
+    threads = 0
+    if algo.startswith("dual_pivot_parallel_"):
+        try:
+            threads = int(algo.split("_")[-1])
+        except ValueError:
+            pass
+
+    # Prepare command
+    cmd = []
+    if sys.platform == "win32":
+        cmd = ["wsl", get_wsl_runner()]
+    else:
+        cmd = [RUNNER]
+
+    cmd.extend([
+        "--algorithm", algo,
+        "--type", type_,
+        "--pattern", pattern,
+        "--size", str(size),
+        "--output", get_wsl_temp_result() if sys.platform == "win32" else TEMP_RESULT,
+        "--iterations", "30"
+    ])
+
+    if threads > 0:
+        cmd.extend(["--threads", str(threads)])
+
+    # Run the benchmark
+    subprocess.run(cmd, check=True)
+
+    # Read back results
+    if os.path.exists(TEMP_RESULT):
+        new_times = []
+        with open(TEMP_RESULT, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row.get('Iteration') == 'Representative':
+                    continue
+                try:
+                    t_val = float(row['Time(ms)'])
+                    new_times.append(t_val)
+                except ValueError:
+                    pass
+
+        # Save to aggregate
+        manager.save_results(algo, type_, pattern, size, new_times)
+
+        # Clean up temp file
+        os.remove(TEMP_RESULT)
+
 def run_benchmark():
     manager = BenchmarkManager()
 
@@ -153,13 +274,10 @@ def run_benchmark():
             except ValueError:
                 pass
 
-        # Determine output file path
-        # output_file_arg = WSL_TEMP_RESULT if sys.platform == "win32" else TEMP_RESULT
-
         # Prepare command
         cmd = []
         if sys.platform == "win32":
-            cmd = ["wsl", WSL_RUNNER]
+            cmd = ["wsl", get_wsl_runner()]
         else:
             cmd = [RUNNER]
 
@@ -168,7 +286,7 @@ def run_benchmark():
             "--type", type_,
             "--pattern", pattern,
             "--size", str(size),
-            "--output", WSL_TEMP_RESULT if sys.platform == "win32" else TEMP_RESULT,
+            "--output", get_wsl_temp_result() if sys.platform == "win32" else TEMP_RESULT,
             "--iterations", str(needed)
         ])
 
