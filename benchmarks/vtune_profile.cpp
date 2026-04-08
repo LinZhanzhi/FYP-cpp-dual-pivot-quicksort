@@ -2,18 +2,22 @@
  * VTune Profiling Benchmark
  *
  * Simple, focused benchmark for memory-bound vs CPU-bound analysis.
- * Runs parallel sorting with 16 threads on 10M random integers.
+ * Runs parallel sorting with configurable threads on 10M random integers.
+ *
+ * Usage: vtune_profile.exe [threads]
+ *   threads: number of threads (default: 16)
  */
 
 #include <iostream>
 #include <vector>
 #include <random>
 #include <chrono>
+#include <cstdlib>
 #include "../include/dual_pivot_quicksort.hpp"
 
-int main() {
+int main(int argc, char* argv[]) {
     constexpr size_t SIZE = 10'000'000;  // 10M integers
-    constexpr int THREADS = 16;
+    const int THREADS = (argc > 1) ? std::atoi(argv[1]) : 16;
     constexpr int ITERATIONS = 20;  // More iterations for reliable profiling
 
     std::cout << "VTune Profiling Benchmark\n";
