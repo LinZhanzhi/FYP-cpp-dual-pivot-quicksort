@@ -721,22 +721,62 @@ Recursive sorting creates imbalanced work:
 
 ##### 4.1.3 Design Evolution: Three Generations
 
-**Phase V1: Single Global Mutex**
-- Simple implementation: All tasks in one queue
-- Problem: Severe contention at high thread counts
-- Result: Scaling plateau at 2-3× speedup
+**Version 1: Blocking Parent (Naive Implementation)**
 
-**Phase V2: Per-Thread Queues with Central Dispatch**
-- Each thread has local queue
-- Central dispatcher assigns tasks
-- Problem: Dispatcher becomes bottleneck
-- Result: Better, but still limited to 3-4× speedup
+The initial implementation used `std::future` with blocking `.get()` calls:
+```cpp
+auto left_future = pool.submit(sort, left_part);
+auto right_future = pool.submit(sort, right_part);
+left_future.get();   // Parent BLOCKS here
+right_future.get();  // Parent BLOCKS here
+```
 
-**Phase V3: Work-Stealing with LIFO/FIFO (Final)**
-- Distributed WorkStealingQueue per thread (no global mutex)
-- LIFO local access (cache locality) + FIFO stealing (take largest tasks)
-- try_lock for non-blocking steal attempts
-- Result: Achieved 5.18× speedup on 16 threads
+**The Thread Starvation Problem**:
+Parent threads hold pool slots while waiting. To sort with 16 leaf tasks (depth 4), we need:
+- 16 threads for actual work (leaf nodes)
+- 15 threads just to WAIT (internal nodes: 1+2+4+8)
+- **Total: 31 threads required**, but only 24 available
+
+**Result**: Performance plateaued at 2-4 threads. Adding more threads made it *slower*.
+
+---
+
+**Version 2: Fire-and-Forget (Decoupled Completion)**
+
+Shifted to task-based parallelism without blocking:
+```cpp
+pool.push_task(sort, left_part);   // Fire
+pool.push_task(sort, right_part);  // Fire
+dual_pivot_sort(middle_part);      // Parent continues working
+```
+
+**Key Changes**:
+- **No futures**: Tasks don't return values to parents
+- **Quiescence detection**: Global `std::atomic<int> active_tasks` tracks completion
+- **Tail call optimization**: Parent processes middle partition directly
+
+**Results** (50M integers, Intel i7-13700):
+| Threads | Time (s) | Speedup |
+|---------|----------|---------|
+| 1 | 3.22 | 1.00× |
+| 2 | 1.83 | 1.76× |
+| 4 | 1.08 | 2.98× |
+| 8 | 0.76 | 4.24× |
+| 16 | 0.65 | **4.95×** |
+
+**New Bottleneck**: Mutex contention on global task queue at >16 threads.
+
+---
+
+**Version 3: Work-Stealing with Distributed Queues (Final)**
+
+To eliminate global mutex contention:
+- **Distributed queues**: Each thread owns a local `WorkStealingQueue`
+- **LIFO local access**: Pop from bottom (most recent task, likely in L1 cache)
+- **FIFO stealing**: Steal from top of other queues (oldest = largest partitions)
+- **try_lock**: Non-blocking steal attempts, no spinning on contention
+
+**Result**: Achieved 5.18× speedup on 16 threads for 10M element benchmarks.
 
 ##### 4.1.4 Implementation Details
 
@@ -794,27 +834,50 @@ class SortTask : public CountedCompleter<void> {
 };
 ```
 
-##### 4.1.5 Optimizations Applied
+##### 4.1.5 Performance Tuning
 
-**Phase 1: Adaptive Granularity**
-- Problem: Static sequential cutoff ignores runtime load
-- Solution: Dynamically double threshold when queue depth > 4×threads
-- Metric: get_active_task_count() atomic load
+**Optimization 1: Task Granularity (MIN_PARALLEL_SORT_SIZE)**
 
-**Phase 2: Memory-Aware Scheduling (Sticky Victim)**
-- Problem: Random stealing causes cache thrashing
-- Solution: Remember last successful victim, prefer spatial locality
-- Result: Improved L2/L3 cache hit rates
+VTune profiling revealed L3 cache thrashing from too many small tasks. Solution: increase threshold.
 
-**Phase 3: Hybrid Parallelism (Depth Cutoff)**
-- Problem: Excessive recursion at tree leaves adds overhead
-- Solution: Force sequential sort when depth > 20 levels
-- Result: Broke 4.4× plateau → achieved 5.18× speedup
+| Threshold | Tasks Created | Task Size | L3 Pressure |
+|-----------|---------------|-----------|-------------|
+| 8192 | ~1,220 | 32 KB | High (thrashing) |
+| **65536** | **~153** | **256 KB** | **Low** |
 
-##### 4.1.6 Task Granularity Management
-- MIN_PARALLEL_SORT_SIZE=8192 (base threshold)
-- Adaptive: Double threshold when active_tasks > 4×threads
-- Hybrid: Force sequential after 20 recursion levels
+**Result**: 8× fewer tasks, each with larger contiguous memory region. Reduced L3 cache evictions from work-stealing.
+
+---
+
+**Optimization 2: Cache-Line Padding (False Sharing Elimination)**
+
+Adjacent data structures on the same cache line cause "false sharing" — threads invalidate each other's cache even when accessing different variables.
+
+**Solution**: Align critical structures to 64-byte cache line boundaries:
+```cpp
+struct alignas(64) WorkStealingQueue {
+    std::deque<std::function<void()>> q;
+    std::mutex mtx;
+};
+alignas(64) std::atomic<bool> stop{false};
+```
+
+**Before**: Queue metadata packed together → cache line bounces between cores.
+**After**: Each queue isolated → no cross-thread invalidation.
+
+---
+
+**Optimization 3: Prefetch Hints in Partitioning**
+
+During partitioning, CPU stalls waiting for memory fetches. Prefetch instructions load future elements while processing current ones:
+```cpp
+while (k <= gt) {
+    __builtin_prefetch(&a[k + 64], 0, 3);  // 64 elements ahead
+    // ... partitioning logic
+}
+```
+
+**Result**: Overlaps memory fetch with computation, reducing stall cycles.
 
 ---
 
@@ -1113,11 +1176,11 @@ Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 | Chapter 1: Introduction | 5 | Includes §1.5 Related Work Overview |
 | Chapter 2: Core Algorithm | 10 | Prior Work integrated (§2.1) |
 | Chapter 3: Adaptive Optimizations | 11 | Prior Work on Timsort (§3.1.1) |
-| Chapter 4: Parallel Execution | 6 | Work-stealing thread pool only |
+| Chapter 4: Parallel Execution | 7 | V1→V2→V3 evolution + tuning experiments |
 | Chapter 5: Results and Evaluation | 10 | |
 | Chapter 6: Discussion | 4 | |
 | Chapter 7: Conclusion | 3 | |
-| **Total (Main Body)** | **~49 pages** | Within 50-page limit |
+| **Total (Main Body)** | **~50 pages** | At limit |
 
 **Benefits of Integrated Literature**:
 - Saved ~6 pages from standalone Chapter 2
