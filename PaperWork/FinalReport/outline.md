@@ -112,11 +112,20 @@ Wild's doctoral thesis provided the mathematical explanation:
 **The Problem**: Efficiently divide array into three regions around two pivots.
 
 **Design**: 
-- Three-way partitioning: [< P1] [P1 ≤ x ≤ P2] [> P2]
-- Backward scanning for cache-friendly access (Java optimization)
+- Three-way partitioning using three pointers: `lt` (left), `k` (scanner), `gt` (right)
+- `k` advances forward through unprocessed elements
+- `gt` scans backward when finding elements > P2, creating short-range sequential access
+
+**Why This Is Cache-Friendly**:
+When an element belongs in the rightmost partition (> P2), the algorithm scans `gt` backward. This backward scan:
+1. Accesses memory in a **sequential pattern** (reverse order, but still predictable)
+2. Benefits from **hardware prefetcher** which tracks both forward and reverse strides
+3. Keeps accesses within a **small memory region** (the unprocessed portion)
+4. Works well with **`__builtin_prefetch`** hints for upcoming elements
 
 **Implementation**:
 - Main loop classifies elements into three regions
+- Prefetch 64 elements ahead: `__builtin_prefetch(&a[k + 64], 0, 3)`
 - Dutch National Flag fallback for single-pivot (many duplicates)
 - Prevents O(n²) degradation on all-equal arrays
 

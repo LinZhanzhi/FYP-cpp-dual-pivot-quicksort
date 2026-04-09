@@ -19,7 +19,7 @@ namespace dual_pivot {
  *
  * Key Algorithm Innovations:
  * 1. Three-way partitioning reduces average comparisons vs. traditional quicksort
- * 2. Backward scanning minimizes cache misses (matching Java's optimization)
+ * 2. Backward scanning of gt pointer creates predictable memory access patterns
  * 3. Prefetching hints improve memory access patterns
  * 4. Branch prediction hints optimize for common cases
  *
