@@ -368,6 +368,43 @@ Each pattern represents a realistic scenario encountered in production systems:
 | MIN_PARALLEL_SORT_SIZE | 8192 | Task overhead balance |
 | ... | ... | ... |
 
+#### 5.9 Compiler Optimization Flag Tuning
+##### 5.9.1 Methodology
+Systematic benchmark of 12 GCC optimization flag combinations on 10M random integers:
+- Base levels: `-O2`, `-O3`, `-Ofast`
+- Modifiers: `-march=native`, `-flto` (link-time optimization)
+- All combinations tested with 1, 2, 4, 8, 16 threads
+- Protocol: 2 warmup + 5 measured iterations, median reported
+
+##### 5.9.2 Results Summary
+| Flags | 1T (ms) | 16T (ms) | Notes |
+|-------|---------|----------|-------|
+| **-O2 -march=native** | **459** | 93 | **Best single-threaded** |
+| -O2 | 466 | **92** | Best 16T |
+| -O3 | 462 | 94 | No improvement over O2 |
+| -O3 -march=native | 464 | 91 | |
+| -Ofast | 472 | 91 | Worse than O2 |
+| -O3 -flto | 473 | 95 | LTO hurts performance |
+| -O2 -march=native -flto | 474 | 97 | LTO regression |
+
+##### 5.9.3 Key Findings
+1. **`-O3` offers no benefit over `-O2`**: Counter to conventional wisdom, aggressive optimizations like vectorization and loop unrolling do not help branch-heavy comparison sorting. The irregular memory access patterns and data-dependent branches defeat compiler auto-vectorization.
+
+2. **`-Ofast` degrades performance**: The relaxed floating-point semantics provide no benefit for integer sorting, while the aggressive transformations increase code size and instruction cache pressure.
+
+3. **`-flto` causes 2-5% regression on MinGW**: Link-time optimization is expected to help header-only libraries, but:
+   - Header-only templates already get full inlining without LTO
+   - MinGW's LTO implementation has known limitations
+   - Additional compilation overhead provides no runtime benefit
+
+4. **`-march=native` provides ~1.5% improvement**: Enables AVX-512 and other CPU-specific instructions, but gains are modest because sorting is memory-bound, not compute-bound.
+
+##### 5.9.4 Final Configuration
+```makefile
+CXXFLAGS = -std=c++17 -O2 -march=native -DNDEBUG
+```
+**Rationale**: Simplest flag set that achieves best performance. Avoid complexity that provides no measurable benefit.
+
 ---
 
 ### Chapter 6: Results and Evaluation (10-12 pages)
@@ -389,14 +426,13 @@ Each pattern represents a realistic scenario encountered in production systems:
 |-----------|---------|
 | **Operating System** | Windows 11 Pro |
 | **Compiler** | g++ 13.2.0 (MinGW-w64) |
-| **Optimization Flags** | `-O3 -march=native -mtune=native` |
+| **Optimization Flags** | `-O2 -march=native` |
 | **C++ Standard** | C++17 |
 | **Profiler** | Intel VTune Profiler 2025.10 |
 
 **Compiler flags rationale:**
-- `-O3`: Maximum optimization including vectorization and loop unrolling
-- `-march=native`: Enable all CPU-specific instructions (AVX-512, etc.)
-- `-mtune=native`: Optimize scheduling for host microarchitecture
+- `-O2`: Balanced optimization (empirically faster than `-O3` for this workload — see Section 5.9)
+- `-march=native`: Enable CPU-specific instructions (AVX-512, etc.)
 
 ##### 6.1.3 Benchmark Protocol
 Each measurement follows a rigorous protocol to ensure reproducibility:

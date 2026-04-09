@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -O3 -march=native -DNDEBUG -Ibenchmarks/include -Iinclude
+CXXFLAGS = -std=c++17 -O2 -march=native -DNDEBUG -Ibenchmarks/include -Iinclude
 BUILD_DIR = benchmarks/build
 SRC_DIR = benchmarks/src
 RUNNER = benchmarks/build/benchmark_runner
