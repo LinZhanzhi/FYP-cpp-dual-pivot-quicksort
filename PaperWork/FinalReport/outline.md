@@ -189,19 +189,6 @@ Each pattern represents a realistic scenario encountered in production systems:
 - Array sizes: 1K to 10M elements
 - Statistical approach: Multiple iterations, median reporting
 
-#### 3.8 Benchmarking Infrastructure
-##### 3.8.1 Multi-Component System
-- **benchmark_runner.cpp**: Single-unit C++ benchmark executable
-- **benchmark_manager.py**: Python orchestrator for all combinations
-- **server.py + index.html**: Web interface for real-time monitoring
-- **Resumable execution**: Skip completed tests on restart
-
-##### 3.8.2 Specialized Runners
-- **diagnostic_runner.cpp**: Debugging and validation
-- **count_ops_runner.cpp**: Operation counting for analysis
-- **op_cost_runner.cpp**: Cost model verification
-- **interactive_runner.cpp**: Manual testing interface
-
 ---
 
 ### Chapter 4: Implementation (8-10 pages)
@@ -249,33 +236,23 @@ Each pattern represents a realistic scenario encountered in production systems:
 - Result: Broke 4.4× plateau → achieved 4.51× speedup
 
 #### 4.3 Key Engineering Challenges
-##### 4.3.1 Race Condition in ThreadPool
-- Symptom: Sporadic 0ms benchmark times
-- Root cause: Gap between task pop and active_tasks increment
-- Solution: `incomplete_tasks` counter pattern
-
-##### 4.3.2 Mutex Contention Analysis
-- 100K lock ops/sec measured
-- Cache line bouncing effects
-- Migration to distributed queues
-
-##### 4.3.3 Tail Call Optimization
+##### 4.3.1 Tail Call Optimization
 - Problem: Stack overflow on deeply recursive sorts
 - Solution: Process smallest partition inline, fork largest
 - Implementation: Iterative loop replaces recursive tail call
 
-##### 4.3.4 ThreadPool Quiescence Detection
+##### 4.3.2 ThreadPool Quiescence Detection
 - Challenge: Determining when all tasks complete
 - Solution: `incomplete_tasks` atomic counter pattern
 - Edge cases: Bootstrap thundering herd prevention
 
-##### 4.3.5 Java ForkJoinTask Adaptation (completer.hpp)
+##### 4.3.3 Java ForkJoinTask Adaptation (completer.hpp)
 - CountedCompleter pattern ported from Java's ForkJoinPool
 - Pending counter with atomic fetch_add for child registration
 - Completion propagation via condition_variable
 - Exception handling with completeExceptionally()
 
-##### 4.3.6 Type Erasure System (types.hpp)
+##### 4.3.4 Type Erasure System (types.hpp)
 - ArrayVariant using std::variant for type-safe polymorphism
 - ArrayPointer wrapper with runtime type checking
 - Equivalent to Java's Object[] with compile-time safety
