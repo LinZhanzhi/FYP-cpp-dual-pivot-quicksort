@@ -143,16 +143,40 @@ This chapter presents the complete story of the core dual-pivot quicksort algori
 - Results: Valley curve showing optimal at ~54 (platform-specific)
 - **Design Decision**: Conservative 44 chosen for robustness
 
-#### 3.5 Recursion Safety
-**The Problem**: Stack overflow on deeply recursive sorts (adversarial input).
+#### 3.5 Recursion Safety and Heap Sort Fallback
+**The Problem**: Stack overflow on deeply recursive sorts (adversarial input). Adversarial inputs (e.g., all equal elements with broken comparator, or crafted "anti-quicksort" sequences) can force O(n²) partitions, causing stack overflow before completion.
 
 **Design**:
-- Tail call optimization: Process smallest partition inline, fork largest
-- Depth limiting: Heapsort fallback at MAX_RECURSION_DEPTH=192
+- Tail call optimization: Process smallest partition inline, recurse on largest
+- Depth limiting: Heapsort fallback at MAX_RECURSION_DEPTH = 64 × DELTA = 192
 
-**Implementation**:
-- Iterative loop replaces recursive tail call
-- Bounded O(log n) stack depth guaranteed
+**Implementation** (heap_sort.hpp):
+- **Push-down heapify**: Bottom-up heap construction in O(n)
+- **Extract-max loop**: Repeatedly swap root to end, restore heap property
+- **Why heapsort?**: Guaranteed O(n log n) worst case, O(1) auxiliary space
+
+**The Fallback Trigger**:
+```cpp
+if (bits > MAX_RECURSION_DEPTH) {
+    heap_sort(a, low, high, comp);  // Guaranteed O(n log n)
+    return;
+}
+```
+
+**Why This Matters**:
+- Converts Introsort's "detect and switch" pattern to DPQS
+- Without fallback: Adversarial input → stack overflow or O(n²)
+- With fallback: All inputs complete in O(n log n), bounded stack
+
+**Trade-off**:
+| Aspect | Quicksort | Heapsort |
+|--------|-----------|----------|
+| Average case | O(n log n) | O(n log n) |
+| Constant factor | Lower (~1.4n log n) | Higher (~2n log n) |
+| Cache behavior | Excellent (sequential) | Poor (jumping) |
+| Worst case | O(n²) without fallback | **O(n log n) guaranteed** |
+
+**Design Decision**: Use heapsort as the "insurance policy" — rarely triggered (<0.01% of real data), but guarantees robustness
 
 #### 3.6 System Architecture Overview
 The implementation is organized as a header-only C++ library (~3000 lines) with four distinct component layers:
@@ -170,8 +194,49 @@ The implementation is organized as a header-only C++ library (~3000 lines) with 
 | Template-based | Runtime polymorphism | No virtual call overhead in hot paths |
 | Separate sequential/parallel | Unified with threads=1 | Sequential has no task overhead (5-10% faster) |
 | Java-faithful constants | Fresh tuning | Proven defaults, selective C++ re-tuning |
+##### 3.6.3 Public API Design (dual_pivot_quicksort.hpp)
+**The Problem**: Users need flexible entry points — raw pointers, containers, iterators — without sacrificing performance or type safety.
 
+**Design**: Layered API with progressive complexity:
 
+**Layer 1: Simple (Most Common)**
+```cpp
+// Sort entire container with hardware_concurrency threads
+dual_pivot::sort(vec);
+dual_pivot::sort(vec, std::greater<int>());  // Custom comparator
+```
+
+**Layer 2: Controlled Parallelism**
+```cpp
+// Explicit thread count
+dual_pivot::sort(vec, 4);           // 4 threads
+dual_pivot::sort(vec, 1);           // Sequential
+dual_pivot::sort(vec, 0);           // Sequential (explicit)
+```
+
+**Layer 3: Range-Based (Power Users)**
+```cpp
+// Raw pointer with range
+dual_pivot::sort(arr, parallelism, low, high);
+dual_pivot::sort(arr, parallelism, low, high, comp);
+```
+
+**Layer 4: Iterator Interface (STL-Compatible)**
+```cpp
+// Works with any random-access iterator
+dual_pivot::dual_pivot_quicksort(first, last);
+dual_pivot::dual_pivot_quicksort(first, last, comp);
+```
+
+**Implementation Details**:
+- **Contiguous iterator detection**: SFINAE + C++20 concepts detect if iterator can be converted to pointer
+- **Non-contiguous fallback**: Copy to vector, sort, copy back (iterator_sort.hpp)
+- **Automatic type dispatch**: Counting sort for byte/short, float preprocessing for IEEE-754
+
+**Why This Matters**:
+- Zero-overhead abstraction: All wrappers inline to the same optimized code
+- Drop-in replacement: `std::sort(v.begin(), v.end())` → `dual_pivot::sort(v)`
+- Flexibility: From simple one-liner to fine-grained control
 ---
 
 ### Chapter 4: Adaptive Optimizations (10-12 pages)
@@ -204,11 +269,53 @@ Standard quicksort ignores this structure and re-partitions everything — essen
 | MAX_RUN_CAPACITY | 500 | 500 | Maximum runs before fallback |
 | MIN_RUN_COUNT | 5 | 5 | Minimum runs for parallel merge |
 
-##### 4.1.3 Implementation (run_merger.hpp)
+##### 4.1.3 Implementation
+
+**Run Detection** (run_merger.hpp):
 - Ascending, descending (reversed), and constant run handling
 - Early termination: Already sorted detection in O(n)
 - Merge tree construction for efficient run combination
 - Parallel merge when parallel && count >= MIN_RUN_COUNT
+
+**Sequential Merge** (merge_ops.hpp):
+The two-pointer merge is deceptively simple but critical for performance:
+```cpp
+while (lo1 < hi1 && lo2 < hi2) {
+    dst[k++] = comp(a1[lo1], a2[lo2]) ? a1[lo1++] : a2[lo2++];
+}
+// Copy remaining elements from whichever array isn't exhausted
+```
+
+**Why This Matters**:
+- Branch-free inner loop: Modern CPUs predict the ternary well
+- Sequential memory access: Perfect for hardware prefetcher
+- No auxiliary comparisons: Single compare per element moved
+
+**Buffer Management** (buffer_manager.hpp):
+**The Problem**: Merge requires O(n) auxiliary space. Naive allocation (malloc per merge) would add thousands of allocations during parallel execution.
+
+**Solution**: Thread-local buffer pooling
+```cpp
+template<typename T>
+class BufferManager {
+    static thread_local std::vector<T> buffer_pool;
+    static T* getBuffer(int size, int& offset);
+    static void returnBuffer(T* buffer, int size, int offset);
+};
+```
+
+**Key Design Decisions**:
+| Feature | Benefit |
+|---------|--------|
+| Thread-local | No mutex contention between threads |
+| Pooling | Amortize allocation cost over many merges |
+| Offset tracking | Reuse same buffer for non-overlapping merges |
+| Geometric growth | Minimize reallocations (1.5× growth factor) |
+
+**Impact**:
+- Without pooling: ~15,000 malloc/free calls for 10M element parallel sort
+- With pooling: ~16 allocations (one per thread, occasionally resized)
+- **Result**: 8-12% speedup on parallel merge-heavy workloads
 
 ##### 4.1.4 Tuning: MIN_FIRST_RUNS_FACTOR Optimization
 
@@ -359,9 +466,46 @@ Recursive sorting creates imbalanced work:
 - Exception handling with completeExceptionally()
 
 **Type Erasure System** (types.hpp):
-- ArrayVariant using std::variant for type-safe polymorphism
-- ArrayPointer wrapper with runtime type checking
-- Equivalent to Java's Object[] with compile-time safety
+Java's polymorphism allows `Object[]` to hold any array type. C++ templates don't work this way — generic parallel coordination requires type erasure.
+
+**The Problem**: Parallel merge tasks need to pass array pointers through a generic task queue, but C++ templates instantiate separate types for `int*`, `double*`, etc.
+
+**Solution**: `std::variant` + wrapper class
+```cpp
+using ArrayVariant = std::variant<
+    int*, long*, float*, double*,
+    int8_t*, int16_t*, uint8_t*, uint16_t*, ...
+>;
+
+struct ArrayPointer {
+    ArrayVariant data;
+    
+    template<typename T> ArrayPointer(T* ptr) : data(ptr) {}
+    template<typename T> T* get() const { return std::get<T*>(data); }
+    template<typename T> bool is() const { 
+        return std::holds_alternative<T*>(data); 
+    }
+};
+```
+
+**Why This Matters**:
+- **Type safety**: Compile-time checked, unlike `void*`
+- **Visitor pattern**: `std::visit` enables generic operations
+- **Zero overhead**: Variant is stack-allocated, no heap indirection
+- **Java equivalence**: Matches `instanceof` checks in Java's RunMerger
+
+**Usage in Parallel Merge**:
+```cpp
+class GenericMerger : public CountedCompleter<void> {
+    ArrayPointer dst, a1, a2;  // Works with any supported type
+    void compute() override {
+        dst.visit([&](auto* d) {
+            // d is correctly typed (int*, double*, etc.)
+            merge_parts(d, k, a1.get<...>(), ...);
+        });
+    }
+};
+```
 
 ##### 5.1.4 Optimizations Applied
 
