@@ -52,56 +52,75 @@
 - In scope: Comparison-based sorting, primitive types, parallel execution
 - Out of scope: Stable sorting, GPU acceleration, distributed systems
 
-#### 1.5 Report Organization
+#### 1.5 Related Work: Positioning This Project
+This section provides a brief overview of the algorithmic landscape. Detailed connections to prior work appear in each chapter as part of the problem-solving narrative.
+
+**Sorting Algorithm Landscape**:
+| Algorithm | Complexity | Key Feature | Weakness |
+|-----------|------------|-------------|----------|
+| Hoare's Quicksort (1962) | O(n log n) avg | Simple, in-place | O(n²) worst case |
+| Introsort (std::sort) | O(n log n) guaranteed | Hybrid (QS + heapsort) | No structure detection |
+| Timsort (Python, Java) | O(n log n) | Run merging | O(n) space always |
+| pdqsort | O(n log n) | Pattern-defeating | Single pivot only |
+| **Dual-Pivot QS** | O(n log n) | Two pivots + runs | O(n) space for runs |
+
+**Key Research Foundations** (cited in context throughout):
+- Yaroslavskiy (2009): Dual-pivot partitioning
+- Wild (2012): Mathematical analysis of dual-pivot efficiency
+- Blumofe & Leiserson (1999): Work-stealing paradigm
+- Peters (2021): Pattern-defeating quicksort
+
+#### 1.6 Report Organization
+- **Chapter 2**: Core dual-pivot quicksort algorithm
+- **Chapter 3**: Adaptive optimizations (run merging, type-specific paths)
+- **Chapter 4**: Parallel execution and hardware limits
+- **Chapter 5**: Results and evaluation
+- **Chapter 6**: Discussion
+- **Chapter 7**: Conclusion
 
 ---
 
-### Chapter 2: Literature Review (6-8 pages)
-#### 2.1 Classical Quicksort
-- Hoare's original algorithm (1962)
-- Expected O(n log n) comparisons, O(n²) worst case
-
-#### 2.2 Dual-Pivot Quicksort
-- Yaroslavskiy's innovation: Three-way partitioning with two pivots
-- Wild's mathematical analysis (2012): Fewer element scans despite more comparisons
-- Why it's faster: Cache-friendly memory access patterns
-
-#### 2.3 Parallel Sorting Algorithms
-- Work-stealing paradigm (Blumofe & Leiserson, 1999)
-- Intel TBB, Java ForkJoinPool approaches
-- Memory bandwidth as fundamental limit
-
-#### 2.4 Related Implementations
-- Java's DualPivotQuicksort.java (reference)
-- pdqsort (Pattern-Defeating Quicksort)
-- std::sort (Introsort hybrid)
-
-#### 2.5 Research Materials Studied
-- Wild's dissertation: "Dual-Pivot Quicksort and Beyond"
-- Martinez, Nebel, Wild (2019): Multi-pivot asymptotics
-- Oracle whitepaper: "Why Is Dual-Pivot Quicksort Fast?"
-- Peters (2021): "Pattern-Defeating Quicksort"
-- Reference Java implementation: DualPivotQuicksort.java
-
----
-
-### Chapter 3: Core Algorithm — Dual-Pivot Quicksort (7-8 pages)
+### Chapter 2: Core Algorithm — Dual-Pivot Quicksort (8-10 pages)
 
 This chapter presents the complete story of the core dual-pivot quicksort algorithm: from the foundational theory, through implementation details, to empirical tuning of key parameters.
 
-#### 3.1 The Algorithm
-##### 3.1.1 Yaroslavskiy's Three-Way Partitioning
-- Core innovation: Two pivots divide array into three regions
-- Invariant: [< P1] [P1 ≤ x ≤ P2] [> P2]
-- Why two pivots? Wild's analysis shows fewer element scans despite more comparisons
+#### 2.1 Prior Work: From Hoare to Yaroslavskiy
 
-##### 3.1.2 Java-to-C++ Transcription Approach
+**Classical Quicksort** (Hoare, 1962):
+- Single pivot partitions array into two regions: [≤ pivot] [> pivot]
+- Expected O(n log n) comparisons, O(n²) worst case
+- Dominant sorting algorithm for 50+ years due to cache efficiency
+
+**The Dual-Pivot Innovation** (Yaroslavskiy, 2009):
+- Counterintuitive insight: Using TWO pivots is faster than one
+- Three-way partitioning: [< P1] [P1 ≤ x ≤ P2] [> P2]
+- Adopted by Java 7 (2011), now default for primitive arrays
+
+**Why Is It Faster?** (Wild, 2012):
+Wild's doctoral thesis provided the mathematical explanation:
+- Single-pivot: ~2n comparisons, ~0.67n swaps per partition
+- Dual-pivot: ~1.9n comparisons, ~0.6n swaps per partition
+- **Key insight**: Fewer element SCANS despite more comparisons
+- Cache effect: Scanning 3 smaller regions beats 2 larger regions
+
+**Reference Implementation**:
+- Java's `DualPivotQuicksort.java` (4,429 lines)
+- Our approach: Incremental transcription with C++ idioms
+- Component prioritization: Core algorithm → type-specific → parallelism
+
+#### 2.2 The Algorithm
+##### 2.2.1 Three-Way Partitioning Invariant
+- Core invariant: [< P1] [P1 ≤ x ≤ P2] [> P2]
+- Pivot selection: Median-of-5 at equidistant positions
+- Special case: When P1 == P2, fall back to Dutch National Flag
+
+##### 2.2.2 Java-to-C++ Transcription Approach
 - Source: Java's DualPivotQuicksort.java (4,429 lines)
 - Porting strategy: Incremental transcription with C++ idioms
 - Component prioritization: Core algorithm → type-specific optimizations → parallelism
 - Evolution: Initial 31% coverage → full implementation
 
-#### 3.2 Partitioning Implementation (partition.hpp)
+#### 2.3 Partitioning Implementation (partition.hpp)
 **The Problem**: Efficiently divide array into three regions around two pivots.
 
 **Design**: 
@@ -113,7 +132,7 @@ This chapter presents the complete story of the core dual-pivot quicksort algori
 - Dutch National Flag fallback for single-pivot (many duplicates)
 - Prevents O(n²) degradation on all-equal arrays
 
-#### 3.3 Pivot Selection (sequential_sorters.hpp)
+#### 2.4 Pivot Selection (sequential_sorters.hpp)
 **The Problem**: Poor pivot selection causes O(n²) worst case.
 
 **Design**:
@@ -125,7 +144,7 @@ This chapter presents the complete story of the core dual-pivot quicksort algori
 - Optimal 9-comparator sorting network for 5 elements
 - Minimal comparisons while finding two good pivots
 
-#### 3.4 Small Array Optimization — A Complete Story
+#### 2.5 Small Array Optimization — A Complete Story
 **The Problem**: Recursion overhead dominates at small sizes. Function call overhead (~20 cycles) exceeds sorting work for tiny arrays.
 
 **Design**: Switch to insertion sort below a threshold.
@@ -143,7 +162,7 @@ This chapter presents the complete story of the core dual-pivot quicksort algori
 - Results: Valley curve showing optimal at ~54 (platform-specific)
 - **Design Decision**: Conservative 44 chosen for robustness
 
-#### 3.5 Recursion Safety and Heap Sort Fallback
+#### 2.6 Recursion Safety and Heap Sort Fallback
 **The Problem**: Stack overflow on deeply recursive sorts (adversarial input). Adversarial inputs (e.g., all equal elements with broken comparator, or crafted "anti-quicksort" sequences) can force O(n²) partitions, causing stack overflow before completion.
 
 **Design**:
@@ -178,23 +197,24 @@ if (bits > MAX_RECURSION_DEPTH) {
 
 **Design Decision**: Use heapsort as the "insurance policy" — rarely triggered (<0.01% of real data), but guarantees robustness
 
-#### 3.6 System Architecture Overview
+#### 2.7 System Architecture Overview
 The implementation is organized as a header-only C++ library (~3000 lines) with four distinct component layers:
 
-##### 3.6.1 Algorithm Selection Layer
+##### 2.7.1 Algorithm Selection Layer
 - **Type dispatch**: Counting sort for byte/short, comparison sort for larger types
 - **Structure detection**: Scan for pre-sorted runs → merge path vs quicksort path
 - **Size thresholds**: Insertion sort for small arrays, full quicksort otherwise
 - **Parallelism control**: Sequential vs parallel based on array size and available threads
 
-##### 3.6.2 Design Trade-offs
+##### 2.7.2 Design Trade-offs
 | Decision | Alternative | Why This Choice |
 |----------|-------------|-----------------|
 | Header-only | Compiled library | Zero build complexity, full inlining |
 | Template-based | Runtime polymorphism | No virtual call overhead in hot paths |
 | Separate sequential/parallel | Unified with threads=1 | Sequential has no task overhead (5-10% faster) |
 | Java-faithful constants | Fresh tuning | Proven defaults, selective C++ re-tuning |
-##### 3.6.3 Public API Design (dual_pivot_quicksort.hpp)
+
+##### 2.7.3 Public API Design (dual_pivot_quicksort.hpp)
 **The Problem**: Users need flexible entry points — raw pointers, containers, iterators — without sacrificing performance or type safety.
 
 **Design**: Layered API with progressive complexity:
@@ -237,15 +257,32 @@ dual_pivot::dual_pivot_quicksort(first, last, comp);
 - Zero-overhead abstraction: All wrappers inline to the same optimized code
 - Drop-in replacement: `std::sort(v.begin(), v.end())` → `dual_pivot::sort(v)`
 - Flexibility: From simple one-liner to fine-grained control
+
 ---
 
-### Chapter 4: Adaptive Optimizations (10-12 pages)
+### Chapter 3: Adaptive Optimizations (10-12 pages)
 
 This chapter presents two major adaptive optimization stories: the Run Merger (achieving 19× speedup on structured data) and Type-Specific Paths (O(n) for small integer types).
 
-#### 4.1 Run Merger: Exploiting Sorted Runs — The Hero Feature
+#### 3.1 Run Merger: Exploiting Sorted Runs — The Hero Feature
 
-##### 4.1.1 The Problem
+##### 3.1.1 Prior Work: Timsort and Adaptive Sorting
+
+**The Timsort Revolution** (Peters, 2002):
+Tim Peters designed Timsort for Python, recognizing that real-world data is rarely random:
+- **Key insight**: Detect existing sorted "runs" and merge them
+- **Complexity**: O(n) for already-sorted data, O(n log n) for random
+- Adopted by Python (2002), Java (Arrays.sort for objects), Android
+
+**Java's Adaptation** (DualPivotQuicksort.java):
+Java combined Timsort's run detection with dual-pivot quicksort:
+- Scan for runs at array start
+- Quality heuristics decide: merge path vs quicksort path
+- Best of both worlds: Fast on structured AND random data
+
+**Our Implementation**: Port Java's hybrid approach to C++, with platform-specific tuning.
+
+##### 3.1.2 The Problem
 Many real-world datasets have pre-existing order:
 - Database records arrive mostly sorted
 - Log files have timestamps in order
@@ -255,7 +292,7 @@ Standard quicksort ignores this structure and re-partitions everything — essen
 
 **The Opportunity**: Detect pre-existing runs and merge them directly → O(n) instead of O(n log n).
 
-##### 4.1.2 Design: Timsort-Inspired Run Detection
+##### 3.1.3 Design: Run Detection Mechanism
 **Core Mechanism** (from Java's DualPivotQuicksort):
 1. Scan for ascending/descending runs at array start
 2. Check run quality against heuristics
@@ -269,7 +306,7 @@ Standard quicksort ignores this structure and re-partitions everything — essen
 | MAX_RUN_CAPACITY | 500 | 500 | Maximum runs before fallback |
 | MIN_RUN_COUNT | 5 | 5 | Minimum runs for parallel merge |
 
-##### 4.1.3 Implementation
+##### 3.1.4 Implementation
 
 **Run Detection** (run_merger.hpp):
 - Ascending, descending (reversed), and constant run handling
@@ -317,7 +354,7 @@ class BufferManager {
 - With pooling: ~16 allocations (one per thread, occasionally resized)
 - **Result**: 8-12% speedup on parallel merge-heavy workloads
 
-##### 4.1.4 Tuning: MIN_FIRST_RUNS_FACTOR Optimization
+##### 3.1.5 Tuning: MIN_FIRST_RUNS_FACTOR Optimization
 
 **Background: The Run Detection Optimization**
 
@@ -382,7 +419,7 @@ Java's default of 7 was tuned for JVM performance characteristics. C++ with -O2 
 **Lesson Learned**:
 Inherited constants from Java deserve re-evaluation in C++ context. While Java's values are well-tuned for JVM characteristics, C++'s different performance profile can shift optimal crossover points. However, changes should be conservative and backed by empirical evidence.
 
-##### 4.1.5 Result
+##### 3.1.6 Result
 - **19× speedup on ORGAN_PIPE** (ascending then descending)
 - **6× speedup on REVERSE_SORTED** (single descending run)
 - **10× speedup on SAWTOOTH** (multiple sorted chunks)
@@ -390,7 +427,7 @@ Inherited constants from Java deserve re-evaluation in C++ context. While Java's
 
 ---
 
-#### 4.2 Counting Sort for Small Integer Types
+#### 3.2 Counting Sort for Small Integer Types
 
 ##### 4.2.1 The Opportunity
 1-byte and 2-byte integral types have bounded range (256 or 65536 values). Instead of O(n log n) comparison sort, we can achieve O(n) via bucket counting.
@@ -408,31 +445,53 @@ Inherited constants from Java deserve re-evaluation in C++ context. While Java's
 
 ---
 
-#### 4.3 Floating-Point Edge Cases (float_sort.hpp)
+#### 3.3 Floating-Point Edge Cases (float_sort.hpp)
 
-##### 4.3.1 IEEE-754 Challenges
+##### 3.3.1 IEEE-754 Challenges
 - **NaN**: NaN != NaN breaks standard comparison
 - **Negative zero**: -0.0 == +0.0 mathematically, but need consistent ordering
 
-##### 4.3.2 Solution
+##### 3.3.2 Solution
 - **Preprocessing**: Move NaNs to end via value != value check; convert -0.0 to +0.0
 - **Postprocessing**: Binary search to restore -0.0 positions using std::signbit()
 
 ---
 
-### Chapter 5: Parallel Execution (10-12 pages)
+### Chapter 4: Parallel Execution (10-12 pages)
 
 This chapter presents the complete parallel implementation story: from the work-stealing thread pool through performance tuning to understanding the fundamental hardware limits.
 
-#### 5.1 Work-Stealing Thread Pool — A Complete Story
+#### 4.1 Work-Stealing Thread Pool — A Complete Story
 
-##### 5.1.1 The Problem
+##### 4.1.1 Prior Work: Parallel Sorting and Work-Stealing
+
+**The Work-Stealing Paradigm** (Blumofe & Leiserson, 1999):
+- **Problem**: Recursive algorithms create imbalanced work trees
+- **Solution**: Idle threads "steal" work from busy threads' queues
+- **Key property**: LIFO local access (cache locality) + FIFO stealing (large tasks first)
+- **Theoretical guarantee**: O(T₁/P + T∞) expected time with P processors
+
+**Implementations Studied**:
+| System | Key Feature | Limitation |
+|--------|------------|------------|
+| Intel TBB | Auto-partitioner | Requires library dependency |
+| Java ForkJoinPool | CountedCompleter pattern | JVM-specific |
+| C++ std::async | Simple API | No work-stealing (creates threads) |
+
+**Our Approach**: Custom work-stealing pool inspired by ForkJoinPool, with C++ optimizations (try_lock, cache-line padding, sticky victim).
+
+**The Memory Wall** (Wulf & McKee, 1995):
+- CPU speed grows faster than memory bandwidth
+- Sorting is memory-bound: data movement dominates computation
+- **Implication**: Parallel speedup limited by shared memory bandwidth, not CPU count
+
+##### 4.1.2 The Problem
 Recursive sorting creates imbalanced work:
 - Initial partition divides into 3 unequal regions
 - Static thread assignment leads to idle threads
 - Need dynamic load balancing without central bottleneck
 
-##### 5.1.2 Design Evolution: Three Generations
+##### 4.1.3 Design Evolution: Three Generations
 
 **Phase V1: Single Global Mutex**
 - Simple implementation: All tasks in one queue
@@ -451,7 +510,7 @@ Recursive sorting creates imbalanced work:
 - try_lock for non-blocking steal attempts
 - Result: Achieved 5.18× speedup on 16 threads
 
-##### 5.1.3 Implementation Details
+##### 4.1.4 Implementation Details
 
 **Thread Pool Design** (threadpool.hpp):
 - Distributed WorkStealingQueue per thread
@@ -507,7 +566,7 @@ class GenericMerger : public CountedCompleter<void> {
 };
 ```
 
-##### 5.1.4 Optimizations Applied
+##### 4.1.5 Optimizations Applied
 
 **Phase 1: Adaptive Granularity**
 - Problem: Static sequential cutoff ignores runtime load
@@ -524,24 +583,24 @@ class GenericMerger : public CountedCompleter<void> {
 - Solution: Force sequential sort when depth > 20 levels
 - Result: Broke 4.4× plateau → achieved 5.18× speedup
 
-##### 5.1.5 Task Granularity Management
+##### 4.1.6 Task Granularity Management
 - MIN_PARALLEL_SORT_SIZE=8192 (base threshold)
 - Adaptive: Double threshold when active_tasks > 4×threads
 - Hybrid: Force sequential after 20 recursion levels
 
 ---
 
-#### 5.2 Parallel Merge — Tuning a Parameter That Doesn't Matter
+#### 4.2 Parallel Merge — Tuning a Parameter That Doesn't Matter
 
 This experiment tunes MIN_PARALLEL_MERGE_PARTS_SIZE — the threshold below which parallel merge operations fall back to sequential execution. Unlike other parameters with clear optima, this one reveals that some constants are insensitive within reasonable ranges.
 
-##### 5.2.1 The Problem
+##### 4.2.1 The Problem
 When merging sorted runs in parallel, the algorithm recursively subdivides the merge work using binary search to find split points. We need to determine when to stop subdividing and merge sequentially.
 
-##### 5.2.2 Design
+##### 4.2.2 Design
 Binary search partitioning for load-balanced work split. Recursive subdivision until threshold reached.
 
-##### 5.2.3 Tuning Experiment
+##### 4.2.3 Tuning Experiment
 
 **Hypothesis**:
 - **Too small** (128): Excessive task creation overhead, mutex contention
@@ -567,7 +626,7 @@ Sweep threshold values across 512× range on 10M nearly-sorted integers with 16 
 
 **Surprising Finding**: Performance is nearly flat (244-251ms, ~3% spread) across a 512× range of threshold values.
 
-##### 5.2.4 Analysis — Why Is Performance Insensitive?
+##### 4.2.4 Analysis — Why Is Performance Insensitive?
 
 1. **Parallel merge is not the dominant cost**:
    - Most runtime is in partitioning (quicksort phase), not merging
@@ -599,11 +658,11 @@ Not all parameters have sensitive optima. Some have "U-shaped" curves (insertion
 
 ---
 
-#### 5.3 What Didn't Work — Negative Results
+#### 4.3 What Didn't Work — Negative Results
 
 Not all optimization attempts yield improvements. This section documents three experiments that failed to improve performance — valuable lessons that demonstrate the current implementation has already captured the "easy wins."
 
-##### 5.3.1 Small Buffer Optimization (SBO) Analysis
+##### 4.3.1 Small Buffer Optimization (SBO) Analysis
 This experiment investigates whether a custom task wrapper could outperform std::function by avoiding its perceived overhead.
 
 **Hypothesis**:
@@ -634,7 +693,7 @@ Standard library implementers have already optimized for this use case. std::fun
 
 **Design Decision**: Use std::function for task storage.
 
-##### 5.3.2 Explicit Memory Management
+##### 4.3.2 Explicit Memory Management
 Investigates whether custom allocation could reduce overhead.
 
 **What Was Attempted**:
@@ -661,7 +720,7 @@ Modern allocators already implement thread-local caches, size-class binning, bat
 
 **Design Decision**: Use standard std::function and default allocator.
 
-##### 5.3.3 Sequential vs Parallel (1 Thread) Analysis
+##### 4.3.3 Sequential vs Parallel (1 Thread) Analysis
 Investigates whether single-threaded parallel could match recursive sequential.
 
 **Theoretical Analysis**:
@@ -685,12 +744,12 @@ The hardware call stack is essentially a "free" LIFO structure optimized by deca
 
 ---
 
-#### 5.4 Compiler Optimization Flag Tuning
+#### 4.4 Compiler Optimization Flag Tuning
 
-##### 5.4.1 Methodology
+##### 4.4.1 Methodology
 Systematic benchmark of 12 GCC flag combinations on 10M random integers.
 
-##### 5.4.2 Results Summary
+##### 4.4.2 Results Summary
 | Flags | 1T (ms) | 16T (ms) | Notes |
 |-------|---------|----------|-------|
 | **-O2 -march=native** | **459** | 93 | **Best single-threaded** |
@@ -699,20 +758,20 @@ Systematic benchmark of 12 GCC flag combinations on 10M random integers.
 | -Ofast | 472 | 91 | Worse than O2 |
 | -O3 -flto | 473 | 95 | LTO hurts performance |
 
-##### 5.4.3 Key Findings
+##### 4.4.3 Key Findings
 1. **-O3 offers no benefit over -O2**: Aggressive optimizations don't help branch-heavy sorting
 2. **-Ofast degrades performance**: Aggressive transformations increase instruction cache pressure
 3. **-flto causes 2-5% regression**: Header-only templates already get full inlining
 4. **-march=native provides ~1.5% improvement**: Modest gains (memory-bound workload)
 
-##### 5.4.4 Final Configuration
+##### 4.4.4 Final Configuration
 CXXFLAGS = -std=c++17 -O2 -march=native -DNDEBUG
 
 **Rationale**: Simplest flag set that achieves best performance.
 
 ---
 
-#### 5.5 Low-Level Optimizations (utils.hpp)
+#### 4.5 Low-Level Optimizations (utils.hpp)
 - DPQS_FORCE_INLINE: __attribute__((always_inline)) / __forceinline
 - DPQS_LIKELY/UNLIKELY: __builtin_expect for branch prediction
 - DPQS_PREFETCH_READ/WRITE: __builtin_prefetch for cache warming
@@ -720,13 +779,13 @@ CXXFLAGS = -std=c++17 -O2 -march=native -DNDEBUG
 
 ---
 
-### Chapter 6: Results and Evaluation (10-12 pages)
+### Chapter 5: Results and Evaluation (10-12 pages)
 
 This chapter presents comprehensive benchmarking results comparing our dual-pivot quicksort implementation against std::sort across diverse data patterns, array sizes, and thread configurations.
 
-#### 6.1 Experimental Setup
+#### 5.1 Experimental Setup
 
-##### 6.1.1 Hardware Platform
+##### 5.1.1 Hardware Platform
 | Component | Specification |
 |-----------|---------------|
 | **CPU** | Intel Core i7-13700 (Raptor Lake), 10 nm process |
@@ -735,7 +794,7 @@ This chapter presents comprehensive benchmarking results comparing our dual-pivo
 | **L3 Cache** | 30 MB (shared) |
 | **RAM** | 32 GB DDR5-4800 (dual-channel) |
 
-##### 6.1.2 Software Environment
+##### 5.1.2 Software Environment
 | Component | Version |
 |-----------|---------|
 | **Operating System** | Windows 11 Pro |
@@ -744,13 +803,13 @@ This chapter presents comprehensive benchmarking results comparing our dual-pivo
 | **C++ Standard** | C++17 |
 | **Profiler** | Intel VTune Profiler 2025.10 |
 
-##### 6.1.3 Benchmark Protocol
+##### 5.1.3 Benchmark Protocol
 1. **Warmup Phase**: 3 iterations discarded
 2. **Measurement Phase**: 10 timed iterations
 3. **Statistical Reporting**: Median runtime
 4. **Timing Method**: std::chrono::high_resolution_clock
 
-##### 6.1.4 Test Matrix
+##### 5.1.4 Test Matrix
 | Parameter | Values |
 |-----------|--------|
 | **Array Sizes** | 1K, 10K, 100K, 1M, 10M elements |
@@ -759,7 +818,7 @@ This chapter presents comprehensive benchmarking results comparing our dual-pivo
 
 Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 
-##### 6.1.5 Data Pattern Relevance
+##### 5.1.5 Data Pattern Relevance
 | Pattern | Real-World Source | Example |
 |---------|------------------|---------|
 | RANDOM | Hash table outputs | User IDs after hashing |
@@ -769,54 +828,54 @@ Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 | ORGAN_PIPE | Time series peaks | Stock prices over day |
 | SAWTOOTH | Sorted chunks | Merging log files |
 
-##### 6.1.6 Reproducibility
+##### 5.1.6 Reproducibility
 - **Source code**: include/dual_pivot_quicksort.hpp
 - **Benchmark runner**: benchmarks/benchmark_runner.cpp
 - **Raw results**: benchmarks/results/
 
-#### 6.2 Performance by Data Pattern
+#### 5.2 Performance by Data Pattern
 
-##### 6.2.1 Random Data
+##### 5.2.1 Random Data
 **[PLACEHOLDER: Figure 6.2.1 — Random Data Performance]**
 
 **Analysis**: Sequential DPQS within 5% of std::sort. Parallel achieves 5.18× speedup (1T→16T).
 
-##### 6.2.2 Reverse-Sorted Data
+##### 5.2.2 Reverse-Sorted Data
 **Algorithm Trigger**: run_merger.hpp detects single descending run.
 **Mechanism**: O(n) in-place reversal.
 **Result**: ~6× speedup vs std::sort
 
 **[PLACEHOLDER: Figure 6.2.2 — REVERSE_SORTED Pattern]**
 
-##### 6.2.3 Organ-Pipe Data
+##### 5.2.3 Organ-Pipe Data
 **Algorithm Trigger**: run_merger.hpp detects 2 runs.
 **Mechanism**: O(n) merge of ascending + reversed descending.
 **Result**: **19× speedup** — largest across all patterns
 
 **[PLACEHOLDER: Figure 6.2.3 — ORGAN_PIPE Pattern]**
 
-##### 6.2.4 Sawtooth Data
+##### 5.2.4 Sawtooth Data
 **Algorithm Trigger**: run_merger.hpp detects k ascending runs.
 **Mechanism**: O(n log k) merge tree, parallelized.
 **Result**: ~10× speedup, best parallel scaling
 
 **[PLACEHOLDER: Figure 6.2.4 — SAWTOOTH Pattern]**
 
-##### 6.2.5 Nearly-Sorted Data
+##### 5.2.5 Nearly-Sorted Data
 **Algorithm Trigger**: Quality heuristics determine path.
 **Key Insight**: Tests MIN_FIRST_RUNS_FACTOR tuning.
 
 **[PLACEHOLDER: Figure 6.2.5 — NEARLY_SORTED Pattern]**
 
-##### 6.2.6 Duplicate-Heavy Data
+##### 5.2.6 Duplicate-Heavy Data
 **Adaptive Pivot Strategy**: Dutch National Flag on duplicates.
 **Result**: No degradation; normal parallel scaling.
 
 **[PLACEHOLDER: Figure 6.2.6 — MANY_DUPLICATES Pattern]**
 
-#### 6.3 Parallel Scaling Analysis
+#### 5.3 Parallel Scaling Analysis
 
-##### 6.3.1 Speedup Results (VTune Measured)
+##### 5.3.1 Speedup Results (VTune Measured)
 | Threads | Runtime (ms) | Speedup | Efficiency | CPI | Primary Bottleneck |
 |---------|--------------|---------|------------|-----|-------------------|
 | 1 | 508 | 1.00x | 100% | 0.889 | Branch Mispredict (35%) |
@@ -827,7 +886,7 @@ Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 
 **Key Observation**: Bottleneck shifts from branch misprediction to L3 cache contention.
 
-##### 6.3.2 VTune Bottleneck Analysis
+##### 5.3.2 VTune Bottleneck Analysis
 
 **Pipeline Slot Breakdown (16 Threads)**:
 | Category | P-core % | Impact |
@@ -849,7 +908,7 @@ Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 
 **Conclusion**: VTune confirms scaling plateau is caused by L3 cache contention (38%) and synchronization (48% spin time) — hardware, not software, is the bottleneck.
 
-##### 6.3.3 Amdahl's Law Application
+##### 5.3.3 Amdahl's Law Application
 **Serial fraction**: ~13.9% (from 5.18×@16T)
 **Maximum theoretical speedup**: 7.19×
 
@@ -861,7 +920,7 @@ Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 | Memory serialization | ~3% |
 | Work-stealing overhead | ~1% |
 
-##### 6.3.4 VTune-Guided Optimizations
+##### 5.3.4 VTune-Guided Optimizations
 **Successful**:
 1. Task granularity adjustment (MIN_PARALLEL_SORT_SIZE = 65536)
 2. Cache-line padding (alignas(64) on atomics)
@@ -874,7 +933,7 @@ Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 | Batch classification | 30% slower |
 | Block partitioning | Negative |
 
-#### 6.4 Space Complexity Analysis
+#### 5.4 Space Complexity Analysis
 
 | Algorithm | Random Input | Structured Input | Worst Case |
 |-----------|--------------|------------------|------------|
@@ -885,9 +944,9 @@ Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 
 **Trade-off**: DPQS uses O(n) auxiliary space for structured data to achieve 19× speedup.
 
-#### 6.5 Correctness Verification
+#### 5.5 Correctness Verification
 
-##### 6.5.1 Test Suite (16 test files)
+##### 5.5.1 Test Suite (16 test files)
 | Category | Purpose |
 |----------|---------|
 | Core Algorithm | Dual-pivot partitioning invariants |
@@ -896,60 +955,60 @@ Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 | Parallel Infrastructure | Thread coordination |
 | Integration | End-to-end with all patterns |
 
-##### 6.5.2 Edge Cases Covered
+##### 5.5.2 Edge Cases Covered
 - Empty array, single element, all duplicates
 - INT_MIN, INT_MAX, mixed extremes
 - IEEE-754: NaN, -0.0, ±∞, denormals
 
-##### 6.5.3 Fuzz Testing
+##### 5.5.3 Fuzz Testing
 - stress_test_manager.py: Thousands of random inputs
 - All types: int8-int64, uint variants, float, double
 - Results: No failures (stress_failures/ empty)
 
 ---
 
-### Chapter 7: Discussion (4-5 pages)
+### Chapter 6: Discussion (4-5 pages)
 
-#### 7.1 Interpretation of Results
-##### 7.1.1 Why Structured Data Shows Dramatic Speedups (up to 19x)
+#### 6.1 Interpretation of Results
+##### 6.1.1 Why Structured Data Shows Dramatic Speedups (up to 19x)
 - Key mechanism: run_merger.hpp detects existing runs before partitioning
 - std::sort (Introsort) has NO run detection
 - This is Timsort's key innovation, adopted by Java's DPQS
 - Trade-off: O(n) auxiliary space vs O(log n) for pure quicksort
 
-##### 7.1.2 Memory Wall Explanation for Parallel Scaling Plateau
+##### 6.1.2 Memory Wall Explanation for Parallel Scaling Plateau
 - Sorting is **memory-bound**, not compute-bound
 - Bandwidth saturation at ~4 threads on test hardware
 - This is a **fundamental hardware limitation**, not software deficiency
 - Evidence: All parallel sorting algorithms hit similar walls
 
-#### 7.2 Comparison with Related Work
-##### 7.2.1 vs Java's DualPivotQuicksort
+#### 6.2 Comparison with Related Work
+##### 6.2.1 vs Java's DualPivotQuicksort
 - C++ port with manual memory management, custom thread pool, templates
 - Performance parity achieved
 
-##### 7.2.2 vs pdqsort
+##### 6.2.2 vs pdqsort
 - Different strategy: single pivot with pattern detection
 - DPQS wins on structured data; pdqsort wins on random
 
-##### 7.2.3 vs std::sort
+##### 6.2.3 vs std::sort
 - DPQS dominates on structured data (run merging)
 - std::sort competitive on random (both O(n log n), highly tuned)
 
-#### 7.3 Practical Implications
+#### 6.3 Practical Implications
 - Use DPQS when data likely has patterns
 - Use std::sort for guaranteed space bounds
 
-#### 7.4 Limitations
+#### 6.4 Limitations
 - O(n) space for structured data
 - Platform-specific tuning required
 - No SIMD vectorization (future work)
 
 ---
 
-### Chapter 8: Conclusion and Future Work (2-3 pages)
+### Chapter 7: Conclusion and Future Work (2-3 pages)
 
-#### 8.1 Summary of Achievements
+#### 7.1 Summary of Achievements
 1. ✅ Complete C++ implementation of dual-pivot quicksort
 2. ✅ STL-compatible header-only library
 3. ✅ Parallel work-stealing implementation (5.18× speedup)
@@ -957,12 +1016,12 @@ Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 5. ✅ Comprehensive benchmarking across 6 data patterns
 6. ✅ Empirical constant tuning with documented methodology
 
-#### 8.2 Contributions
+#### 7.2 Contributions
 - First open-source, production-quality C++ DPQS implementation
 - Empirical evidence that sorting is memory-bandwidth limited
 - Algorithm engineering case study with documented trade-offs
 
-#### 8.3 Future Work
+#### 7.3 Future Work
 - AVX2/AVX-512 vectorization (non-temporal stores)
 - Block-based partitioning (BlockQuicksort approach)
 - Adaptive parallel/sequential switching based on system load
@@ -999,14 +1058,18 @@ Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 
 ## Page Budget Estimate
 
-| Chapter | Pages |
-|---------|-------|
-| Chapter 1: Introduction | 5 |
-| Chapter 2: Literature Review | 7 |
-| Chapter 3: Core Algorithm | 8 |
-| Chapter 4: Adaptive Optimizations | 11 |
-| Chapter 5: Parallel Execution | 11 |
-| Chapter 6: Results and Evaluation | 10 |
-| Chapter 7: Discussion | 4 |
-| Chapter 8: Conclusion | 3 |
-| **Total (Main Body)** | **~47 pages** |
+| Chapter | Pages | Notes |
+|---------|-------|-------|
+| Chapter 1: Introduction | 5 | Includes §1.5 Related Work Overview |
+| Chapter 2: Core Algorithm | 10 | Prior Work integrated (§2.1) |
+| Chapter 3: Adaptive Optimizations | 11 | Prior Work on Timsort (§3.1.1) |
+| Chapter 4: Parallel Execution | 12 | Prior Work on work-stealing (§4.1.1) |
+| Chapter 5: Results and Evaluation | 10 | |
+| Chapter 6: Discussion | 4 | |
+| Chapter 7: Conclusion | 3 | |
+| **Total (Main Body)** | **~45 pages** | Within 50-page limit |
+
+**Benefits of Integrated Literature**:
+- Saved ~6 pages from standalone Chapter 2
+- Each citation now appears in context of the problem it addresses
+- Readers understand "why" before seeing "what"
