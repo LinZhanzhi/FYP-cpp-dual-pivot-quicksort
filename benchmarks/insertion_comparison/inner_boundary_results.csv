@@ -1,0 +1,45 @@
+# Experiment 1: Simple vs Mixed crossover
+Size,Simple_ns,Mixed_ns,Speedup,Winner
+16,63.1,55.3,1.14,Mixed
+20,73.7,58.8,1.25,Mixed
+24,83.1,81.4,1.02,Mixed
+28,95.9,88.1,1.09,Mixed
+32,109.7,73.6,1.49,Mixed
+36,134.2,81.3,1.65,Mixed
+40,141.4,109.1,1.30,Mixed
+44,177.2,131.1,1.35,Mixed
+48,198.0,132.4,1.50,Mixed
+56,314.1,211.4,1.49,Mixed
+64,401.2,239.9,1.67,Mixed
+
+# Experiment 2: Ordering comparison
+Size,PinThenPair_ns,PairThenPin_ns,Ratio,Winner
+32,64.0,80.2,1.25,PinThenPair
+40,116.2,127.9,1.10,PinThenPair
+48,141.7,175.3,1.24,PinThenPair
+56,212.6,245.5,1.15,PinThenPair
+64,250.2,320.2,1.28,PinThenPair
+
+# Experiment 3: Individual vs Combined
+Size,PinOnly_ns,PairOnly_ns,Mixed_ns,Winner
+32,96.4,65.5,65.8,Pair
+40,143.7,110.3,114.3,Pair
+48,154.8,152.7,134.1,Mixed
+56,219.5,200.7,205.8,Pair
+64,350.4,247.7,243.2,Mixed
+
+# Experiment 4: Optimal pair_count for size=48
+pair_count,pin_count,Runtime_ns,Note
+0,48,195.8,
+4,44,163.8,
+8,40,159.9,
+12,36,193.9,
+16,32,163.1,
+20,28,144.6,
+24,24,139.7,Java_default
+28,20,155.8,
+32,16,150.2,
+36,12,143.0,
+40,8,147.0,
+44,4,148.3,
+48,0,197.8,
