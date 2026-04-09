@@ -130,16 +130,39 @@ When an element belongs in the rightmost partition (> P2), the algorithm scans `
 - Prevents O(n²) degradation on all-equal arrays
 
 #### 2.4 Pivot Selection (sequential_sorters.hpp)
-**The Problem**: Poor pivot selection causes O(n²) worst case.
+**The Problem**: Poor pivot selection causes O(n²) worst case. When the pivot consistently lands near array extremes, partitions become highly unbalanced.
+
+**Prior Work on Pivot Selection**:
+| Strategy | Source | Expected Comparisons |
+|----------|--------|---------------------|
+| Random/first element | Hoare (1962) | 1.386 n log n |
+| Median-of-3 | Sedgewick (1978) | 1.188 n log n |
+| Pseudomedian-of-9 | Bentley & McIlroy (1993) | Further improved |
+
+**Why Median-of-5?**
+- Sedgewick's median-of-3 (first, middle, last) is vulnerable to adversarial patterns
+- Bentley & McIlroy's "ninther" (median of three medians-of-3) requires 12 comparisons
+- **Median-of-5 is a practical middle ground**: Better robustness than median-of-3, less overhead than ninther
 
 **Design**:
-- Median-of-5 sampling provides robust pivot candidates
-- Equidistant sampling: e1≈3/8, e3≈1/2, e5≈5/8 positions
-- Avoids edge elements for robustness on pre-sorted data
+- Sample 5 elements at **equidistant interior positions** (not at edges)
+- Positions: e1 ≈ 3/8, e2 ≈ 7/16, e3 ≈ 1/2, e4 ≈ 9/16, e5 ≈ 5/8
+- **Why avoid edges?** Pre-sorted or reverse-sorted data has extremes at boundaries — sampling interior positions avoids selecting them as pivots
 
 **Implementation**:
-- Optimal 9-comparator sorting network for 5 elements
-- Minimal comparisons while finding two good pivots
+```cpp
+std::ptrdiff_t step = (size >> 3) * 3 + 3;  // ≈ 3/8 of size
+std::ptrdiff_t e1 = low + step;              // 3/8 from start
+std::ptrdiff_t e5 = end - step;              // 3/8 from end
+std::ptrdiff_t e3 = (e1 + e5) >> 1;          // Middle
+std::ptrdiff_t e2 = (e1 + e3) >> 1;          // Between e1 and e3
+std::ptrdiff_t e4 = (e3 + e5) >> 1;          // Between e3 and e5
+```
+
+**Sorting Network**: Optimal 9-comparator network for 5 elements (Bose-Nelson, 1962)
+- Sorts the 5 samples in exactly 9 comparisons (theoretical minimum)
+- After sorting: e2 and e4 become the two pivots (2nd and 4th smallest)
+- This guarantees P1 ≤ P2 without additional comparison
 
 #### 2.5 Small Array Optimization — A Complete Story
 **The Problem**: Recursion overhead dominates at small sizes. Function call overhead (~20 cycles) exceeds sorting work for tiny arrays.
@@ -1033,6 +1056,10 @@ Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 - Musser, D.R. (1997). Introsort
 - Amdahl, G.M. (1967). Validity of the Single Processor Approach
 - Wulf & McKee (1995). Hitting the Memory Wall
+- Hoare, C.A.R. (1962). Quicksort. The Computer Journal, 5(1), 10-16
+- Sedgewick, R. (1978). Implementing Quicksort Programs. Comm. ACM, 21(10), 847-857
+- Bentley, J.L. & McIlroy, M.D. (1993). Engineering a Sort Function. Software: Practice and Experience, 23(11), 1249-1265
+- Bose, R.C. & Nelson, R.J. (1962). A Sorting Problem. JACM, 9(2), 282-296
 
 ---
 
