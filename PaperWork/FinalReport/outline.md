@@ -372,23 +372,310 @@ Each pattern represents a realistic scenario encountered in production systems:
 
 ### Chapter 6: Results and Evaluation (10-12 pages)
 #### 6.1 Experimental Setup
-- Hardware: [Your CPU, RAM, cache sizes]
-- Software: g++ version, optimization flags (-O3)
-- Benchmark framework description
 
-#### 6.2 Sequential Performance vs std::sort
+##### 6.1.1 Hardware Platform
+| Component | Specification |
+|-----------|---------------|
+| **CPU** | Intel Core i9-13900H (Raptor Lake) |
+| **Cores** | 8 Performance + 16 Efficiency (24 total, 32 threads) |
+| **L1 Cache** | 80 KB (per P-core), 64 KB (per E-core) |
+| **L2 Cache** | 2 MB (per P-core), 2 MB (4 E-cores shared) |
+| **L3 Cache** | 36 MB (shared) |
+| **RAM** | 32 GB DDR5-4800 (dual channel) |
+| **Memory Bandwidth** | ~77 GB/s theoretical peak |
+
+##### 6.1.2 Software Environment
+| Component | Version |
+|-----------|---------|
+| **Operating System** | Windows 11 Pro |
+| **Compiler** | g++ 13.2.0 (MinGW-w64) |
+| **Optimization Flags** | `-O3 -march=native -mtune=native` |
+| **C++ Standard** | C++17 |
+| **Profiler** | Intel VTune Profiler 2025.10 |
+
+**Compiler flags rationale:**
+- `-O3`: Maximum optimization including vectorization and loop unrolling
+- `-march=native`: Enable all CPU-specific instructions (AVX-512, etc.)
+- `-mtune=native`: Optimize scheduling for host microarchitecture
+
+##### 6.1.3 Benchmark Protocol
+Each measurement follows a rigorous protocol to ensure reproducibility:
+
+1. **Warmup Phase**: 3 iterations discarded (JIT-like cache warming)
+2. **Measurement Phase**: 10 timed iterations
+3. **Statistical Reporting**: Median runtime (robust to outliers)
+4. **Timing Method**: `std::chrono::high_resolution_clock` (nanosecond precision)
+5. **Memory State**: Fresh array allocation per iteration (no reuse)
+6. **Thread Affinity**: OS-managed (no explicit pinning)
+
+##### 6.1.4 Test Matrix
+| Parameter | Values |
+|-----------|--------|
+| **Array Sizes** | 1K, 10K, 100K, 1M, 10M elements |
+| **Data Patterns** | RANDOM, REVERSE_SORTED, ORGAN_PIPE, SAWTOOTH, NEARLY_SORTED, MANY_DUPLICATES |
+| **Thread Counts** | 1, 2, 4, 8, 16 |
+| **Element Type** | `int` (4 bytes) |
+| **Comparator** | `std::less<int>` (default) |
+
+Total test configurations: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
+
+##### 6.1.5 Baseline Algorithm
+We compare against `std::sort` from the C++ Standard Library (`<algorithm>`). As the de facto standard sorting function in C++, it represents the performance baseline that any proposed sorting implementation must compete with. All experiments use the same compiler flags and timing infrastructure for fair comparison.
+
+##### 6.1.6 Reproducibility
+All experiments are reproducible via the provided benchmark infrastructure:
+- **Source code**: Full implementation in `include/dual_pivot_quicksort.hpp`
+- **Benchmark runner**: `benchmarks/benchmark_runner.cpp`
+- **Orchestration**: `benchmarks/benchmark_manager.py` (automated sweep)
+- **Raw results**: JSON files in `benchmarks/results/`
+- **Visualization**: Python scripts in `benchmarks/` directory
+
+#### 6.2 Performance by Data Pattern
+This section compares performance across diverse data patterns using scatter plots with fitted curves. Each plot shows `std::sort` (baseline) alongside parallel DPQS at 1, 2, 4, 8, and 16 threads. The vertical gap between curves represents speedup; the spacing between DPQS thread counts shows parallel efficiency.
+
+**Visualization Approach:**
+- **X-axis**: Array size (log scale: 1K, 10K, 100K, 1M, 10M)
+- **Y-axis**: Runtime in milliseconds (log scale)
+- **Data series**: std::sort (black/gray), DPQS-1T (lightest blue), DPQS-2T, DPQS-4T, DPQS-8T, DPQS-16T (darkest blue)
+- **Fitted curves**: Power-law or log-linear regression to smooth noise and reveal O(n log n) behavior
+
 ##### 6.2.1 Random Data
-- Table: Performance comparison across sizes
-- Analysis: Competitive (within 5%)
 
-##### 6.2.2 Structured Data (Key Strength)
-- REVERSE_SORTED: 6x faster than std::sort
-- ORGAN_PIPE: 19x faster
-- SAWTOOTH: 10x faster
-- Figure: Bar chart comparison
+**[PLACEHOLDER: Figure 6.2.1 — Random Data Performance]**
+```
+Figure specifications:
+- Title: "Runtime vs Array Size: RANDOM Pattern"
+- X-axis: Array size (1K to 10M, log scale)
+- Y-axis: Runtime (ms, log scale)
+- Series (6 lines with legend):
+  * std::sort — black solid line, circle markers
+  * DPQS 1T — #cce5ff (lightest blue), square markers
+  * DPQS 2T — #99ccff
+  * DPQS 4T — #66b3ff
+  * DPQS 8T — #3399ff
+  * DPQS 16T — #0066cc (darkest blue), diamond markers
+- Grid: Light gray, both axes
+- Data points: Scatter with fitted power-law curves
+- Expected pattern: All lines roughly parallel (O(n log n));
+  std::sort and DPQS-1T nearly overlap; thread lines spread downward
+```
 
-##### 6.2.3 Duplicate-Heavy Data
-- Performance analysis for MANY_DUPLICATES patterns
+**What to observe in this plot:**
+1. **std::sort vs DPQS-1T gap**: Should be minimal (~5%), confirming competitive sequential performance
+2. **Thread scaling**: Lines spread downward as thread count increases, showing ~2× gap between 1T and 16T
+3. **Curve shape**: All lines should follow O(n log n) — linear on log-log plot with slope ~1
+4. **Small array crossover**: At 1K-10K, overhead may cause DPQS-16T to be slower than DPQS-1T
+
+**Analysis**: On random data, sequential DPQS performs within 5% of std::sort. The parallel version achieves 5.18× speedup (1T→16T), demonstrating effective work-stealing parallelization despite the memory-bound nature of comparison sorting.
+
+##### 6.2.2 Reverse-Sorted Data (Run Reversal)
+**Algorithm Trigger**: `run_merger.hpp` detects a single descending run spanning the entire array.
+
+**Mechanism**: Instead of sorting, DPQS reverses the array in-place with a simple swap loop:
+```cpp
+// Reverse descending run into ascending order
+for (int i = last - 1, j = k; ++i < --j && comp(a[j], a[i]); ) {
+    std::swap(a[i], a[j]);
+}
+```
+
+**Complexity**: O(n) — single pass, no comparisons needed after detection, no recursion.
+
+**Why std::sort is slower**: Introsort treats reverse-sorted data as adversarial input (poor pivot selection), leading to deeper recursion and more comparisons.
+
+---
+
+**[PLACEHOLDER: Figure 6.2.2 — REVERSE_SORTED Pattern]**
+```
+Figure specifications:
+- Title: "Runtime vs Array Size: REVERSE_SORTED Pattern"
+- X-axis: Array size (1K to 10M, log scale)
+- Y-axis: Runtime (ms, log scale)
+- Series (6 lines):
+  * std::sort — black solid line, circle markers
+  * DPQS 1T — #cce5ff (lightest blue), square markers
+  * DPQS 2T — #99ccff
+  * DPQS 4T — #66b3ff
+  * DPQS 8T — #3399ff
+  * DPQS 16T — #0066cc (darkest blue), diamond markers
+- Expected pattern:
+  * std::sort — steep O(n log n) curve
+  * All DPQS lines — COLLAPSED together, nearly flat O(n) curves
+  * ~6× vertical gap between std::sort and DPQS cluster
+  * Minimal spread between DPQS thread counts
+```
+
+**What to observe in this plot:**
+1. **Curve slope difference**: std::sort follows O(n log n); DPQS lines are shallower (O(n))
+2. **DPQS line collapse**: All thread counts overlap — reversal is inherently sequential
+3. **Vertical gap**: ~6× speedup visible as vertical distance at 10M elements
+4. **No parallel benefit**: Thread lines do not spread (nothing to parallelize)
+
+**Key Insight**: This pattern demonstrates pure algorithmic advantage — no parallelism, just O(n) vs O(n log n). The collapsed DPQS lines visually confirm that adding threads provides no benefit for sequential operations.
+
+##### 6.2.3 Organ-Pipe Data (2-Run Merge)
+**Algorithm Trigger**: `run_merger.hpp` detects exactly 2 runs — one ascending, one descending.
+
+**Data Pattern**: [1, 2, 3, ..., n/2, n/2-1, ..., 2, 1] — rises to peak, then falls.
+
+**Mechanism**:
+1. Detect ascending run [0, n/2)
+2. Detect descending run [n/2, n)
+3. Reverse the descending run in-place → now two ascending runs
+4. Merge the two runs in O(n)
+
+**Complexity**: O(n) — one reversal + one merge pass.
+
+**Why std::sort is slower**: Introsort sees no structure, performs full O(n log n) quicksort. The 19× gap is the largest across all patterns.
+
+---
+
+**[PLACEHOLDER: Figure 6.2.3 — ORGAN_PIPE Pattern]**
+```
+Figure specifications:
+- Title: "Runtime vs Array Size: ORGAN_PIPE Pattern"
+- X-axis: Array size (1K to 10M, log scale)
+- Y-axis: Runtime (ms, log scale)
+- Series: Same 6-line color scheme
+- Expected pattern:
+  * std::sort — steep O(n log n) curve (top)
+  * DPQS lines — much shallower curves (bottom cluster)
+  * HUGE vertical gap (~19× at 10M) — largest of all patterns
+  * Moderate spread between DPQS thread counts (merge can parallelize)
+```
+
+**What to observe in this plot:**
+1. **Maximum speedup**: 19× gap — the most dramatic visual demonstration of run merger's advantage
+2. **Curve shape**: DPQS approaches O(n); std::sort follows O(n log n)
+3. **Some parallel benefit**: Unlike REVERSE_SORTED, the merge phase can parallelize
+4. **Visual impact**: Use this as the "hero figure" demonstrating adaptive algorithm selection
+
+**Key Insight**: ORGAN_PIPE is the "best case" for run detection. The algorithm transforms O(n log n) problem into O(n) by recognizing the inherent structure. Moderate thread spread shows merge parallelization working.
+
+##### 6.2.4 Sawtooth Data (k-Run Merge Tree)
+**Algorithm Trigger**: `run_merger.hpp` detects k ascending runs (where k = number of "teeth").
+
+**Data Pattern**: k sorted chunks concatenated: [1-100], [1-100], [1-100], ...
+
+**Mechanism**:
+1. Detect all k runs, store boundaries in `std::vector<ptrdiff_t> run`
+2. Build recursive merge tree with log(k) levels
+3. If `parallel && count >= MIN_RUN_COUNT`: use `RunMerger` parallel merge
+4. Merge runs bottom-up, parallelizing at each level
+
+**Complexity**: O(n log k) where k << n — much faster than O(n log n) when k is small.
+
+**Why std::sort is slower**: Introsort ignores run boundaries, performs full O(n log n) sort.
+
+**Why this parallelizes best**: The merge tree has log(k) independent levels. At each level, multiple merge operations can run in parallel. This is the best pattern for demonstrating parallel run merging.
+
+---
+
+**[PLACEHOLDER: Figure 6.2.4 — SAWTOOTH Pattern]**
+```
+Figure specifications:
+- Title: "Runtime vs Array Size: SAWTOOTH Pattern"
+- X-axis: Array size (1K to 10M, log scale)
+- Y-axis: Runtime (ms, log scale)
+- Series: Same 6-line color scheme
+- Expected pattern:
+  * std::sort — O(n log n) curve (top)
+  * DPQS lines — O(n log k) curves, shallower slope
+  * ~10× vertical gap at large sizes
+  * WIDE spread between thread counts — best parallel scaling among structured patterns
+```
+
+**What to observe in this plot:**
+1. **Good sequential speedup**: ~10× gap between std::sort and DPQS-1T
+2. **Best parallel scaling**: Widest spread between 1T and 16T among all structured patterns
+3. **Why parallelism works**: k-run merge tree naturally distributes work across threads
+4. **Curve shape**: O(n log k) — shallower than O(n log n) because k is constant
+
+**Key Insight**: SAWTOOTH demonstrates that run merging and parallelism are *complementary* — unlike REVERSE_SORTED where parallelism adds nothing. The merge tree provides natural task boundaries for work-stealing.
+
+##### 6.2.5 Nearly-Sorted Data (Conditional Optimization)
+**Algorithm Trigger**: `run_merger.hpp` quality heuristics determine whether to merge or fall back to quicksort.
+
+**Data Pattern**: Sorted array with random perturbations (e.g., 1% of elements swapped).
+
+**Mechanism (Conditional)**:
+1. Scan for runs, checking quality heuristics:
+   - `MIN_FIRST_RUN_SIZE = 16` — first run must be at least 16 elements
+   - `MIN_FIRST_RUNS_FACTOR = 6` — runs must be long relative to total size
+   - `MAX_RUN_CAPACITY = 500` — abort if too many short runs detected
+2. If heuristics pass: merge runs
+3. If heuristics fail: fall back to standard quicksort
+
+**Complexity**: O(n) best case (few long runs) to O(n log n) worst case (many short runs).
+
+**Why this is "variable"**: Performance depends on perturbation level:
+- 0.1% perturbed → long runs → merge path → fast
+- 10% perturbed → short runs → quicksort fallback → normal speed
+
+---
+
+**[PLACEHOLDER: Figure 6.2.5 — NEARLY_SORTED Pattern]**
+```
+Figure specifications:
+- Title: "Runtime vs Array Size: NEARLY_SORTED Pattern (1% Perturbation)"
+- X-axis: Array size (1K to 10M, log scale)
+- Y-axis: Runtime (ms, log scale)
+- Series: Same 6-line color scheme
+- Expected pattern:
+  * std::sort — O(n log n) baseline
+  * DPQS lines — between O(n) and O(n log n), depending on run quality
+  * Moderate vertical gap (depends on perturbation level)
+  * Moderate thread spread
+```
+
+**What to observe in this plot:**
+1. **Variable speedup**: Gap size depends on perturbation level in test data
+2. **Transition point**: If curves approach std::sort, heuristics triggered quicksort fallback
+3. **Run quality impact**: Steeper DPQS curves indicate shorter runs, less merge benefit
+
+**Key Insight**: This pattern tests the *heuristics*, not just the algorithm. The quality checks (MIN_FIRST_RUN_SIZE, MAX_RUN_CAPACITY) prevent overhead when runs are too short to benefit from merging.
+
+**Design Trade-off**: Aggressive run detection could slow down data that's "almost random." The heuristics balance opportunistic optimization against detection overhead.
+
+##### 6.2.6 Duplicate-Heavy Data (3-Way Partitioning)
+This section evaluates performance on data with many repeated values — a common scenario in categorical data (ratings, status codes, grade letters).
+
+**Adaptive Pivot Strategy:**
+The implementation detects duplicates via the 5-element pivot sample. If all 5 samples are strictly ordered, dual-pivot partitioning is used; otherwise, it switches to **3-way single-pivot partitioning** (Dutch National Flag), which groups all elements equal to the pivot in a single pass. This prevents O(n²) degradation on all-equal arrays.
+
+**Three-Way Partition Advantage:**
+| Partition Scheme | Array: [5,5,5,5,5] (n=5) | Recursion Depth |
+|------------------|--------------------------|-----------------|
+| 2-way (element ≤ pivot) | Degrades to O(n²) | n levels |
+| 3-way (Dutch National Flag) | O(n) | 1 level (all equal) |
+
+---
+
+**[PLACEHOLDER: Figure 6.2.3 — MANY_DUPLICATES Pattern (10% Unique)]**
+```
+Figure specifications:
+- Title: "Runtime vs Array Size: MANY_DUPLICATES (10% Unique Values)"
+- X-axis: Array size (1K to 10M, log scale)
+- Y-axis: Runtime (ms, log scale)
+- Series: Same 6-line color scheme
+- Expected pattern:
+  * std::sort and DPQS-1T — nearly overlapping (both handle duplicates well)
+  * Thread lines spread downward normally
+  * Similar curve shape to RANDOM pattern
+  * No degradation at any size (3-way partitioning prevents O(n²))
+```
+
+**What to observe in this plot:**
+1. **No sequential advantage**: std::sort and DPQS-1T curves overlap — both use effective duplicate handling
+2. **Normal parallel scaling**: Thread spread similar to RANDOM pattern (~5× from 1T to 16T)
+3. **Stable O(n log n)**: No curve steepening at large sizes — confirms no quadratic degradation
+4. **Well-balanced partitions**: 3-way partitioning creates even splits despite duplicate skew
+
+**Parallel Scaling on Duplicates**: The 3-way partitioning creates well-balanced partitions even with many duplicates, allowing effective parallelization. The parallel speedup on duplicate-heavy data typically matches or exceeds random data because equal elements are grouped and skipped in recursion.
+
+**Key Insight**: Both DPQS and std::sort (Introsort) handle duplicates well due to their respective pattern-defeating mechanisms. The parallel DPQS extends this advantage with multi-threaded execution. The visual similarity to the RANDOM plot confirms that duplicates do not degrade performance.
+
+**Real-World Relevance**: Categorical data (star ratings 1-5, grade letters A-F, status codes) naturally has 80-99% duplicates.
 
 #### 6.3 Parallel Scaling Analysis
 This section investigates the parallel performance characteristics of the work-stealing implementation using Intel VTune Profiler 2025.10 for microarchitectural analysis. While the implementation achieves a **5.18× speedup on 16 threads**, profiling reveals that the scaling plateau is not caused by algorithmic inefficiency but by fundamental hardware limitations — specifically L3 cache contention and synchronization overhead. The analysis demonstrates that comparison-based sorting on random data is inherently memory-bound at high thread counts, validating the implementation's efficiency by showing that hardware, not software, becomes the bottleneck.
