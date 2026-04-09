@@ -103,31 +103,10 @@ Wild's doctoral thesis provided the mathematical explanation:
 - **Key insight**: Fewer element SCANS despite more comparisons
 - Cache effect: Scanning 3 smaller regions beats 2 larger regions
 
-**Reference Implementation**:
-Java's `DualPivotQuicksort.java` serves as the authoritative reference — 4,429 lines of production code refined over 15 years of real-world use in the JDK. This battle-tested implementation informed our design decisions, particularly regarding edge case handling and adaptive path selection.
-
 #### 2.2 The Algorithm
-##### 2.2.1 Three-Way Partitioning Invariant
 - Core invariant: [< P1] [P1 ≤ x ≤ P2] [> P2]
 - Pivot selection: Median-of-5 at equidistant positions
 - Special case: When P1 == P2, fall back to Dutch National Flag
-
-##### 2.2.2 C++ Implementation Strategy
-Our implementation is a ground-up C++ design informed by the Java reference:
-
-**What We Built**:
-- ~3,000 lines of modern C++ (C++17/20)
-- Header-only, template-based architecture
-- Custom work-stealing thread pool (original design)
-- Platform-specific tuning for x86-64
-
-**Key Differences from Java**:
-| Aspect | Java | Our C++ |
-|--------|------|---------|
-| Memory | Garbage collected | RAII + buffer pooling |
-| Parallelism | ForkJoinPool | Custom work-stealing |
-| Type handling | Runtime dispatch | Compile-time templates |
-| Tuning | JVM-optimized | Native-optimized |
 
 #### 2.3 Partitioning Implementation (partition.hpp)
 **The Problem**: Efficiently divide array into three regions around two pivots.
