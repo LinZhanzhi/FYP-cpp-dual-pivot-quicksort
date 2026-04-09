@@ -1,7 +1,7 @@
 # Report Outline Reorganization Plan
 
-**Created**: 2026-04-09  
-**Purpose**: Guide for reorganizing `outline.md` from chapter-based to story-based structure  
+**Created**: 2026-04-09
+**Purpose**: Guide for reorganizing `outline.md` from chapter-based to story-based structure
 **Status**: NOT STARTED — ready to execute
 
 ---
@@ -94,23 +94,23 @@ Chapter 8: Conclusion (2-3 pages) — KEEP CURRENT CONTENT
 3.1 The Core Algorithm
   - Yaroslavskiy's three-way partitioning
   - Why two pivots? (Wild's analysis)
-  
+
 3.2 Partitioning Implementation
   - [< P1] [P1 ≤ x ≤ P2] [> P2] invariant
   - Backward scanning for cache efficiency
   - Dutch National Flag fallback
-  
+
 3.3 Pivot Selection
   - Optimal 9-comparator sorting network
   - Equidistant sampling positions
-  
+
 3.4 Small Array Optimization (Complete Story)
   - Problem: Recursion overhead dominates at small sizes
   - Design: Insertion sort cutoff
   - Implementation: Simple vs mixed insertion
   - Tuning: INSERTION_SORT_THRESHOLD sweep (from 5.3)
   - Result: 54 optimal for random, conservative 44 chosen
-  
+
 3.5 Recursion Safety
   - Tail call optimization
   - Heapsort fallback at MAX_RECURSION_DEPTH
@@ -142,16 +142,16 @@ Chapter 8: Conclusion (2-3 pages) — KEEP CURRENT CONTENT
   4.1.1 The Problem
     - Many real-world datasets have pre-existing order
     - std::sort ignores this → does full O(n log n) work
-    
+
   4.1.2 Design: Timsort-Inspired Run Detection
     - Ascending, descending, constant run handling
     - Quality heuristics: MIN_FIRST_RUNS_FACTOR, MAX_RUN_CAPACITY
-    
+
   4.1.3 Implementation (run_merger.hpp)
     - Run detection algorithm
     - Merge tree construction
     - Already-sorted early termination
-    
+
   4.1.4 Tuning Experiments (PRESERVE ALL FROM 5.5)
     [COPY ENTIRE SECTION 5.5 HERE]
     - Background
@@ -159,7 +159,7 @@ Chapter 8: Conclusion (2-3 pages) — KEEP CURRENT CONTENT
     - Results table
     - Analysis
     - Lesson Learned
-    
+
   4.1.5 Result
     - 19× speedup on ORGAN_PIPE
     - 6× on REVERSE_SORTED
@@ -181,11 +181,11 @@ Chapter 8: Conclusion (2-3 pages) — KEEP CURRENT CONTENT
   4.2.1 The Opportunity
     - 1-byte and 2-byte types have bounded range
     - Can achieve O(n) via bucket counting
-    
+
   4.2.2 Implementation
     - Signed/unsigned offset calculation
     - Sparse vs Dense optimization
-    
+
   4.2.3 Result
     - [Add benchmark data if available]
 
@@ -193,7 +193,7 @@ Chapter 8: Conclusion (2-3 pages) — KEEP CURRENT CONTENT
   4.3.1 IEEE-754 Challenges
     - NaN ≠ NaN breaks comparison
     - -0.0 == +0.0 mathematically but need ordering
-    
+
   4.3.2 Solution
     - Preprocessing: Move NaNs, convert zeros
     - Postprocessing: Restore -0.0 positions
@@ -219,28 +219,28 @@ Chapter 8: Conclusion (2-3 pages) — KEEP CURRENT CONTENT
   5.1.1 Why Work-Stealing?
     - Recursive algorithms create imbalanced work
     - Static scheduling leads to idle threads
-    
+
   5.1.2 Evolution: Three Generations
     Phase V1: Single Global Mutex (baseline)
     - Simple but contention-heavy
-    
+
     Phase V2: Per-Thread Queues with Central Dispatch
     - Better but still bottlenecked
-    
+
     Phase V3: Work-Stealing with LIFO/FIFO (final)
     - LIFO local access for cache locality
     - FIFO stealing for load balance
-    
+
   5.1.3 Implementation Details
     - WorkStealingQueue per thread
     - try_lock for non-blocking steal
     - CountedCompleter pattern from Java ForkJoinPool
-    
+
   5.1.4 Optimizations Applied
     - Adaptive granularity (Phase 1)
     - Sticky victim for cache locality (Phase 2)
     - Depth cutoff hybrid (Phase 3)
-    
+
   5.1.5 Result
     - Broke 4.4× plateau → achieved 5.18× speedup
 ```
@@ -268,11 +268,11 @@ Chapter 8: Conclusion (2-3 pages) — KEEP CURRENT CONTENT
   5.2.1 The Problem
     - Merge is sequential by nature
     - Need to parallelize for structured data
-    
+
   5.2.2 Design: Binary Search Split
     - Recursive subdivision until threshold
     - Fork two independent merge tasks
-    
+
   5.2.3 Tuning (PRESERVE ALL FROM 5.6)
     [COPY ENTIRE SECTION 5.6 HERE]
     - Parameter description
@@ -325,10 +325,10 @@ Chapter 8: Conclusion (2-3 pages) — KEEP CURRENT CONTENT
 5.3 What Didn't Work (Negative Results)
   5.3.1 Small Buffer Optimization (PRESERVE ALL FROM 5.7.1)
     [COPY ENTIRE SECTION 5.7.1 HERE]
-    
+
   5.3.2 Custom Memory Allocators (PRESERVE ALL FROM 5.7.2)
     [COPY ENTIRE SECTION 5.7.2 HERE]
-    
+
   5.3.3 Single-Threaded Parallel Path (PRESERVE ALL FROM 5.7.3)
     [COPY ENTIRE SECTION 5.7.3 HERE]
 ```

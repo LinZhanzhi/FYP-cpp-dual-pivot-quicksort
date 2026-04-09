@@ -1,6 +1,10 @@
 # Final Report Outline
 ## Dual-Pivot Quicksort: A High-Performance C++ Implementation
 
+> **Guiding Principle — Story-Based Structure**
+> Each optimization is told as ONE complete narrative: problem → design → implementation → tuning → result.
+> Readers never have to jump between chapters to understand a single feature.
+
 ---
 
 ## Preamble (Not counted in 50-page limit)
@@ -15,7 +19,7 @@
 ### 2. Abstract (~250 words)
 - Problem: Implementing and optimizing Yaroslavskiy's dual-pivot quicksort in C++
 - Approach: Sequential implementation with adaptive optimizations + parallel work-stealing architecture
-- Key Results: Up to 19x speedup on structured data vs std::sort; 4.59x parallel speedup (16 threads)
+- Key Results: Up to 19x speedup on structured data vs std::sort; 5.18x parallel speedup (16 threads)
 - Contribution: Header-only library, empirical tuning methodology, hardware limitation analysis
 
 ### 3. Table of Contents
