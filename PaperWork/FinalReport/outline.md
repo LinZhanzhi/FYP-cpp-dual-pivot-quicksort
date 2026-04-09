@@ -550,7 +550,6 @@ Standard quicksort ignores this structure and re-partitions everything — essen
 | MIN_FIRST_RUN_SIZE | 16 | 16 | Minimum length for first run |
 | MIN_FIRST_RUNS_FACTOR | 7 | **6** | Controls minimum run length relative to array size |
 | MAX_RUN_CAPACITY | 500 | 500 | Maximum runs before fallback |
-| MIN_RUN_COUNT | 5 | 5 | Minimum runs for parallel merge |
 
 ##### 3.1.4 Implementation
 
@@ -558,7 +557,6 @@ Standard quicksort ignores this structure and re-partitions everything — essen
 - Ascending, descending (reversed), and constant run handling
 - Early termination: Already sorted detection in O(n)
 - Merge tree construction for efficient run combination
-- Parallel merge when parallel && count >= MIN_RUN_COUNT
 
 **Sequential Merge** (merge_ops.hpp):
 The two-pointer merge is deceptively simple but critical for performance:
@@ -575,30 +573,14 @@ while (lo1 < hi1 && lo2 < hi2) {
 - No auxiliary comparisons: Single compare per element moved
 
 **Buffer Management** (buffer_manager.hpp):
-**The Problem**: Merge requires O(n) auxiliary space. Naive allocation (malloc per merge) would add thousands of allocations during parallel execution.
+**The Problem**: Merge requires O(n) auxiliary space. Naive allocation (malloc per merge) adds overhead.
 
-**Solution**: Thread-local buffer pooling
-```cpp
-template<typename T>
-class BufferManager {
-    static thread_local std::vector<T> buffer_pool;
-    static T* getBuffer(int size, int& offset);
-    static void returnBuffer(T* buffer, int size, int offset);
-};
-```
+**Solution**: Buffer pooling with geometric growth
+- Reuse allocated buffers across merge operations
+- 1.5× growth factor minimizes reallocations
+- Offset tracking enables buffer reuse for non-overlapping merges
 
-**Key Design Decisions**:
-| Feature | Benefit |
-|---------|--------|
-| Thread-local | No mutex contention between threads |
-| Pooling | Amortize allocation cost over many merges |
-| Offset tracking | Reuse same buffer for non-overlapping merges |
-| Geometric growth | Minimize reallocations (1.5× growth factor) |
-
-**Impact**:
-- Without pooling: ~15,000 malloc/free calls for 10M element parallel sort
-- With pooling: ~16 allocations (one per thread, occasionally resized)
-- **Result**: 8-12% speedup on parallel merge-heavy workloads
+**Impact**: Reduces ~15,000 malloc/free calls to ~16 allocations for 10M element sort.
 
 ##### 3.1.5 Tuning: MIN_FIRST_RUNS_FACTOR Optimization
 
@@ -773,7 +755,7 @@ Recursive sorting creates imbalanced work:
 **Type Erasure System** (types.hpp):
 Java's polymorphism allows `Object[]` to hold any array type. C++ templates don't work this way — generic parallel coordination requires type erasure.
 
-**The Problem**: Parallel merge tasks need to pass array pointers through a generic task queue, but C++ templates instantiate separate types for `int*`, `double*`, etc.
+**The Problem**: Parallel sorting tasks need to pass array pointers through a generic task queue, but C++ templates instantiate separate types for `int*`, `double*`, etc.
 
 **Solution**: `std::variant` + wrapper class
 ```cpp
@@ -797,16 +779,16 @@ struct ArrayPointer {
 - **Type safety**: Compile-time checked, unlike `void*`
 - **Visitor pattern**: `std::visit` enables generic operations
 - **Zero overhead**: Variant is stack-allocated, no heap indirection
-- **Java equivalence**: Matches `instanceof` checks in Java's RunMerger
+- **Java equivalence**: Matches `instanceof` checks in Java's DualPivotQuicksort
 
-**Usage in Parallel Merge**:
+**Usage Example**:
 ```cpp
-class GenericMerger : public CountedCompleter<void> {
-    ArrayPointer dst, a1, a2;  // Works with any supported type
+class SortTask : public CountedCompleter<void> {
+    ArrayPointer arr;  // Works with any supported type
     void compute() override {
-        dst.visit([&](auto* d) {
-            // d is correctly typed (int*, double*, etc.)
-            merge_parts(d, k, a1.get<...>(), ...);
+        arr.visit([&](auto* a) {
+            // a is correctly typed (int*, double*, etc.)
+            dual_pivot_sort(a, low, high, comp);
         });
     }
 };
