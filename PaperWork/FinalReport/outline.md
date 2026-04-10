@@ -25,6 +25,7 @@
 ### 3. Table of Contents
 
 ### 4. List of Tables and Figures
+**[PLACEHOLDER: Auto-generated list of all figures and tables]**
 
 ---
 
@@ -68,7 +69,7 @@ This section provides a brief overview of the algorithmic landscape. Detailed co
 - Yaroslavskiy (2009): Dual-pivot partitioning
 - Wild (2012): Mathematical analysis of dual-pivot efficiency
 - Blumofe & Leiserson (1999): Work-stealing paradigm
-- Peters (2021): Pattern-defeating quicksort
+- Peters, O. (2021): Pattern-defeating quicksort (pdqsort)
 
 #### 1.6 Report Organization
 - **Chapter 2**: Core dual-pivot quicksort algorithm
@@ -107,6 +108,9 @@ Wild's doctoral thesis provided the mathematical explanation:
 - Core invariant: [< P1] [P1 ≤ x ≤ P2] [> P2]
 - Pivot selection: Median-of-5 at equidistant positions
 - Special case: When P1 == P2, fall back to Dutch National Flag
+
+**[PLACEHOLDER: Figure 2.1 — Dual-Pivot Partitioning Visualization]**
+*Shows the three-region invariant: elements < P1 (left), P1 ≤ x ≤ P2 (middle), elements > P2 (right). Pointers lt, k, gt track boundaries.*
 
 #### 2.3 Partitioning Implementation (partition.hpp)
 **The Problem**: Efficiently divide array into three regions around two pivots.
@@ -333,7 +337,7 @@ If we inserted a2 first, we'd shift elements twice over the same region.
 | 64 | 397 | 398 | 400 | **248** | 248 | Pair/Mixed |
 | 80 | 654 | 629 | 370 | **362** | 375 | Pair |
 
-**[PLACEHOLDER: Figure 2.5.1 — Runtime Comparison of Insertion Sort Variants]**
+**[PLACEHOLDER: Figure 2.2 — Runtime Comparison of Insertion Sort Variants]**
 *X-axis: Array size, Y-axis: Time per sort (ns). Shows crossover at size 32 where mixed becomes optimal.*
 
 **Key Findings**:
@@ -514,7 +518,7 @@ This chapter presents two major adaptive optimization stories: the Run Merger (a
 
 ##### 3.1.1 Prior Work: Timsort and Adaptive Sorting
 
-**The Timsort Revolution** (Peters, 2002):
+**The Timsort Revolution** (T. Peters, 2002):
 Tim Peters designed Timsort for Python, recognizing that real-world data is rarely random:
 - **Key insight**: Detect existing sorted "runs" and merge them
 - **Complexity**: O(n) for already-sorted data, O(n log n) for random
@@ -776,6 +780,9 @@ To eliminate global mutex contention:
 
 **Result**: Achieved 5.18× speedup on 16 threads for 10M element benchmarks.
 
+**[PLACEHOLDER: Figure 4.1 — Thread Pool Evolution (V1 → V2 → V3)]**
+*Diagram showing progression from blocking parents (V1) to fire-and-forget (V2) to work-stealing with distributed queues (V3).*
+
 #### 4.4 Implementation Details
 
 **Thread Pool Design** (threadpool.hpp):
@@ -982,6 +989,9 @@ Before (packed layout — false sharing):
   → Writes from Thread 0 and Thread 1 invalidate each other
 ```
 
+**[PLACEHOLDER: Figure 4.2 — Work-Stealing Architecture]**
+*Shows distributed queue structure with LIFO local access and FIFO stealing, cache-line isolation, and sticky victim selection.*
+
 **Solution**: Force each queue to occupy its own cache line:
 ```cpp
 struct alignas(64) WorkStealingQueue {  // Aligns to 64-byte boundary
@@ -1108,7 +1118,7 @@ Total: 6 algorithms × 2 types × 8 patterns × 41 sizes = **3,936 configuration
 #### 5.2 Performance by Data Pattern
 
 ##### 5.2.1 Random Data
-**[PLACEHOLDER: Figure 6.2.1 — Random Data Performance]**
+**[PLACEHOLDER: Figure 5.1 — Random Data Performance]**
 
 **Analysis**: Sequential DPQS within 5% of std::sort. Parallel achieves 5.18× speedup (1T→16T).
 
@@ -1117,33 +1127,33 @@ Total: 6 algorithms × 2 types × 8 patterns × 41 sizes = **3,936 configuration
 **Mechanism**: O(n) in-place reversal.
 **Result**: ~6× speedup vs std::sort
 
-**[PLACEHOLDER: Figure 6.2.2 — REVERSE_SORTED Pattern]**
+**[PLACEHOLDER: Figure 5.2 — REVERSE_SORTED Pattern]**
 
 ##### 5.2.3 Organ-Pipe Data
 **Algorithm Trigger**: run_merger.hpp detects 2 runs.
 **Mechanism**: O(n) merge of ascending + reversed descending.
 **Result**: **19× speedup** — largest across all patterns
 
-**[PLACEHOLDER: Figure 6.2.3 — ORGAN_PIPE Pattern]**
+**[PLACEHOLDER: Figure 5.3 — ORGAN_PIPE Pattern]**
 
 ##### 5.2.4 Sawtooth Data
 **Algorithm Trigger**: run_merger.hpp detects k ascending runs.
 **Mechanism**: O(n log k) merge tree, parallelized.
 **Result**: ~10× speedup, best parallel scaling
 
-**[PLACEHOLDER: Figure 6.2.4 — SAWTOOTH Pattern]**
+**[PLACEHOLDER: Figure 5.4 — SAWTOOTH Pattern]**
 
 ##### 5.2.5 Nearly-Sorted Data
 **Algorithm Trigger**: Quality heuristics determine path.
 **Key Insight**: Tests MIN_FIRST_RUNS_FACTOR tuning.
 
-**[PLACEHOLDER: Figure 6.2.5 — NEARLY_SORTED Pattern]**
+**[PLACEHOLDER: Figure 5.5 — NEARLY_SORTED Pattern]**
 
 ##### 5.2.6 Duplicate-Heavy Data
 **Adaptive Pivot Strategy**: Dutch National Flag on duplicates.
 **Result**: No degradation; normal parallel scaling.
 
-**[PLACEHOLDER: Figure 6.2.6 — MANY_DUPLICATES Pattern]**
+**[PLACEHOLDER: Figure 5.6 — MANY_DUPLICATES Pattern]**
 
 #### 5.3 Parallel Scaling Analysis
 
@@ -1155,6 +1165,9 @@ Total: 6 algorithms × 2 types × 8 patterns × 41 sizes = **3,936 configuration
 | 4 | 154 | 3.30x | 82% | 0.919 | Branch Mispredict (32%) |
 | 8 | 110 | 4.62x | 58% | 1.134 | L3 Cache (19%) + Branch (29%) |
 | 16 | 98 | 5.18x | 32% | 1.729 | L3 Cache (38%) + Sync (48%) |
+
+**[PLACEHOLDER: Figure 5.7 — Parallel Speedup Curve]**
+*X-axis: Thread count (1-16). Y-axis: Speedup factor. Shows sub-linear scaling with plateau at ~5×. Include ideal linear scaling line for comparison.*
 
 **Key Observation**: Bottleneck shifts from branch misprediction to L3 cache contention.
 
@@ -1168,6 +1181,9 @@ Total: 6 algorithms × 2 types × 8 patterns × 41 sizes = **3,936 configuration
 | Bad Speculation | 25.7% | Branch misprediction |
 | Front-End Bound | 19.8% | Instruction fetch |
 | Retiring (Useful Work) | 9.8% | Actual computation |
+
+**[PLACEHOLDER: Figure 5.8 — VTune Pipeline Slot Breakdown at 16 Threads]**
+*Pie or stacked bar chart showing Memory Bound (41%), Bad Speculation (26%), Front-End Bound (20%), Retiring (10%).*
 
 **Critical Finding**: Only 9.8% of pipeline slots perform useful work at 16 threads.
 
@@ -1325,6 +1341,8 @@ Based on the scaling analysis, we recommend **4–8 threads** for production use
 - Sedgewick, R. (1978). Implementing Quicksort Programs. Comm. ACM, 21(10), 847-857
 - Bentley, J.L. & McIlroy, M.D. (1993). Engineering a Sort Function. Software: Practice and Experience, 23(11), 1249-1265
 - Bose, R.C. & Nelson, R.J. (1962). A Sorting Problem. JACM, 9(2), 282-296
+- Peters, T. (2002). Timsort. Python Enhancement Proposal (internal documentation)
+- Peters, O. (2021). Pattern-Defeating Quicksort. arXiv preprint arXiv:2106.05123
 
 ---
 
