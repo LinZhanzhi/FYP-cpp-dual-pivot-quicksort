@@ -10,7 +10,7 @@ constexpr int MAX_INSERTION_SORT_SIZE = 60;
 #endif
 
 #ifndef MIN_PARALLEL_SORT_SIZE
-constexpr int MIN_PARALLEL_SORT_SIZE = 65536;  // Increased from 8192 to reduce L3 cache contention (VTune optimization Step 1)
+constexpr int MIN_PARALLEL_SORT_SIZE = 8192;  // Optimal for high thread counts (16T); 65536 optimal for 4T but sacrifices parallelism
 #endif
 
 // Missing constants added during refactoring
