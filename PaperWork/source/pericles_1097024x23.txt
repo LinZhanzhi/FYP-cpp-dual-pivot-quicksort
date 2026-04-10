@@ -1,0 +1,22 @@
+
+TY  - JOUR
+AU  - Bentley, Jon L.
+AU  - McIlroy, M. Douglas
+TI  - Engineering a sort function
+JO  - Software: Practice and Experience
+JA  - Softw: Pract. Exper.
+VL  - 23
+IS  - 11
+SN  - 0038-0644
+UR  - https://doi.org/10.1002/spe.4380231105
+DO  - https://doi.org/10.1002/spe.4380231105
+SP  - 1249
+EP  - 1265
+KW  - Quicksort
+KW  - Sorting algorithms
+KW  - Performance tuning
+KW  - Algorithm design and implementation
+KW  - Testing
+PY  - 1993
+AB  - Abstract We recount the history of a new qsortfunction for a C library. Our function is clearer, faster and more robust than existing sorts. It chooses partitioning elements by a new sampling scheme; it partitions by a novel solution to Dijkstra's Dutch National Flag problem; and it swaps efficiently. Its behavior was assessed with timing and debugging testbeds, and with a program to certify performance. The design techniques apply in domains beyond sorting.
+ER  - 

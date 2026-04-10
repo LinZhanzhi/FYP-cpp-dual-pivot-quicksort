@@ -1,0 +1,16 @@
+TY  - JOUR
+AU  - Sedgewick, Robert
+PY  - 1977
+DA  - 1977/12/01
+TI  - The analysis of Quicksort programs
+JO  - Acta Informatica
+SP  - 327
+EP  - 355
+VL  - 7
+IS  - 4
+AB  - The Quicksort sorting algorithm and its best variants are presented and analyzed. Results are derived which make it possible to obtain exact formulas describing the total expected running time of particular implementations on real computers of Quicksort and an improvement called the median-of-three modification. Detailed analysis of the effect of an implementation technique called loop unwrapping is presented. The paper is intended not only to present results of direct practical utility, but also to illustrate the intriguing mathematics which arises in the complete analysis of this important algorithm.
+SN  - 1432-0525
+UR  - https://doi.org/10.1007/BF00289467
+DO  - 10.1007/BF00289467
+ID  - Sedgewick1977
+ER  - 

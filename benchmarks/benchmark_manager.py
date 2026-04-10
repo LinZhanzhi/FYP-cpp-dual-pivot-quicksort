@@ -308,9 +308,11 @@ def run_benchmark():
                         if row.get('Iteration') == 'Representative':
                             continue
                         try:
-                            t_val = float(row['Time(ms)'])
-                            new_times.append(t_val)
-                        except ValueError:
+                            t_val = row.get('Time(ms)')
+                            if t_val is not None:
+                                new_times.append(float(t_val))
+                        except (ValueError, TypeError).append(float(t_val))
+                        except (ValueError, TypeError):
                             pass
 
                 # Save to aggregate
