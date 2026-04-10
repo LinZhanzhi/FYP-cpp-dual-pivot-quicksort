@@ -907,48 +907,6 @@ class CountedCompleter {
 
 **Key Benefit**: No thread ever blocks waiting for children. Parent fires off children and continues working. Completion notification is entirely atomic counter-based.
 
-**Type Erasure System** (types.hpp):
-Java's polymorphism allows `Object[]` to hold any array type. C++ templates don't work this way — generic parallel coordination requires type erasure.
-
-**The Problem**: Parallel sorting tasks need to pass array pointers through a generic task queue, but C++ templates instantiate separate types for `int*`, `double*`, etc.
-
-**Solution**: `std::variant` + wrapper class
-```cpp
-using ArrayVariant = std::variant<
-    int*, long*, float*, double*,
-    int8_t*, int16_t*, uint8_t*, uint16_t*, ...
->;
-
-struct ArrayPointer {
-    ArrayVariant data;
-    
-    template<typename T> ArrayPointer(T* ptr) : data(ptr) {}
-    template<typename T> T* get() const { return std::get<T*>(data); }
-    template<typename T> bool is() const { 
-        return std::holds_alternative<T*>(data); 
-    }
-};
-```
-
-**Why This Matters**:
-- **Type safety**: Compile-time checked, unlike `void*`
-- **Visitor pattern**: `std::visit` enables generic operations
-- **Zero overhead**: Variant is stack-allocated, no heap indirection
-- **Java equivalence**: Matches `instanceof` checks in Java's DualPivotQuicksort
-
-**Usage Example**:
-```cpp
-class SortTask : public CountedCompleter<void> {
-    ArrayPointer arr;  // Works with any supported type
-    void compute() override {
-        arr.visit([&](auto* a) {
-            // a is correctly typed (int*, double*, etc.)
-            dual_pivot_sort(a, low, high, comp);
-        });
-    }
-};
-```
-
 ##### 4.1.5 Performance Tuning
 
 **Optimization 1: Task Granularity (MIN_PARALLEL_SORT_SIZE)**
