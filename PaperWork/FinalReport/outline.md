@@ -1004,7 +1004,7 @@ After (isolated layout — no false sharing):
 
 **Microbenchmark Validation:**
 
-To isolate the false sharing impact, we created a microbenchmark where multiple threads repeatedly access their own counters in a contiguous array:
+To isolate the false sharing effect, we created a synthetic microbenchmark where threads hammer counters in a contiguous array (5M operations each):
 
 | Threads | Packed (ms) | Padded (ms) | Speedup |
 |---------|-------------|-------------|---------|
@@ -1013,35 +1013,31 @@ To isolate the false sharing impact, we created a microbenchmark where multiple 
 | 8       | 298.32      | 24.97       | **11.95×** |
 | 16      | 472.44      | 37.08       | **12.74×** |
 
-**Key Finding**: False sharing causes **4-13× slowdown** on isolated queue operations. This matches published literature — the [cppreference example](https://en.cppreference.com/w/cpp/thread/hardware_destructive_interference_size) shows ~6× slowdown.
+**Key Finding**: In this synthetic scenario, false sharing causes **4-13× slowdown**. This matches published literature — the [cppreference example](https://en.cppreference.com/w/cpp/thread/hardware_destructive_interference_size) reports ~6× slowdown.
 
-**Why We Don't See This in Sorting:**
+**Honest Assessment: Why This Optimization Has Marginal Impact in Practice**
 
-Despite the dramatic microbenchmark results, the end-to-end sorting benchmark shows minimal impact from this optimization:
+Despite the dramatic microbenchmark results, this optimization provides **negligible measurable benefit** in our sorting implementation for several reasons:
 
-1. **Data access dominates**: 10M elements × 4 bytes = 40MB data movement through L3
-2. **Queue operations are rare**: ~1000 task pushes/pops vs millions of comparisons
-3. **VTune shows 38% L3 Bound from data**, not queue metadata
-4. **Ratio**: Queue metadata is ~0.01% of memory traffic — below noise floor
+1. **Very few queue operations**: With only ~1,000 tasks for a 10M element sort, each queue sees perhaps 60-100 operations total. The microbenchmark hammers 5M operations per thread — a 50,000× higher operation rate. At ~1,000 operations spread across 16 threads, even a 10× per-operation slowdown translates to microseconds in a 100ms sort.
 
-**Justification for Keeping It:**
+2. **Heap allocator already provides separation**: Our initial benchmark using `std::make_unique<Queue>()` showed queues placed ~3,000 bytes apart — already on different cache lines. The heap allocator naturally spreads allocations, often avoiding false sharing without explicit padding.
 
-Despite difficult-to-measure impact in our specific benchmark, we retain `alignas(64)` because:
+3. **Data access dominates L3 contention**: VTune shows 38% L3 Bound, but this comes from 40MB of array data movement, not queue metadata. Queue operations account for <0.01% of memory traffic — any false sharing impact is lost in the noise floor.
 
-1. **C++17 Standard Recognition**: The standard added `std::hardware_destructive_interference_size` (typically 64 bytes) specifically for this:
-   ```cpp
-   // C++17: Minimum offset between objects to avoid false sharing
-   constexpr std::size_t hardware_destructive_interference_size = 64;
-   ```
+4. **Effect would be additive, not multiplicative**: Even if false sharing tripled queue operation latency, this affects only the ~1,000 task operations, not the millions of element comparisons that dominate runtime.
 
-2. **Industry Best Practice**:
-   - Intel VTune detects and flags false sharing as "Memory Contention"
-   - Java's `ForkJoinPool` uses `@Contended` annotation (JEP 142) for the same purpose
-   - Microsoft documents cache-line alignment for concurrent structures
+**Why We Keep It Anyway:**
 
-3. **Zero Runtime Cost**: `alignas(64)` is a compile-time directive — no runtime overhead
+We retain `alignas(64)` not because of measured performance gains, but as **defensive good practice**:
 
-4. **Defense Against Regressions**: Different workloads (smaller arrays, more task spawning) could shift the balance toward queue contention
+1. **C++17 Standard Recognition**: The standard added `std::hardware_destructive_interference_size` specifically for this purpose, indicating the committee considers it a real concern worth standardizing.
+
+2. **Industry Consensus**: Intel VTune flags false sharing; Java's `ForkJoinPool` uses `@Contended` (JEP 142); Microsoft documents cache-line alignment for concurrent structures. When Intel, Oracle, and Microsoft all recommend it, following suit is prudent.
+
+3. **Zero Cost**: `alignas(64)` is a compile-time directive with no runtime overhead. The only cost is a few hundred bytes of padding per queue — negligible.
+
+4. **Future-Proofing**: Different workloads (smaller arrays → more task spawning → higher queue contention ratio) could shift the balance. The optimization costs nothing and prevents a potential pitfall.
 
 ---
 
