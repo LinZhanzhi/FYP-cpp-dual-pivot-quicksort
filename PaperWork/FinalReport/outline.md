@@ -781,16 +781,131 @@ To eliminate global mutex contention:
 ##### 4.1.4 Implementation Details
 
 **Thread Pool Design** (threadpool.hpp):
-- Distributed WorkStealingQueue per thread
-- LIFO local access: Pop from bottom (most recent, likely in cache)
-- FIFO stealing: Steal from top (oldest, largest partitions)
-- try_lock for non-blocking steal attempts
+
+```cpp
+struct alignas(64) WorkStealingQueue {
+    std::deque<std::function<void()>> q;
+    std::mutex mtx;
+
+    // LIFO: Owner pops from bottom (most recent task)
+    bool try_pop(std::function<void()>& task) {
+        std::lock_guard<std::mutex> lock(mtx);
+        if (q.empty()) return false;
+        task = std::move(q.back());   // ← Back = bottom = LIFO
+        q.pop_back();
+        return true;
+    }
+
+    // FIFO: Thieves steal from top (oldest = largest tasks)
+    bool try_steal(std::function<void()>& task) {
+        // CRITICAL: try_to_lock makes this NON-BLOCKING
+        std::unique_lock<std::mutex> lock(mtx, std::try_to_lock);
+        if (!lock || q.empty()) return false;  // ← Fails immediately if locked
+        task = std::move(q.front());  // ← Front = top = FIFO
+        q.pop_front();
+        return true;
+    }
+};
+```
+
+**Why LIFO for Local, FIFO for Stealing?**
+| Access | Direction | Rationale |
+|--------|-----------|-----------|
+| **Local pop** | Back (LIFO) | Most recent task is likely still in L1/L2 cache |
+| **Steal** | Front (FIFO) | Oldest task is largest (near recursion root) → better workload |
+
+**Why `try_to_lock` Makes Stealing Non-Blocking**:
+- `std::lock_guard` would **block** until mutex is acquired
+- `std::unique_lock(mtx, std::try_to_lock)` returns **immediately** if mutex is held
+- If `!lock` is true, the steal attempt fails gracefully → thread tries another victim
+- **Result**: No thread ever waits on another's queue lock
+
+---
+
+**Victim Selection: Sticky Victim Strategy**
+
+When a thread's local queue is empty, it must decide which other thread to steal from:
+
+```cpp
+// Each worker thread maintains:
+size_t last_victim = (my_index + 1) % num_threads;  // Start with neighbor
+
+while (!stop) {
+    std::function<void()> task;
+    
+    // 1. Try local queue first
+    if (queues[my_index]->try_pop(task)) {
+        /* found locally */
+    }
+    // 2. Steal from others
+    else {
+        // Scan starting from LAST SUCCESSFUL victim
+        for (size_t k = 0; k < num_threads; ++k) {
+            size_t victim = (last_victim + k) % num_threads;
+            if (victim == my_index) continue;  // Skip self
+            
+            if (queues[victim]->try_steal(task)) {
+                last_victim = victim;  // STICK to this victim next time
+                break;
+            }
+        }
+    }
+}
+```
+
+**Why Sticky Victim?**
+- If thread T successfully steals from thread V, likely V has **more tasks from the same subtree**
+- Same subtree = **spatially close data** in memory → better cache locality
+- Remembering last_victim avoids randomly scanning all queues
+
+---
 
 **CountedCompleter Pattern** (completer.hpp):
-- Ported from Java's ForkJoinPool
-- Pending counter with atomic fetch_add for child registration
-- Completion propagation via condition_variable
-- Exception handling with completeExceptionally()
+
+CountedCompleter solves the **completion propagation problem**: how does a parent task know when all its children are done?
+
+**Problem Without CountedCompleter**:
+```cpp
+// Naive approach: Parent blocks waiting for children
+auto f1 = pool.submit(sort_left);
+auto f2 = pool.submit(sort_right);
+f1.get();  // BLOCKS ← This caused V1's thread starvation!
+f2.get();
+```
+
+**Solution: Counted Pending Children**:
+```cpp
+template<typename T>
+class CountedCompleter {
+    std::atomic<int> pending{0};   // How many children not yet done
+    CountedCompleter* parent;
+    
+    CountedCompleter(CountedCompleter* parent) : parent(parent) {
+        if (parent) parent->pending.fetch_add(1);  // Register with parent
+    }
+    
+    void tryComplete() {
+        if (pending.load() == 0) {  // All children done
+            onCompletion(this);     // Custom completion logic
+            if (parent) {
+                int prev = parent->pending.fetch_sub(1);
+                if (prev == 1) {    // I was parent's last child
+                    parent->tryComplete();  // Propagate upward!
+                }
+            }
+        }
+    }
+};
+```
+
+**How It Works**:
+1. Parent creates children → each child increments parent's `pending`
+2. Child finishes → decrements parent's `pending`
+3. When `pending` reaches 0, parent's `onCompletion()` is called
+4. Completion **propagates up the tree** automatically
+5. **Root task's completion** signals the entire sort is done
+
+**Key Benefit**: No thread ever blocks waiting for children. Parent fires off children and continues working. Completion notification is entirely atomic counter-based.
 
 **Type Erasure System** (types.hpp):
 Java's polymorphism allows `Object[]` to hold any array type. C++ templates don't work this way — generic parallel coordination requires type erasure.
