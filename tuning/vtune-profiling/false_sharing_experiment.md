@@ -63,7 +63,7 @@ Counter[3] @ 0x...0c0 (cache line 3)
 
 ### Test 1: Atomic Counters (5M operations/thread)
 
-| Threads | Packed (ms) | Padded (ms) | Speedup | 
+| Threads | Packed (ms) | Padded (ms) | Speedup |
 |---------|-------------|-------------|---------|
 | 2       | 76.82       | 18.61       | **4.13×** |
 | 4       | 155.53      | 19.01       | **8.18×** |
@@ -189,8 +189,8 @@ Current workload may not stress queue metadata, but:
 ### WITHOUT Padding
 ```
 ========================================
-  FALSE SHARING TEST - WITHOUT PADDING 
-  (packed - counters may share lines)  
+  FALSE SHARING TEST - WITHOUT PADDING
+  (packed - counters may share lines)
 ========================================
 
 Cache line size: 64 bytes
@@ -228,7 +228,7 @@ Threads | Time (ms) | Ops/sec (M)
 ### WITH Padding
 ```
 ========================================
-  FALSE SHARING TEST - WITH PADDING    
+  FALSE SHARING TEST - WITH PADDING
   (alignas(64) - each counter isolated)
 ========================================
 

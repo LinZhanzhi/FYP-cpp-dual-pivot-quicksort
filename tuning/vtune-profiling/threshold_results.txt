@@ -1,0 +1,103 @@
+=== THRESHOLD 8192 (Before Optimization) ===
+=== Threshold Comparison Benchmark ===
+Array size: 10000000 integers (38 MB)
+MIN_PARALLEL_SORT_SIZE = 8192
+Iterations: 10 (median reported)
+
+Running 10 iterations with 1 threads...
+
+Threads: 1
+Median time: 540.57 ms
+Result: CORRECT
+=== Threshold Comparison Benchmark ===
+Array size: 10000000 integers (38 MB)
+MIN_PARALLEL_SORT_SIZE = 8192
+Iterations: 10 (median reported)
+
+Running 10 iterations with 2 threads...
+
+Threads: 2
+Median time: 256.32 ms
+Result: CORRECT
+=== Threshold Comparison Benchmark ===
+Array size: 10000000 integers (38 MB)
+MIN_PARALLEL_SORT_SIZE = 8192
+Iterations: 10 (median reported)
+
+Running 10 iterations with 4 threads...
+
+Threads: 4
+Median time: 145.43 ms
+Result: CORRECT
+=== Threshold Comparison Benchmark ===
+Array size: 10000000 integers (38 MB)
+MIN_PARALLEL_SORT_SIZE = 8192
+Iterations: 10 (median reported)
+
+Running 10 iterations with 8 threads...
+
+Threads: 8
+Median time: 105.94 ms
+Result: CORRECT
+=== Threshold Comparison Benchmark ===
+Array size: 10000000 integers (38 MB)
+MIN_PARALLEL_SORT_SIZE = 8192
+Iterations: 10 (median reported)
+
+Running 10 iterations with 16 threads...
+
+Threads: 16
+Median time: 92.58 ms
+Result: CORRECT
+
+=== THRESHOLD 65536 (After Optimization) ===
+=== Threshold Comparison Benchmark ===
+Array size: 10000000 integers (38 MB)
+MIN_PARALLEL_SORT_SIZE = 65536
+Iterations: 10 (median reported)
+
+Running 10 iterations with 1 threads...
+
+Threads: 1
+Median time: 535.48 ms
+Result: CORRECT
+=== Threshold Comparison Benchmark ===
+Array size: 10000000 integers (38 MB)
+MIN_PARALLEL_SORT_SIZE = 65536
+Iterations: 10 (median reported)
+
+Running 10 iterations with 2 threads...
+
+Threads: 2
+Median time: 259.33 ms
+Result: CORRECT
+=== Threshold Comparison Benchmark ===
+Array size: 10000000 integers (38 MB)
+MIN_PARALLEL_SORT_SIZE = 65536
+Iterations: 10 (median reported)
+
+Running 10 iterations with 4 threads...
+
+Threads: 4
+Median time: 146.51 ms
+Result: CORRECT
+=== Threshold Comparison Benchmark ===
+Array size: 10000000 integers (38 MB)
+MIN_PARALLEL_SORT_SIZE = 65536
+Iterations: 10 (median reported)
+
+Running 10 iterations with 8 threads...
+
+Threads: 8
+Median time: 121.41 ms
+Result: CORRECT
+=== Threshold Comparison Benchmark ===
+Array size: 10000000 integers (38 MB)
+MIN_PARALLEL_SORT_SIZE = 65536
+Iterations: 10 (median reported)
+
+Running 10 iterations with 16 threads...
+
+Threads: 16
+Median time: 104.56 ms
+Result: CORRECT

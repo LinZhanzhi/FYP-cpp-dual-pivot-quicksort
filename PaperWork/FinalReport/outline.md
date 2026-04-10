@@ -1041,20 +1041,6 @@ We retain `alignas(64)` not because of measured performance gains, but as **defe
 
 ---
 
-**Optimization 3: Prefetch Hints in Partitioning**
-
-During partitioning, CPU stalls waiting for memory fetches. Prefetch instructions load future elements while processing current ones:
-```cpp
-while (k <= gt) {
-    __builtin_prefetch(&a[k + 64], 0, 3);  // 64 elements ahead
-    // ... partitioning logic
-}
-```
-
-**Result**: Overlaps memory fetch with computation, reducing stall cycles.
-
----
-
 ### Chapter 5: Results and Evaluation (10-12 pages)
 
 This chapter presents comprehensive benchmarking results comparing our dual-pivot quicksort implementation against std::sort across diverse data patterns, array sizes, and thread configurations.
@@ -1206,8 +1192,7 @@ Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
 ##### 5.3.4 VTune-Guided Optimizations
 **Successful**:
 1. Task granularity analysis — discovered bimodal pattern; 8192 optimal for practical 4–8 thread usage (see §4.1.5)
-2. Cache-line padding (alignas(64) on atomics) — eliminates false sharing
-3. Software prefetching — overlaps memory fetch with computation
+2. Cache-line padding (alignas(64) on atomics) — defensive best practice against false sharing
 
 **Investigated but Not Recommended**:
 | Attempt | Result | Reason |

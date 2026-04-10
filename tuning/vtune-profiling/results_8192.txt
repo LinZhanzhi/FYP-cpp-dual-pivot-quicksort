@@ -1,0 +1,14 @@
+=== Threshold Comparison Benchmark ===
+Array size: 10000000 integers (38 MB)
+MIN_PARALLEL_SORT_SIZE = 8192
+Iterations: 10 (median reported)
+
+| Threads | Runtime (ms) | Speedup |
+|---------|--------------|--------|
+|       1 |       538.62 |   1.00x |
+|       2 |       256.12 |   2.10x |
+|       4 |       149.12 |   3.61x |
+|       8 |       106.08 |   5.08x |
+|      16 |        96.57 |   5.58x |
+
+Result verified: CORRECT

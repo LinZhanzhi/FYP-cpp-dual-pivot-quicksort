@@ -54,9 +54,6 @@ DPQS_FORCE_INLINE std::pair<std::ptrdiff_t, std::ptrdiff_t> partition_dual_pivot
     std::ptrdiff_t k = lt;
 
     while (k <= gt) {
-        // Prefetch ahead to hide memory latency
-        __builtin_prefetch(&a[k + 64], 0, 3);
-
         if (comp(a[k], pivot1)) {
             swap(a[k], a[lt]);
             lt++;
