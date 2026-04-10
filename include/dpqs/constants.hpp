@@ -47,9 +47,8 @@ constexpr int MIN_TRY_MERGE_SIZE = 64;
 constexpr int DELTA = 3;
 #endif
 
-#ifndef MAX_RECURSION_DEPTH
-constexpr int MAX_RECURSION_DEPTH = 64 * DELTA;
-#endif
+// MAX_RECURSION_DEPTH removed - now computed adaptively as 2 * log2(n) * DELTA
+// This follows the Introsort approach (Musser, 1997) for guaranteed O(n log n)
 
 #ifndef MIN_BYTE_COUNTING_SORT_SIZE
 constexpr int MIN_BYTE_COUNTING_SORT_SIZE = 64;

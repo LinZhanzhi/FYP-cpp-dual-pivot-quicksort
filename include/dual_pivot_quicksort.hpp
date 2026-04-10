@@ -62,7 +62,8 @@ void sort(T* a, int parallelism, std::ptrdiff_t low, std::ptrdiff_t high, Compar
     }
 
     // Case 3: Sequential Sort (fallback)
-    sort_sequential<T, Compare>(nullptr, a, 0, low, high, comp);
+    int max_depth = compute_max_depth(size);
+    sort_sequential<T, Compare>(nullptr, a, 0, max_depth, low, high, comp);
 }
 
 /**
@@ -104,7 +105,8 @@ void sort(T* a, int parallelism, std::ptrdiff_t low, std::ptrdiff_t high) {
             counting_sort(a, low, high);
         } else {
             // Fallback to sequential sort (which handles insertion sort for small arrays)
-            sort_sequential<T, std::less<T>>(nullptr, a, 0, low, high, std::less<T>());
+            int max_depth = compute_max_depth(size);
+            sort_sequential<T, std::less<T>>(nullptr, a, 0, max_depth, low, high, std::less<T>());
         }
         return;
     }
@@ -119,7 +121,8 @@ void sort(T* a, int parallelism, std::ptrdiff_t low, std::ptrdiff_t high) {
     if constexpr (std::is_floating_point_v<T>) {
         sort_floats(a, low, high);
     } else {
-        sort_sequential<T, std::less<T>>(nullptr, a, 0, low, high, std::less<T>());
+        int max_depth = compute_max_depth(size);
+        sort_sequential<T, std::less<T>>(nullptr, a, 0, max_depth, low, high, std::less<T>());
     }
 }
 

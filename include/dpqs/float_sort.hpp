@@ -140,7 +140,8 @@ sort_floats(T* array, std::ptrdiff_t start_index, std::ptrdiff_t end_index) {
     // Phase 2: Sorting
     // Sort the range excluding NaNs
     if (effective_end_index > start_index) {
-        sort_sequential<T, std::less<T>>(nullptr, array, 0, start_index, effective_end_index, std::less<T>());
+        int max_depth = compute_max_depth(effective_end_index - start_index);
+        sort_sequential<T, std::less<T>>(nullptr, array, 0, max_depth, start_index, effective_end_index, std::less<T>());
     }
 
     // Phase 3: Post-processing

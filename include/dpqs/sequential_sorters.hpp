@@ -14,6 +14,28 @@
 namespace dual_pivot {
 
 /**
+ * @brief Compute adaptive max recursion depth based on array size.
+ *
+ * Uses the Introsort formula: 2 * floor(log2(n)) * DELTA
+ * This ensures heapsort fallback triggers appropriately for the actual input size,
+ * rather than using a fixed threshold that never triggers for practical arrays.
+ *
+ * For example:
+ *   - 10M elements: log2(10^7) ≈ 23, max_depth = 2 * 23 * 3 = 138
+ *   - 1B elements:  log2(10^9) ≈ 30, max_depth = 2 * 30 * 3 = 180
+ *
+ * @param size Number of elements in the array
+ * @return Maximum recursion depth (in bits units, where bits += DELTA per level)
+ */
+inline int compute_max_depth(std::ptrdiff_t size) {
+    if (size <= 1) return 0;
+    int log2_n = 0;
+    std::ptrdiff_t n = size;
+    while (n > 1) { n >>= 1; ++log2_n; }
+    return 2 * log2_n * DELTA;  // 2 * log2(n) levels, each counted as DELTA
+}
+
+/**
  * @brief Sorts a 5-element network for pivot selection.
  *
  * This helper function sorts 5 elements at specified indices using a sorting network.
@@ -100,12 +122,13 @@ DPQS_FORCE_INLINE void sort5_network(T* a, std::ptrdiff_t e1, std::ptrdiff_t e2,
  * @param sorter Pointer to the Sorter object for parallel execution (can be nullptr).
  * @param a Pointer to the array to sort.
  * @param bits Recursion depth and mode bits.
+ * @param max_depth Adaptive max recursion depth (computed as 2 * log2(n) * DELTA at entry).
  * @param low Starting index (inclusive).
  * @param high Ending index (exclusive).
  * @param comp Comparator instance.
  */
 template<typename T, typename Compare>
-void sort_sequential(Sorter<T, Compare>* sorter, T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp) {
+void sort_sequential(Sorter<T, Compare>* sorter, T* a, int bits, int max_depth, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp) {
     while (true) {
         std::ptrdiff_t end = high - 1;
         std::ptrdiff_t size = high - low;
@@ -128,7 +151,8 @@ void sort_sequential(Sorter<T, Compare>* sorter, T* a, int bits, std::ptrdiff_t 
         }
 
         // Switch to heap sort if execution time is becoming quadratic
-        if ((bits += DELTA) > MAX_RECURSION_DEPTH) {
+        // Uses adaptive limit: 2 * log2(n) levels (Introsort approach)
+        if ((bits += DELTA) > max_depth) {
             heap_sort(a, low, high, comp);
             return;
         }
@@ -183,20 +207,20 @@ void sort_sequential(Sorter<T, Compare>* sorter, T* a, int bits, std::ptrdiff_t 
             else {
                 if (left_len >= mid_len && left_len >= right_len) {
                     // Left is largest. Recurse Mid and Right. Loop Left.
-                    sort_sequential(sorter, a, bits | 1, lower + 1, upper, comp);
-                    sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
+                    sort_sequential(sorter, a, bits | 1, max_depth, lower + 1, upper, comp);
+                    sort_sequential(sorter, a, bits | 1, max_depth, upper + 1, high, comp);
                     high = lower;
                 } else if (mid_len >= right_len) {
                     // Mid is largest. Recurse Left and Right. Loop Mid.
-                    sort_sequential(sorter, a, bits, low, lower, comp);
-                    sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
+                    sort_sequential(sorter, a, bits, max_depth, low, lower, comp);
+                    sort_sequential(sorter, a, bits | 1, max_depth, upper + 1, high, comp);
                     low = lower + 1;
                     high = upper;
                     bits |= 1;
                 } else {
                     // Right is largest. Recurse Left and Mid. Loop Right.
-                    sort_sequential(sorter, a, bits, low, lower, comp);
-                    sort_sequential(sorter, a, bits | 1, lower + 1, upper, comp);
+                    sort_sequential(sorter, a, bits, max_depth, low, lower, comp);
+                    sort_sequential(sorter, a, bits | 1, max_depth, lower + 1, upper, comp);
                     low = upper + 1;
                     bits |= 1;
                 }
@@ -226,11 +250,11 @@ void sort_sequential(Sorter<T, Compare>* sorter, T* a, int bits, std::ptrdiff_t 
                 // Sequential: Loop Larger
                 if (left_len >= right_len) {
                     // Left is larger. Recurse Right. Loop Left.
-                    sort_sequential(sorter, a, bits | 1, upper + 1, high, comp);
+                    sort_sequential(sorter, a, bits | 1, max_depth, upper + 1, high, comp);
                     high = lower;
                 } else {
                     // Right is larger. Recurse Left. Loop Right.
-                    sort_sequential(sorter, a, bits, low, lower, comp);
+                    sort_sequential(sorter, a, bits, max_depth, low, lower, comp);
                     low = upper + 1;
                     bits |= 1;
                 }

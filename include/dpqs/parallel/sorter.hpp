@@ -13,7 +13,10 @@ namespace dual_pivot {
 // Forward declarations
 template<typename T, typename Compare> class Sorter;
 template<typename T, typename Compare>
-void sort_sequential(Sorter<T, Compare>* sorter, T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp);
+void sort_sequential(Sorter<T, Compare>* sorter, T* a, int bits, int max_depth, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp);
+
+// Forward declaration for compute_max_depth
+inline int compute_max_depth(std::ptrdiff_t size);
 
 /**
  * @brief Generic sorter for type-erased array operations
@@ -161,6 +164,7 @@ private:
     int size;                    ///< Number of elements to sort
     int offset;                  ///< Buffer offset for reuse optimization
     int depth;                   ///< Recursion depth for algorithm selection
+    int max_depth;               ///< Adaptive max depth (2 * log2(n) * DELTA)
     Compare comp;                ///< Comparator
     std::vector<Sorter*> children; ///< Children tasks to manage memory
 
@@ -174,11 +178,12 @@ public:
      * @param size Number of elements to sort
      * @param offset Buffer offset for reuse patterns
      * @param depth Recursion depth for algorithm selection
+     * @param max_depth Adaptive max recursion depth
      * @param comp Comparator instance
      */
-    Sorter(Sorter* parent, T* a, T* b, int low, int size, int offset, int depth, Compare comp)
+    Sorter(Sorter* parent, T* a, T* b, int low, int size, int offset, int depth, int max_depth, Compare comp)
         : CountedCompleter<T>(parent), parent(parent), a(a), b(b),
-          low(low), size(size), offset(offset), depth(depth), comp(comp) {}
+          low(low), size(size), offset(offset), depth(depth), max_depth(max_depth), comp(comp) {}
 
     ~Sorter() {
         for (auto* child : children) {
@@ -212,8 +217,8 @@ public:
             // Adjust b pointer so that b[low] maps to b_buffer[low - offset]
             // This is necessary because sort_sequential expects the array to be indexable by 'low'
             T* b_adjusted = b - offset;
-            auto* left = new Sorter(this, b_adjusted, a, low, half, offset, depth + 1, comp);
-            auto* right = new Sorter(this, b_adjusted, a, low + half, size - half, offset, depth + 1, comp);
+            auto* left = new Sorter(this, b_adjusted, a, low, half, offset, depth + 1, max_depth, comp);
+            auto* right = new Sorter(this, b_adjusted, a, low + half, size - half, offset, depth + 1, max_depth, comp);
 
             children.push_back(left);
             children.push_back(right);
@@ -223,7 +228,7 @@ public:
         } else {
             // Use type-specific parallel quicksort via the generic sequential sorter
             // which handles forking if a sorter is provided
-            sort_sequential(this, a, depth, low, low + size, comp);
+            sort_sequential(this, a, depth, max_depth, low, low + size, comp);
         }
         this->addToPendingCount(-1); // Release hold
         this->tryComplete();
@@ -269,7 +274,7 @@ public:
     // Factory method for creating child sorters (matching Java's forkSorter pattern)
     void forkSorter(int depth, int low, int high) {
         // this->addToPendingCount(1); // Removed: Constructor already increments pending count
-        auto* child = new Sorter(this, a, b, low, high - low, offset, depth, comp);
+        auto* child = new Sorter(this, a, b, low, high - low, offset, depth, max_depth, comp);
         children.push_back(child);
         child->fork();
     }

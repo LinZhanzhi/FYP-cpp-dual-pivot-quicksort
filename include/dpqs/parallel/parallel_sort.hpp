@@ -90,7 +90,7 @@ template<typename T, typename Compare>
  *      immediately processes the smallest partition iteratively (Tail Call Optimization) to
  *      minimize stack usage.
  */
-void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp) {
+void parallel_sort_task(T* a, int bits, int max_depth, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp) {
     // std::cout << "Task: " << low << "-" << high << std::endl;
 
     // Adaptive Granularity:
@@ -109,7 +109,7 @@ void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high,
     // If recursion depth exceeds a limit, switch to strictly sequential sort.
     // This keeps the remaining subtree on this thread, maximizing L1/L2 cache locality.
     if (bits > 20 * DELTA) {
-        sort_sequential<T, Compare>(nullptr, a, bits, low, high, comp);
+        sort_sequential<T, Compare>(nullptr, a, bits, max_depth, low, high, comp);
         return;
     }
 
@@ -137,10 +137,10 @@ void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high,
         }
 
         // Introsort Fallback:
-        // If recursion depth exceeds the limit (MAX_RECURSION_DEPTH), switch to HeapSort.
+        // If recursion depth exceeds the adaptive limit, switch to HeapSort.
         // This guarantees O(N log N) worst-case performance, preventing recursion bombs.
         // 'bits' acts as the depth counter here.
-        if ((bits += DELTA) > MAX_RECURSION_DEPTH) {
+        if ((bits += DELTA) > max_depth) {
             heap_sort(a, low, high, comp);
             return;
         }
@@ -194,8 +194,8 @@ void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high,
             std::ptrdiff_t r1_l = ranges[1].l, r1_h = ranges[1].h;
 
             // Enqueue largest tasks
-            pool.submit([=]{ parallel_sort_task(a, bits | 1, r0_l, r0_h, comp); });
-            pool.submit([=]{ parallel_sort_task(a, bits | 1, r1_l, r1_h, comp); });
+            pool.submit([=]{ parallel_sort_task(a, bits | 1, max_depth, r0_l, r0_h, comp); });
+            pool.submit([=]{ parallel_sort_task(a, bits | 1, max_depth, r1_l, r1_h, comp); });
 
             // LOOP OPTIMIZATION (Recursion depth capping):
             // The current thread ITERATES on the smallest range (ranges[2]).
@@ -220,13 +220,13 @@ void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high,
             // "Push Larger, Iterate Smaller" Strategy for Single Pivot case
             if (left_size > right_size) {
                 // Left is bigger -> Push to pool
-                pool.submit([=]{ parallel_sort_task(a, bits | 1, low, lower, comp); });
+                pool.submit([=]{ parallel_sort_task(a, bits | 1, max_depth, low, lower, comp); });
                 // Iterate on Right (smaller)
                 low = upper + 1;
                 // high remains high
             } else {
                 // Right is bigger -> Push to pool
-                pool.submit([=]{ parallel_sort_task(a, bits | 1, upper + 1, high, comp); });
+                pool.submit([=]{ parallel_sort_task(a, bits | 1, max_depth, upper + 1, high, comp); });
                 // Iterate on Left (smaller)
                 high = lower;
                 // low remains low
@@ -237,14 +237,16 @@ void parallel_sort_task(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high,
     // Process remainder sequentially.
     // Once the segment size drops below threshold, we stop parallelizing
     // and just run standard Sequential Dual-Pivot Quicksort.
-    sort_sequential<T, Compare>(nullptr, a, bits, low, high, comp);
+    sort_sequential<T, Compare>(nullptr, a, bits, max_depth, low, high, comp);
 }
 
 template<typename T, typename Compare>
 void parallelQuickSort(T* a, int bits, std::ptrdiff_t low, std::ptrdiff_t high, Compare comp, int parallelism = 0) {
     auto& pool = getThreadPool(parallelism);
+    // Compute adaptive max depth based on array size
+    int max_depth = compute_max_depth(high - low);
     // Initial task submission: The entire array is one task.
-    pool.submit([=]{ parallel_sort_task(a, bits, low, high, comp); });
+    pool.submit([=]{ parallel_sort_task(a, bits, max_depth, low, high, comp); });
     // Wait for all tasks to complete (barrier).
     pool.wait_for_completion();
 }
@@ -265,7 +267,8 @@ void parallelSort(T* a, int parallelism, std::ptrdiff_t low, std::ptrdiff_t high
         parallelQuickSort(a, depth, low, high, comp, parallelism);
     } else {
         // Fallback for single-thread or small arrays
-        sort_sequential<T, Compare>(nullptr, a, 0, low, high, comp);
+        int max_depth = compute_max_depth(size);
+        sort_sequential<T, Compare>(nullptr, a, 0, max_depth, low, high, comp);
     }
 }
 
@@ -279,12 +282,13 @@ private:
     std::ptrdiff_t size;
     std::ptrdiff_t offset;
     int depth;
+    int max_depth;
     Compare comp;
 
 public:
-    AdvancedSorter(AdvancedSorter* parent, T* a, T* b, std::ptrdiff_t low, std::ptrdiff_t size, std::ptrdiff_t offset, int depth, Compare comp)
-        : Sorter<T, Compare>(parent, a, b, low, size, offset, depth, comp),
-          parent(parent), a(a), b(b), low(low), size(size), offset(offset), depth(depth), comp(comp) {}
+    AdvancedSorter(AdvancedSorter* parent, T* a, T* b, std::ptrdiff_t low, std::ptrdiff_t size, std::ptrdiff_t offset, int depth, int max_depth, Compare comp)
+        : Sorter<T, Compare>(parent, a, b, low, size, offset, depth, max_depth, comp),
+          parent(parent), a(a), b(b), low(low), size(size), offset(offset), depth(depth), max_depth(max_depth), comp(comp) {}
 
     void compute() override {
         Sorter<T, Compare>::compute();
