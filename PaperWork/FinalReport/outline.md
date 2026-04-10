@@ -657,10 +657,10 @@ Inherited constants from Java deserve re-evaluation in C++ context. While Java's
 
 #### 3.2 Counting Sort for Small Integer Types
 
-##### 4.2.1 The Opportunity
+##### 3.2.1 The Opportunity
 1-byte and 2-byte integral types have bounded range (256 or 65536 values). Instead of O(n log n) comparison sort, we can achieve O(n) via bucket counting.
 
-##### 4.2.2 Implementation (counting_sort.hpp)
+##### 3.2.2 Implementation (counting_sort.hpp)
 - Signed/unsigned offset calculation for index mapping
 - Sparse vs Dense optimization: Different iteration direction based on fill ratio
   - Dense (size > 128): Iterate backward, fill from end
@@ -689,9 +689,7 @@ Inherited constants from Java deserve re-evaluation in C++ context. While Java's
 
 This chapter presents the complete parallel implementation story: from the work-stealing thread pool through performance tuning to understanding the fundamental hardware limits.
 
-#### 4.1 Work-Stealing Thread Pool — A Complete Story
-
-##### 4.1.1 Prior Work: Parallel Sorting and Work-Stealing
+#### 4.1 Prior Work: Parallel Sorting and Work-Stealing
 
 **The Work-Stealing Paradigm** (Blumofe & Leiserson, 1999):
 - **Problem**: Recursive algorithms create imbalanced work trees
@@ -713,13 +711,13 @@ This chapter presents the complete parallel implementation story: from the work-
 - Sorting is memory-bound: data movement dominates computation
 - **Implication**: Parallel speedup limited by shared memory bandwidth, not CPU count
 
-##### 4.1.2 The Problem
+#### 4.2 The Problem
 Recursive sorting creates imbalanced work:
 - Initial partition divides into 3 unequal regions
 - Static thread assignment leads to idle threads
 - Need dynamic load balancing without central bottleneck
 
-##### 4.1.3 Design Evolution: Three Generations
+#### 4.3 Design Evolution: Three Generations
 
 **Version 1: Blocking Parent (Naive Implementation)**
 
@@ -778,7 +776,7 @@ To eliminate global mutex contention:
 
 **Result**: Achieved 5.18× speedup on 16 threads for 10M element benchmarks.
 
-##### 4.1.4 Implementation Details
+#### 4.4 Implementation Details
 
 **Thread Pool Design** (threadpool.hpp):
 
@@ -907,7 +905,7 @@ class CountedCompleter {
 
 **Key Benefit**: No thread ever blocks waiting for children. Parent fires off children and continues working. Completion notification is entirely atomic counter-based.
 
-##### 4.1.5 Performance Tuning
+#### 4.5 Performance Tuning
 
 **Optimization 1: Task Granularity (MIN_PARALLEL_SORT_SIZE)**
 
@@ -1081,11 +1079,16 @@ Final choice: `-O2 -march=native` — simplest flag set achieving best performan
 ##### 5.1.4 Test Matrix
 | Parameter | Values |
 |-----------|--------|
-| **Array Sizes** | 1K, 10K, 100K, 1M, 10M elements |
-| **Data Patterns** | RANDOM, REVERSE_SORTED, ORGAN_PIPE, SAWTOOTH, NEARLY_SORTED, MANY_DUPLICATES |
-| **Thread Counts** | 1, 2, 4, 8, 16 |
+| **Array Sizes** | 41 logarithmic steps: 1K → 10M (10 steps per decade) |
+| **Data Types** | int, double |
+| **Data Patterns** | RANDOM, NEARLY_SORTED, REVERSE_SORTED, MANY_DUPLICATES (10%, 50%, 90%), ORGAN_PIPE, SAWTOOTH |
+| **Algorithms** | dual_pivot_parallel (2, 4, 8, 16 threads), dual_pivot_sequential, std::sort |
 
-Total: 5 sizes × 6 patterns × 5 thread counts = **150 configurations**
+Total: 6 algorithms × 2 types × 8 patterns × 41 sizes = **3,936 configurations**
+
+**Note on Data Types**: Performance results are presented for `int`. Double shows identical scaling patterns due to the memory-bound nature of sorting—comparison cost is negligible versus data movement. Floating-point-specific correctness handling (NaN, −0.0) is discussed in §3.3.
+
+**Note on Baseline Selection**: We compare against `std::sort` (Introsort), the canonical C++ sorting baseline. While our benchmark suite also measures `qsort` (C library) and `std::stable_sort`, these are omitted from result plots: qsort is C rather than C++, and stable_sort is inherently slower due to its stability guarantee.
 
 ##### 5.1.5 Data Pattern Relevance
 | Pattern | Real-World Source | Example |
