@@ -615,7 +615,7 @@ Java's default of 7 was tuned for JVM performance characteristics. C++ with -O2 
 - Array size: 1M integers
 - Run lengths: 16, 32, 64, 128, 256, 512, 1024
 - Paths: Force merge vs Force quicksort
-- Metric: Median runtime over 10 iterations
+- Metric: Runtime measured over 10 iterations
 
 **Results**:
 | Run Length | Force Merge (ms) | Force Quicksort (ms) | Winner | Margin |
@@ -1082,23 +1082,23 @@ Final choice: `-O2 -march=native` — simplest flag set achieving best performan
 
 ##### 5.1.3 Benchmark Protocol
 1. **Warmup Phase**: 3 iterations discarded
-2. **Measurement Phase**: 10 timed iterations
-3. **Statistical Reporting**: Median runtime
+2. **Measurement Phase**: 30 timed iterations
+3. **Representative Runtime**: Minimum of 30 timed iterations
 4. **Timing Method**: std::chrono::high_resolution_clock
 
 ##### 5.1.4 Test Matrix
 | Parameter | Values |
 |-----------|--------|
 | **Array Sizes** | 41 logarithmic steps: 1K → 10M (10 steps per decade) |
-| **Data Types** | int, double |
+| **Data Types** | int, int8_t, int16_t, double |
 | **Data Patterns** | RANDOM, NEARLY_SORTED, REVERSE_SORTED, MANY_DUPLICATES (10%, 50%, 90%), ORGAN_PIPE, SAWTOOTH |
 | **Algorithms** | dual_pivot_parallel (2, 4, 8, 16 threads), dual_pivot_sequential, std::sort |
 
-Total: 6 algorithms × 2 types × 8 patterns × 41 sizes = **3,936 configurations**
+Total: 6 algorithms × 4 types × 8 patterns × 41 sizes = **7,872 configurations**
 
-**Note on Data Types**: Performance results are presented for `int`. Double shows identical scaling patterns due to the memory-bound nature of sorting—comparison cost is negligible versus data movement. Floating-point-specific correctness handling (NaN, −0.0) is discussed in §3.3.
+**Note on Data Types**: Performance results are presented primarily for `int`, with a dedicated subsection for `int8_t` and `int16_t` because these two types trigger the counting-sort path and show near-linear growth. Double follows the normal comparison-based path and is discussed mainly for completeness. Floating-point-specific correctness handling (NaN, −0.0) is discussed in §3.3.
 
-**Note on Baseline Selection**: We compare against `std::sort` (Introsort), the canonical C++ sorting baseline. While our benchmark suite also measures `qsort` (C library) and `std::stable_sort`, these are omitted from result plots: qsort is C rather than C++, and stable_sort is inherently slower due to its stability guarantee.
+**Note on Baseline Selection**: We compare against `std::sort` (Introsort), the canonical C++ sorting baseline used throughout Chapter 5.
 
 ##### 5.1.5 Data Pattern Relevance
 | Pattern | Real-World Source | Example |
@@ -1115,45 +1115,77 @@ Total: 6 algorithms × 2 types × 8 patterns × 41 sizes = **3,936 configuration
 - **Benchmark runner**: benchmarks/benchmark_runner.cpp
 - **Raw results**: benchmarks/results/
 
-#### 5.2 Performance by Data Pattern
+#### 5.2 Sequential Performance
 
-##### 5.2.1 Random Data
-**[PLACEHOLDER: Figure 5.1 — Random Data Performance]**
+Introduction: Compares `dpqs_sequential` vs `std::sort` across all patterns. Key finding: adaptive optimizations provide dramatic speedups (up to 19×) on structured data while maintaining parity on random data.
 
-**Analysis**: Sequential DPQS within 5% of std::sort. Parallel achieves 5.18× speedup (1T→16T).
+##### 5.2.1 Small Integer Types (`int8_t`, `int16_t`)
+**Key Finding**: For 1-byte and 2-byte signed integers, our implementation switches to counting sort and exhibits near-linear runtime growth, while `std::sort` remains comparison-based.
 
-##### 5.2.2 Reverse-Sorted Data
+**[PLACEHOLDER: Figure 5.1 — `int8_t` Performance vs `std::sort`]**
+
+**[PLACEHOLDER: Figure 5.2 — `int16_t` Performance vs `std::sort`]**
+
+**Interpretation**:
+- `int8_t` benefits from a tiny 256-entry counting domain, keeping the auxiliary structure in fast cache
+- `int16_t` uses a larger but still fixed-size counting array, preserving near-$O(n)$ behavior
+- The widening gap versus `std::sort` reflects an algorithmic-class change, not just a constant-factor optimization
+
+##### 5.2.2 Random Data
+**Algorithm Path**: Run detection fails quality heuristics → falls back to dual-pivot quicksort.
+**Result**: Consistent ~1.1× speedup over std::sort due to dual-pivot's reduced recursion depth.
+
+**[PLACEHOLDER: Figure 5.3 — Random Data Performance]**
+**[PLACEHOLDER: Table 5.10 — Random Data Summary]**
+
+##### 5.2.3 Reverse-Sorted Data
 **Algorithm Trigger**: run_merger.hpp detects single descending run.
 **Mechanism**: O(n) in-place reversal.
 **Result**: ~6× speedup vs std::sort
 
-**[PLACEHOLDER: Figure 5.2 — REVERSE_SORTED Pattern]**
+**[PLACEHOLDER: Figure 5.4 — REVERSE_SORTED Pattern]**
+**[PLACEHOLDER: Table 5.11 — Reverse-Sorted Data Summary]**
 
-##### 5.2.3 Organ-Pipe Data
+##### 5.2.4 Organ-Pipe Data
 **Algorithm Trigger**: run_merger.hpp detects 2 runs.
 **Mechanism**: O(n) merge of ascending + reversed descending.
 **Result**: **19× speedup** — largest across all patterns
 
-**[PLACEHOLDER: Figure 5.3 — ORGAN_PIPE Pattern]**
+**[PLACEHOLDER: Figure 5.5 — ORGAN_PIPE Pattern]**
+**[PLACEHOLDER: Table 5.12 — Organ-Pipe Data Summary]**
 
-##### 5.2.4 Sawtooth Data
+##### 5.2.5 Sawtooth Data
 **Algorithm Trigger**: run_merger.hpp detects k ascending runs.
-**Mechanism**: O(n log k) merge tree, parallelized.
+**Mechanism**: O(n log k) k-way merge using min-heap.
 **Result**: ~10× speedup, best parallel scaling
 
-**[PLACEHOLDER: Figure 5.4 — SAWTOOTH Pattern]**
+**[PLACEHOLDER: Figure 5.6 — SAWTOOTH Pattern]**
+**[PLACEHOLDER: Table 5.13 — Sawtooth Data Summary]**
 
-##### 5.2.5 Nearly-Sorted Data
-**Algorithm Trigger**: Quality heuristics determine path.
-**Key Insight**: Tests MIN_FIRST_RUNS_FACTOR tuning.
+##### 5.2.6 Nearly-Sorted Data
+**Finding**: DPQS ~0.75× slower than std::sort. Scattered perturbations defeat run detection; Introsort's insertion-sort finisher handles scattered disorder better.
 
-**[PLACEHOLDER: Figure 5.5 — NEARLY_SORTED Pattern]**
+**[PLACEHOLDER: Figure 5.7 — NEARLY_SORTED Pattern]**
+**[PLACEHOLDER: Table 5.14 — Nearly-Sorted Data Summary]**
 
-##### 5.2.6 Duplicate-Heavy Data
-**Adaptive Pivot Strategy**: Dutch National Flag on duplicates.
-**Result**: No degradation; normal parallel scaling.
+##### 5.2.7 Duplicate-Heavy Data
+**Adaptive Pivot Strategy**: Dutch National Flag partitioning creates `< pivot`, `== pivot`, `> pivot` partitions.
+**Result**: No degradation; slight advantage at 10% unique.
 
-**[PLACEHOLDER: Figure 5.6 — MANY_DUPLICATES Pattern]**
+**[PLACEHOLDER: Figure 5.8 — MANY_DUPLICATES Pattern]**
+**[PLACEHOLDER: Table 5.15-5.16 — Duplicate Impact Tables]**
+
+##### 5.2.8 Sequential Performance Summary
+| Pattern | Optimization | Complexity | Speedup |
+|---------|--------------|------------|---------|
+| RANDOM | Dual-pivot partitioning | O(n log n) | **~1.1×** |
+| NEARLY_SORTED | Fallback to DPQS | O(n log n) | **~0.75×** (regression) |
+| REVERSE_SORTED | Run merger (reversal) | O(n) | ~6× |
+| ORGAN_PIPE | Run merger (2-way merge) | O(n) | **~19×** |
+| SAWTOOTH | Run merger (k-way merge) | O(n log k) | ~10× |
+| MANY_DUPLICATES | Dutch National Flag | O(n log n) | ~1.1× |
+| `int8_t` | Counting sort | O(n) | 3-5× |
+| `int16_t` | Counting sort | O(n) | 2-4× |
 
 #### 5.3 Parallel Scaling Analysis
 

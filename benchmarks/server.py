@@ -109,6 +109,8 @@ class BenchmarkHandler(http.server.SimpleHTTPRequestHandler):
                     with open(csv_path, 'r') as f:
                         reader = csv.DictReader(f)
                         for row in reader:
+                            if row['Algorithm'] not in benchmark_manager.ALGORITHMS:
+                                continue
                             raw_pattern = row['Pattern']
                             # Some CSVs might have different casing, handle it
                             normalized_pattern = pattern_map.get(raw_pattern, raw_pattern)
@@ -292,8 +294,9 @@ class BenchmarkHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(b"Missing size or pattern")
                 return
 
-            # Run the interactive runner
-            runner_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "build", "interactive_runner")
+            # Run the interactive runner (use .exe on Windows)
+            runner_name = "interactive_runner.exe" if sys.platform == "win32" else "interactive_runner"
+            runner_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "build", runner_name)
 
             action = data.get("action", "run") # run, generate, sort
 

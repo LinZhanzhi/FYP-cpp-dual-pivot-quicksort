@@ -1,3 +1,5 @@
 Algorithm,Type,Pattern,Size,Iteration,Time(ms)
-std_sort,int,Random,100,1,0.26775
-std_sort,int,Random,100,Representative,0.26775
+std_sort,int,Random,10000,1,0.6272
+std_sort,int,Random,10000,2,0.9036
+std_sort,int,Random,10000,3,2.3872
+std_sort,int,Random,10000,Representative,0.6272

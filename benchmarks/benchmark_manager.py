@@ -11,9 +11,9 @@ from collections import defaultdict
 # Get the directory where the script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Configuration (Windows paths)
+# Configuration (Windows native paths)
 BUILD_DIR = os.path.join(SCRIPT_DIR, "build")
-RUNNER = os.path.join(BUILD_DIR, "benchmark_runner")
+RUNNER = os.path.join(BUILD_DIR, "benchmark_runner.exe")
 AGGREGATE_DIR = os.path.join(SCRIPT_DIR, "results", "aggregate")
 INDIVIDUAL_DIR = os.path.join(SCRIPT_DIR, "results", "individual")
 SUMMARY_FULL = os.path.join(AGGREGATE_DIR, "summary_full.csv")
@@ -24,24 +24,6 @@ def get_output_filename(algo, type_, pattern, size):
     """Get the filename for individual result storage."""
     return os.path.join(INDIVIDUAL_DIR, f"{algo}_{type_}_{pattern}_{size}.csv")
 
-def windows_to_wsl_path(win_path):
-    """Convert Windows path to WSL path (e.g., C:\\Users\\... -> /mnt/c/Users/...)"""
-    # Normalize the path
-    path = os.path.normpath(win_path)
-    # Replace drive letter (e.g., C: -> /mnt/c)
-    if len(path) >= 2 and path[1] == ':':
-        drive = path[0].lower()
-        path = f"/mnt/{drive}" + path[2:]
-    # Replace backslashes with forward slashes
-    return path.replace('\\', '/')
-
-# WSL paths derived from Windows paths
-def get_wsl_runner():
-    return windows_to_wsl_path(RUNNER)
-
-def get_wsl_temp_result():
-    return windows_to_wsl_path(TEMP_RESULT)
-
 # Generate parallel algorithms based on hardware threads
 max_threads = multiprocessing.cpu_count()
 parallel_algos = []
@@ -50,8 +32,8 @@ while t <= max_threads:
     parallel_algos.append(f"dual_pivot_parallel_{t}")
     t *= 2
 
-ALGORITHMS = parallel_algos + ["std_sort", "std_stable_sort", "qsort", "dual_pivot_sequential"]
-TYPES = ["int", "double"]
+ALGORITHMS = parallel_algos + ["std_sort", "dual_pivot_sequential"]
+TYPES = ["int", "int8_t", "int16_t", "double"]
 PATTERNS = [
     "RANDOM", "NEARLY_SORTED", "REVERSE_SORTED",
     "MANY_DUPLICATES_10", "MANY_DUPLICATES_50", "MANY_DUPLICATES_90",
@@ -205,21 +187,15 @@ def run_single_test(algo, type_, pattern, size):
         except ValueError:
             pass
 
-    # Prepare command
-    cmd = []
-    if sys.platform == "win32":
-        cmd = ["wsl", get_wsl_runner()]
-    else:
-        cmd = [RUNNER]
-
-    cmd.extend([
+    # Prepare command for native execution
+    cmd = [RUNNER,
         "--algorithm", algo,
         "--type", type_,
         "--pattern", pattern,
         "--size", str(size),
-        "--output", get_wsl_temp_result() if sys.platform == "win32" else TEMP_RESULT,
+        "--output", TEMP_RESULT,
         "--iterations", "30"
-    ])
+    ]
 
     if threads > 0:
         cmd.extend(["--threads", str(threads)])
@@ -275,21 +251,15 @@ def run_benchmark():
             except ValueError:
                 pass
 
-        # Prepare command
-        cmd = []
-        if sys.platform == "win32":
-            cmd = ["wsl", get_wsl_runner()]
-        else:
-            cmd = [RUNNER]
-
-        cmd.extend([
+        # Prepare command for native execution
+        cmd = [RUNNER,
             "--algorithm", algo,
             "--type", type_,
             "--pattern", pattern,
             "--size", str(size),
-            "--output", get_wsl_temp_result() if sys.platform == "win32" else TEMP_RESULT,
+            "--output", TEMP_RESULT,
             "--iterations", str(needed)
-        ])
+        ]
 
         if threads > 0:
             cmd.extend(["--threads", str(threads)])
@@ -311,7 +281,6 @@ def run_benchmark():
                             t_val = row.get('Time(ms)')
                             if t_val is not None:
                                 new_times.append(float(t_val))
-                        except (ValueError, TypeError).append(float(t_val))
                         except (ValueError, TypeError):
                             pass
 
@@ -330,10 +299,8 @@ def run_benchmark():
     print("Benchmark run complete.")
 
 
-# ... (previous imports and constants)
-
 # Add new runner constant
-RUNNER_COUNT = os.path.join(BUILD_DIR, "count_ops_runner")
+RUNNER_COUNT = os.path.join(BUILD_DIR, "count_ops_runner.exe")
 OPS_RESULT_FILE = os.path.join(AGGREGATE_DIR, "ops_counts.csv")
 
 # ... (Previous code until run_benchmark)
@@ -378,19 +345,12 @@ def run_ops_counting():
 
                     print(f"Counting {algo} {type_} {pattern} {size}...")
 
-                    cmd = []
-                    if sys.platform == "win32":
-                         # Assuming typical WSL mapping if needed, or rely on caller
-                         cmd = ["wsl", f"{WSL_BASE_DIR}/build/count_ops_runner"]
-                    else:
-                        cmd = [RUNNER_COUNT]
-
-                    cmd.extend([
+                    cmd = [RUNNER_COUNT,
                         "--size", str(size),
                         "--pattern", pattern,
                         "--algo", algo,
                         "--type", type_
-                    ])
+                    ]
 
                     try:
                         res = subprocess.run(cmd, capture_output=True, text=True, check=True)

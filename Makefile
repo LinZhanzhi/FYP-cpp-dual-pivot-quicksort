@@ -2,19 +2,37 @@ CXX = g++
 CXXFLAGS = -std=c++17 -O2 -march=native -DNDEBUG -Ibenchmarks/include -Iinclude
 BUILD_DIR = benchmarks/build
 SRC_DIR = benchmarks/src
-RUNNER = benchmarks/build/benchmark_runner
 
-all: runner
+# Windows native executables
+RUNNER = $(BUILD_DIR)/benchmark_runner.exe
+INTERACTIVE = $(BUILD_DIR)/interactive_runner.exe
+
+all: runner interactive
 
 runner:
+ifeq ($(OS),Windows_NT)
+	if not exist "$(BUILD_DIR)" mkdir "$(BUILD_DIR)"
+else
 	mkdir -p $(BUILD_DIR)
+endif
 	$(CXX) $(CXXFLAGS) -o $(RUNNER) $(SRC_DIR)/benchmark_runner.cpp -pthread
 
+interactive:
+ifeq ($(OS),Windows_NT)
+	if not exist "$(BUILD_DIR)" mkdir "$(BUILD_DIR)"
+else
+	mkdir -p $(BUILD_DIR)
+endif
+	$(CXX) $(CXXFLAGS) -o $(INTERACTIVE) $(SRC_DIR)/interactive_runner.cpp -pthread
+
 run: runner
-	cd benchmarks && python3 benchmark_manager.py
+	cd benchmarks && python benchmark_manager.py
 
 clean:
+ifeq ($(OS),Windows_NT)
+	if exist "$(BUILD_DIR)" rmdir /s /q "$(BUILD_DIR)"
+else
 	rm -rf $(BUILD_DIR)
-	rm -rf benchmarks/results/raw/*
+endif
 
-.PHONY: all runner run clean
+.PHONY: all runner interactive run clean

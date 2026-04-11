@@ -1,0 +1,5 @@
+Algorithm,Type,Pattern,Size,Iteration,Time(ms)
+dual_pivot_parallel_4,int,Random,100000,1,1.2072
+dual_pivot_parallel_4,int,Random,100000,2,1.3296
+dual_pivot_parallel_4,int,Random,100000,3,1.2757
+dual_pivot_parallel_4,int,Random,100000,Representative,1.2072

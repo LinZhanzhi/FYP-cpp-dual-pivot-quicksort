@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <numeric>
 #include <cmath>
+#include <cstdint>
 #include "dual_pivot_quicksort.hpp"
 #include "timer.hpp"
 #include "data_generator.hpp"
@@ -41,26 +42,27 @@ template <typename T>
 void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size_t size, const std::string& output_file, const std::string& type_name, int iterations, int threads) {
     auto data = benchmark_data::generate_data<T>(size, pattern);
 
-    // Warmup
-    auto warmup_data = data;
-    if (algo == "std_sort") {
-        std::sort(warmup_data.begin(), warmup_data.end());
-    } else if (algo == "std_stable_sort") {
-        std::stable_sort(warmup_data.begin(), warmup_data.end());
-    } else if (algo == "qsort") {
-        std::qsort(warmup_data.data(), warmup_data.size(), sizeof(T), compare<T>);
-    } else if (algo.find("dual_pivot_parallel") != std::string::npos) {
-        dual_pivot::sort(warmup_data, threads);
-    } else if (algo == "dual_pivot_sequential") {
-        dual_pivot::sort(warmup_data, 1);
-    } else {
-        dual_pivot::sort(warmup_data);
-    }
-
-    // Correctness Check
-    if (!std::is_sorted(warmup_data.begin(), warmup_data.end())) {
-        std::cerr << "Error: Algorithm " << algo << " failed to sort the array correctly." << std::endl;
-        std::exit(1);
+    // Warmup: Run 3 iterations to warm caches and stabilize thread pools
+    for (int w = 0; w < 3; ++w) {
+        auto warmup_data = data;
+        if (algo == "std_sort") {
+            std::sort(warmup_data.begin(), warmup_data.end());
+        } else if (algo == "std_stable_sort") {
+            std::stable_sort(warmup_data.begin(), warmup_data.end());
+        } else if (algo == "qsort") {
+            std::qsort(warmup_data.data(), warmup_data.size(), sizeof(T), compare<T>);
+        } else if (algo.find("dual_pivot_parallel") != std::string::npos) {
+            dual_pivot::sort(warmup_data, threads);
+        } else if (algo == "dual_pivot_sequential") {
+            dual_pivot::sort(warmup_data, 1);
+        } else {
+            dual_pivot::sort(warmup_data);
+        }
+        // Correctness Check on first warmup only
+        if (w == 0 && !std::is_sorted(warmup_data.begin(), warmup_data.end())) {
+            std::cerr << "Error: Algorithm " << algo << " failed to sort the array correctly." << std::endl;
+            std::exit(1);
+        }
     }
 
     std::vector<double> durations;
@@ -91,12 +93,13 @@ void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size
         if (test_data.size() > 1 && test_data[0] > test_data[1]) {
              std::cerr << "Warning: Iteration " << i << " potentially not sorted (first elements check)" << std::endl;
         }
-        // Force data dependency
+        // Force data dependency to prevent dead code elimination
         volatile auto sink = test_data.front();
         (void)sink;
 
-        // Sleep for 10ms to allow system noise to pass and ensure diverse sampling
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        // Brief yield to allow OS scheduler to handle other tasks
+        // (minimum estimator handles noise, so no long sleep needed)
+        std::this_thread::yield();
     }
 
     // Calculate Representative Value (Minimum Estimator)
@@ -153,6 +156,10 @@ int main(int argc, char* argv[]) {
     }
     if (type == "int") {
         run_test<int>(algo, pattern, size, output, "int", iterations, threads);
+    } else if (type == "int8_t") {
+        run_test<std::int8_t>(algo, pattern, size, output, "int8_t", iterations, threads);
+    } else if (type == "int16_t") {
+        run_test<std::int16_t>(algo, pattern, size, output, "int16_t", iterations, threads);
     } else if (type == "long") {
         run_test<long>(algo, pattern, size, output, "long", iterations, threads);
     } else if (type == "double") {

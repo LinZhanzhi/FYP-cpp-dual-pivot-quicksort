@@ -9,6 +9,10 @@
 #include <cmath>
 #include <iomanip>
 #include <fstream>
+#include <sstream>
+#include <type_traits>
+#include <cstdint>
+#include <cctype>
 #include "dual_pivot_quicksort.hpp"
 #include "data_generator.hpp"
 
@@ -22,10 +26,19 @@ void print_json_value(const std::string& key, double value, bool last = false) {
 }
 
 template <typename T>
+void print_scalar(const T& value) {
+    if constexpr (std::is_integral_v<T> && sizeof(T) == 1) {
+        std::cout << static_cast<int>(value);
+    } else {
+        std::cout << value;
+    }
+}
+
+template <typename T>
 void print_array(const std::vector<T>& arr) {
     std::cout << "[";
     for (size_t i = 0; i < arr.size(); ++i) {
-        std::cout << arr[i];
+        print_scalar(arr[i]);
         if (i < arr.size() - 1) std::cout << ", ";
     }
     std::cout << "]";
@@ -166,7 +179,7 @@ void run_interactive(size_t size, benchmark_data::DataPattern pattern, bool only
     std::vector<T> sorted_data = data;
     std::sort(sorted_data.begin(), sorted_data.end());
 
-    std::vector<std::string> algos = {"std_sort", "dual_pivot_parallel", "dual_pivot_sequential", "std_stable_sort", "qsort"};
+    std::vector<std::string> algos = {"std_sort", "dual_pivot_parallel", "dual_pivot_sequential"};
 
     std::cout << "{" << std::endl;
     print_json_value("size", std::to_string(size));
@@ -186,13 +199,26 @@ void run_interactive(size_t size, benchmark_data::DataPattern pattern, bool only
 
 // Helper to parse array from string (simple comma separated)
 template <typename T>
+T parse_scalar_token(const std::string& token) {
+    if constexpr (std::is_floating_point_v<T>) {
+        return static_cast<T>(std::stod(token));
+    } else {
+        return static_cast<T>(std::stoll(token));
+    }
+}
+
+template <typename T>
 std::vector<T> parse_array(const std::string& str) {
     std::vector<T> result;
-    std::stringstream ss(str);
-    T val;
-    while (ss >> val) {
-        result.push_back(val);
-        if (ss.peek() == ',') ss.ignore();
+    std::string normalized = str;
+    std::replace(normalized.begin(), normalized.end(), ',', ' ');
+
+    std::stringstream ss(normalized);
+    std::string token;
+    while (ss >> token) {
+        if (!token.empty()) {
+            result.push_back(parse_scalar_token<T>(token));
+        }
     }
     return result;
 }
@@ -200,23 +226,15 @@ std::vector<T> parse_array(const std::string& str) {
 // Helper to parse array from file
 template <typename T>
 std::vector<T> parse_array_from_file(const std::string& filepath) {
-    std::vector<T> result;
     std::ifstream infile(filepath);
     if (!infile.is_open()) {
         std::cerr << "Error opening file: " << filepath << std::endl;
         exit(1);
     }
 
-    T val;
-    while (infile >> val) {
-        result.push_back(val);
-        char c;
-        // Peek to skip commas if present
-        while (infile.peek() == ',' || std::isspace(infile.peek())) {
-            infile.get(c);
-        }
-    }
-    return result;
+    std::ostringstream buffer;
+    buffer << infile.rdbuf();
+    return parse_array<T>(buffer.str());
 }
 
 int main(int argc, char* argv[]) {
@@ -227,18 +245,18 @@ int main(int argc, char* argv[]) {
 
     if (only_generate) {
         if (args.find("size") == args.end() || args.find("pattern") == args.end()) {
-            std::cerr << "Usage: --generate --size <n> --pattern <p> [--type <int|double>]" << std::endl;
+            std::cerr << "Usage: --generate --size <n> --pattern <p> [--type <int|int8_t|int16_t|double>]" << std::endl;
             return 1;
         }
     } else if (run_sort) {
          if (args.find("data") == args.end() && args.find("data-file") == args.end()) {
-            std::cerr << "Usage: --sort [--data <values> | --data-file <path>] [--type <int|double>]" << std::endl;
+            std::cerr << "Usage: --sort [--data <values> | --data-file <path>] [--type <int|int8_t|int16_t|double>]" << std::endl;
             return 1;
         }
     } else {
          // Legacy mode or invalid
          if (args.find("size") == args.end() || args.find("pattern") == args.end()) {
-            std::cerr << "Usage: --size <n> --pattern <p> [--type <int|double>]" << std::endl;
+            std::cerr << "Usage: --size <n> --pattern <p> [--type <int|int8_t|int16_t|double>]" << std::endl;
             return 1;
         }
     }
@@ -260,6 +278,8 @@ int main(int argc, char* argv[]) {
         else pattern = benchmark_data::DataPattern::RANDOM;
 
         if (type == "double") run_interactive<double>(size, pattern, true);
+        else if (type == "int8_t") run_interactive<std::int8_t>(size, pattern, true);
+        else if (type == "int16_t") run_interactive<std::int16_t>(size, pattern, true);
         else run_interactive<int>(size, pattern, true);
     } else if (run_sort) {
         if (args.count("data-file")) {
@@ -267,6 +287,12 @@ int main(int argc, char* argv[]) {
             if (type == "double") {
                 auto data = parse_array_from_file<double>(filepath);
                 run_interactive<double>(data.size(), benchmark_data::DataPattern::RANDOM, false, data);
+            } else if (type == "int8_t") {
+                auto data = parse_array_from_file<std::int8_t>(filepath);
+                run_interactive<std::int8_t>(data.size(), benchmark_data::DataPattern::RANDOM, false, data);
+            } else if (type == "int16_t") {
+                auto data = parse_array_from_file<std::int16_t>(filepath);
+                run_interactive<std::int16_t>(data.size(), benchmark_data::DataPattern::RANDOM, false, data);
             } else {
                 auto data = parse_array_from_file<int>(filepath);
                 run_interactive<int>(data.size(), benchmark_data::DataPattern::RANDOM, false, data);
@@ -280,6 +306,12 @@ int main(int argc, char* argv[]) {
             if (type == "double") {
                 auto data = parse_array<double>(data_str);
                 run_interactive<double>(data.size(), benchmark_data::DataPattern::RANDOM, false, data);
+            } else if (type == "int8_t") {
+                auto data = parse_array<std::int8_t>(data_str);
+                run_interactive<std::int8_t>(data.size(), benchmark_data::DataPattern::RANDOM, false, data);
+            } else if (type == "int16_t") {
+                auto data = parse_array<std::int16_t>(data_str);
+                run_interactive<std::int16_t>(data.size(), benchmark_data::DataPattern::RANDOM, false, data);
             } else {
                 auto data = parse_array<int>(data_str);
                 run_interactive<int>(data.size(), benchmark_data::DataPattern::RANDOM, false, data);
@@ -298,6 +330,8 @@ int main(int argc, char* argv[]) {
         else pattern = benchmark_data::DataPattern::RANDOM;
 
         if (type == "double") run_interactive<double>(size, pattern, false); // This will generate and run
+        else if (type == "int8_t") run_interactive<std::int8_t>(size, pattern, false);
+        else if (type == "int16_t") run_interactive<std::int16_t>(size, pattern, false);
         else run_interactive<int>(size, pattern, false);
     }
 
