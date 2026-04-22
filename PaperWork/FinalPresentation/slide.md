@@ -754,12 +754,6 @@ include/
 - \textcolor{bad}{Move-only types} — run-merger needs a copy path
 - \textcolor{bad}{Nearly-sorted regression} at some sizes — threshold tuning WIP
 
-**Reflection**
-
-\begin{tcolorbox}[colback=accent!5,colframe=accent,boxrule=0.5pt]
-\footnotesize The biggest lesson wasn't the algorithm — it was that the real engineering is the \textbf{7\,800-configuration harness + multi-seed methodology} that makes every tuning decision defensible.
-\end{tcolorbox}
-
 ::::
 :::: {.column width=50%}
 

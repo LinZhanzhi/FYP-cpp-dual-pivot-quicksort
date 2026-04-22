@@ -339,12 +339,12 @@ Headers are split into `dpqs/sequential_sorters.hpp`, `run_merger.hpp`, `countin
 
 ---
 
-## Slide 27 — Limitations, Reflection & Conclusion
+## Slide 27 — Limitations & Conclusion
 
 **[SAY]**
 "Honest limitations. Like `std::sort`, we're not stable — equal elements may be reordered; use `std::stable_sort` if that matters. Move-only types aren't supported by the run-merger; it needs a copy path. And there's the nearly-sorted regression at some sizes — threshold tuning WIP.
-Reflection: the biggest engineering lesson wasn't the algorithm — most of the algorithm is in the Java reference. The biggest lesson was that building a 7,800-configuration benchmark harness with multi-seed methodology is what makes every tuning decision defensible. You can't tune what you can't measure repeatably.
-Delivered: header-only STL-compatible DPQS for C++17, adaptive with counting sort, run-merger, DNF, and introsort fallback, work-stealing parallelism at 4.72× peak, and VTune-validated root-cause for every anomaly in the scaling curve."
+Delivered: header-only STL-compatible DPQS for C++17, adaptive with counting sort, run-merger, DNF, and introsort fallback, work-stealing parallelism at 4.72× peak, and VTune-validated root-cause for every anomaly in the scaling curve.
+On the next slide I want to close with what this project personally taught me."
 
 **[Q]** What would you do differently?
 **[A]** Start with the benchmark harness. I built it after the first implementation, which meant re-running hundreds of configurations once I trusted the numbers. Measure first, tune second.
