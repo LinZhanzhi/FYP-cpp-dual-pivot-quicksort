@@ -5738,7 +5738,7 @@ dual_pivot_sequential,int,NEARLY_SORTED,3981071,113.41000
 dual_pivot_sequential,int,NEARLY_SORTED,5011872,147.49100
 dual_pivot_sequential,int,NEARLY_SORTED,6309573,187.06800
 dual_pivot_sequential,int,NEARLY_SORTED,7943282,240.03100
-dual_pivot_sequential,int,NEARLY_SORTED,10000000,310.12200
+dual_pivot_sequential,int,NEARLY_SORTED,10000000,287.43200
 dual_pivot_sequential,int,ORGAN_PIPE,1000,0.00120
 dual_pivot_sequential,int,ORGAN_PIPE,1259,0.00140
 dual_pivot_sequential,int,ORGAN_PIPE,1585,0.00180
@@ -7050,7 +7050,7 @@ std_sort,int,NEARLY_SORTED,3981071,86.35990
 std_sort,int,NEARLY_SORTED,5011872,110.16700
 std_sort,int,NEARLY_SORTED,6309573,141.54400
 std_sort,int,NEARLY_SORTED,7943282,181.61900
-std_sort,int,NEARLY_SORTED,10000000,230.36900
+std_sort,int,NEARLY_SORTED,10000000,213.35000
 std_sort,int,ORGAN_PIPE,1000,0.00830
 std_sort,int,ORGAN_PIPE,1259,0.01110
 std_sort,int,ORGAN_PIPE,1585,0.01750

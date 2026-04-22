@@ -177,35 +177,54 @@ template<typename T, typename Compare>
 T* merge_runs(T* a, T* b, std::ptrdiff_t offset, int aim,
              const std::vector<std::ptrdiff_t>& run, std::ptrdiff_t lo, std::ptrdiff_t hi, Compare comp) {
 
+    // --- Base case: a single run (leaf of the merge tree) -------------------
+    // hi - lo == 1 means this node covers exactly one run -> nothing to merge.
     if (hi - lo == 1) {
+        // aim >= 0 : caller wants the result to end up in buffer `a`.
+        // The single run is already in `a`, so return it unchanged.
         if (aim >= 0) {
             return a;
         }
+        // aim < 0 : caller wants the result materialised in buffer `b`.
+        // Copy the run [run[lo], run[hi]) from `a` into `b` at a shifted
+        // position (i - offset). Iterates right-to-left for safety when
+        // source and destination ranges overlap.
         for (std::ptrdiff_t i = run[hi], j = i - offset, low = run[lo]; i > low; ) {
             b[--j] = a[--i];
         }
         return b;
     }
 
-    // Split into approximately equal parts
-    std::ptrdiff_t mi = lo;
-    std::ptrdiff_t rmi = (run[lo] + run[hi]) >> 1;
-    while (run[++mi + 1] <= rmi);
+    // --- Recursive case: split the run list by ELEMENT-COUNT midpoint -------
+    // Balanced split by array indices (not by run count) keeps the merge tree
+    // balanced in work per level -> depth ~ log2(r), total work ~ n log r.
+    std::ptrdiff_t mi  = lo;                         // run index to be chosen as split point
+    std::ptrdiff_t rmi = (run[lo] + run[hi]) >> 1;   // midpoint of the covered array range
+    while (run[++mi + 1] <= rmi);                    // advance mi to the first run whose end exceeds the midpoint
 
-    // Merge the left and right parts
-    T* a1 = merge_runs(a, b, offset, -aim, run, lo, mi, comp);
-    T* a2 = merge_runs(a, b, offset, 0, run, mi, hi, comp);
+    // Recurse on the two halves of the run list.
+    // `aim` is negated on the left child and set to 0 on the right child to
+    // alternate which buffer (`a` or `b`) each subresult lands in, enabling
+    // an in-place ping-pong between the two buffers (avoids extra copies).
+    T* a1 = merge_runs(a, b, offset, -aim, run, lo, mi, comp);   // left  half -> buffer a1
+    T* a2 = merge_runs(a, b, offset,    0, run, mi, hi, comp);   // right half -> buffer a2
 
+    // Destination is the OTHER buffer from where the left result sits, so
+    // this merge writes into fresh memory and doesn't clobber its inputs.
     T* dst = (a1 == a) ? b : a;
 
-    std::ptrdiff_t k   = (a1 == a) ? run[lo] - offset : run[lo];
-    std::ptrdiff_t lo1 = (a1 == b) ? run[lo] - offset : run[lo];
-    std::ptrdiff_t hi1 = (a1 == b) ? run[mi] - offset : run[mi];
-    std::ptrdiff_t lo2 = (a2 == b) ? run[mi] - offset : run[mi];
-    std::ptrdiff_t hi2 = (a2 == b) ? run[hi] - offset : run[hi];
+    // Compute the write cursor and the two source ranges, applying the
+    // `offset` shift only when that buffer is `b` (because `b` is the shifted
+    // scratch space; `a` uses original array indices).
+    std::ptrdiff_t k   = (a1 == a) ? run[lo] - offset : run[lo]; // write position in dst
+    std::ptrdiff_t lo1 = (a1 == b) ? run[lo] - offset : run[lo]; // left  source start
+    std::ptrdiff_t hi1 = (a1 == b) ? run[mi] - offset : run[mi]; // left  source end (exclusive)
+    std::ptrdiff_t lo2 = (a2 == b) ? run[mi] - offset : run[mi]; // right source start
+    std::ptrdiff_t hi2 = (a2 == b) ? run[hi] - offset : run[hi]; // right source end (exclusive)
 
+    // Two-way merge of the sorted halves [lo1,hi1) and [lo2,hi2) into dst@k.
     merge_parts(dst, k, a1, lo1, hi1, a2, lo2, hi2, comp);
-    return dst;
+    return dst;  // caller inspects this pointer to know which buffer holds the result
 }
 
 

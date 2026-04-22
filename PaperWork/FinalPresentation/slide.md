@@ -80,7 +80,7 @@ header-includes:
 **What it delivers**
 
 - `=` parity on random 32-bit `int`
-- \textcolor{good}{\textbf{up to 19$\times$}} on structured input
+- \textcolor{good}{\textbf{$\sim$10$\times$}} on reverse-sorted (near-linear)
 - \textcolor{good}{\textbf{4.72$\times$}} peak parallel speedup
 - Zero dependencies — one `#include`
 
@@ -241,29 +241,45 @@ dual_pivot::sort(v, std::greater<int>{});
  sort(container | iter,iter | ptr,len)
          |
          v
- [Step 0]  Normalize -> sort(T* a, parallelism, lo, hi, Compare)
+ [Step 0]  Normalize API overloads
+           -> sort(T* a, parallelism, lo, hi, Compare)
          |
          v
- [Step 1]  Guards: null / range / early-termination scan  ------> DONE (sorted)
+ [Step 1]  Guards: null / range / early-termination scan  --> DONE (sorted)
          |
          v
  [Step 2]  Type dispatch (if constexpr)
-         |--- int8/int16 ---------> counting_sort()        ------> DONE
+         |--- int8/int16 ---------> counting_sort()        --> DONE
          |--- float/double -------> sort_floats()
          |--- parallel eligible --> parallelQuickSort()    --> §3
          |--- otherwise ----------> sort_sequential()
+```
+
+\small\color{accent}\emph{Steps 3--5 continue on the next slide.}
+
+---
+
+# Execution Flow (cont.) — Steps 3, 4, 5
+
+\footnotesize
+
+```text
+ [Step 3]  Compute max_depth = 2 * log2(n) * DELTA
+           (introsort safety net)
          |
          v
- [Step 3]  Compute max_depth = 2 * log2(n) * DELTA   (introsort safety net)
-         |
-         v
- [Step 4]  Recursive core — guards 4.1 ... 4.7  (next slides)
+ [Step 4]  Recursive core — guards 4.1 ... 4.7
+           (walked in detail on next slides)
          |
          v
  [Step 5]  Return (sorted in place)
 ```
 
-\vspace{0.4em}\small\color{accent}\emph{We walk the numbered steps in execution order, and show the benchmark number each step earns.}
+\vspace{0.6em}
+
+\begin{tcolorbox}[colback=accent!5,colframe=accent,boxrule=0.5pt]
+\small We walk the numbered steps in execution order, and show the benchmark number each step earns.
+\end{tcolorbox}
 
 ---
 
@@ -340,8 +356,8 @@ The cheapest guard wins the easiest case outright.
 ```text
 sort_sequential(lo, hi, leftmost):
     size = hi - lo
-    if size < 45  and leftmost          -> 4.2  plain insertion sort
     if size < 65  and !leftmost         -> 4.1  mixed (pin) insertion sort
+    if size < 45  and leftmost          -> 4.2  plain insertion sort
     if size > MIN_TRY_MERGE_SIZE:
         if try_merge_runs(...)          -> 4.3  Timsort-style run merge  <DONE>
     if depth >= max_depth               -> 4.4  heapsort fallback [3]    <DONE>
@@ -376,14 +392,12 @@ sort_sequential(lo, hi, leftmost):
 | Algorithm | Speedup |
 |-----------|---------|
 | `std::sort` | baseline |
-| `dpqs` | **$\approx$ 1.0$\times$** (parity) |
+| `dpqs` | **$\approx$ 1.1$\times$** |
 
 ::::
 :::: {.column width=50%}
 
 ![Random int32 — dpqs vs std::sort](image/random_int32_sequential_dpqs_vs_stdsort.png){width=100%}
-
-\footnotesize\emph{Parity with a very mature \texttt{std::sort} \textbf{is} the result here — without these leaves we would lose on random data.}
 
 ::::
 :::
@@ -398,26 +412,22 @@ sort_sequential(lo, hi, leftmost):
 **Scan for ascending / descending / constant runs**
 
 - If first run `< MIN_FIRST_RUN_SIZE` → **bail out fast** (random data pays tiny cost)
-- Else merge runs in $O(n \log r)$ — **no partitioning at all**
+- Else merge runs in $O(n \log r)$ — **no partitioning, no recursion spawned**
 
-\vspace{0.3em}
-
-\begin{tcolorbox}[colback=accent!5,colframe=accent,boxrule=0.5pt]
-\footnotesize\textbf{Novelty point:} run-merging placed \emph{in front of} dual-pivot (not as a standalone algorithm) — gives 19$\times$ nearly-sorted win \emph{and} near-zero random-data penalty.
-\end{tcolorbox}
+\footnotesize\emph{$r$ = number of monotone runs detected in the input ($1 \le r \le n/2$). Nearly-sorted $\Rightarrow r$ small $\Rightarrow$ near-linear.}\normalsize
 
 | Pattern | Speedup |
 |---------|---------|
-| Nearly-sorted | \textcolor{good}{\textbf{up to 19$\times$}} |
-| Reverse-sorted | $\sim$2$\times$ |
+| Nearly-sorted | $\approx 0.74\times$ (slower) |
+| Reverse-sorted | \textcolor{good}{\textbf{$\approx 10\times$}} (near-linear) |
 | Organ-pipe / Sawtooth | see figures |
 
 ::::
 :::: {.column width=46%}
 
-![Nearly-sorted](image/int_NearlySorted_runtime.png){width=100%}
+![Nearly-sorted](image/int_NearlySorted_runtime.png){width=88%}
 
-![Reverse-sorted](image/int_ReverseSorted_runtime.png){width=100%}
+![Reverse-sorted](image/int_ReverseSorted_runtime.png){width=88%}
 
 ::::
 :::
@@ -447,11 +457,22 @@ Full sort collapses to linearithmic work in $r$ = \#runs, often $r \ll \log n$.
 ::: columns
 :::: {.column width=48%}
 
-**Pick 5 indices** spread evenly \\
-(`step = (size/8)*3 + 3`)
+**Pick 5 samples** anchored to the two ends:
 
-**Sort with hardcoded network** \\
-`sort5_network` = 9 comparators, branch-free.
+\footnotesize
+```text
+step = (size / 8) * 3 + 3   // ~ 3/8 size
+e1   = low  + step          // ~ 3/8 point
+e5   = high - step          // ~ 5/8 point
+e3   = (e1 + e5) / 2        // middle
+e2   = (e1 + e3) / 2
+e4   = (e3 + e5) / 2
+```
+\normalsize
+
+Samples sit inside the central quarter, giving more balanced pivots.
+
+**Sort with hardcoded network** — `sort5_network` = 9 comparators, branch-free.
 
 \vspace{0.3em}
 **Then branch on ordering:**
@@ -490,11 +511,6 @@ else:
  middle region excluded from recursion
 ```
 
-\vspace{0.3em}
-\begin{tcolorbox}[colback=accent!5,colframe=accent,boxrule=0.5pt]
-\footnotesize The 5-sample test is a \textbf{free duplicate oracle} — 0 extra comparisons beyond pivot selection. Sample count and placement follow the analysis of Aumüller \& Dietzfelbinger [9].
-\end{tcolorbox}
-
 ::::
 :::
 
@@ -504,23 +520,25 @@ else:
 
 ::: columns
 :::: {.column width=34%}
-![10\% duplicates](image/int_ManyDuplicate10_runtime.png){width=100%}
+![10\% unique](image/int_ManyDuplicate10_runtime.png){width=100%}
 ::::
 :::: {.column width=34%}
-![50\% duplicates](image/int_ManyDuplicate50_runtime.png){width=100%}
+![50\% unique](image/int_ManyDuplicate50_runtime.png){width=100%}
 ::::
 :::: {.column width=34%}
-![90\% duplicates](image/int_ManyDuplicate90_runtime.png){width=100%}
+![90\% unique](image/int_ManyDuplicate90_runtime.png){width=100%}
 ::::
 :::
 
-\bigskip
+\footnotesize
 
-| Duplicate fraction | Speedup vs `std::sort` | Guard that fires |
-|--------------------|:---:|------------------|
-| 10 % | $\sim$1.1$\times$ | dual-pivot (4.6a) |
-| 50 % | $\sim$1.5$\times$ | DNF kicks in (4.6b) |
-| 90 % | \textbf{\color{good}2--3$\times$} | DNF dominates (4.6b) |
+**Absolute vs `std::sort`** (`int`, $n = 10^7$): **1.09--1.18$\times$** across the whole duplicate range --- widest margin at *light* duplication, not heavy.
+
+**Why no huge win over our own random baseline?** The input is still randomly permuted, so (i)~run-merging bails out --- constant sub-sequences are length~1, (ii)~the 5-sample oracle only flags duplicates probabilistically, firing reliably once sub-arrays shrink enough that 5 random draws collide, (iii)~each DNF call absorbs only one pivot-value's band --- typically 10--20\% of the sub-problem.
+
+**Why we still win against `std::sort`.** libstdc++ is 2-way introsort with no DNF. Heavy duplicates luckily centre its pivots, so it stays competitive there; at moderate duplication its pivot quality degrades and our DNF keeps a steady edge.
+
+\normalsize
 
 ---
 
@@ -534,9 +552,9 @@ else:
 Already sorted & \textcolor{good}{near-instant} & Early termination (Step 1) \\
 \texttt{int8\_t} / \texttt{int16\_t} random & \textcolor{good}{$\sim$8$\times$ / $\sim$6$\times$} & Counting-sort dispatch (Step 2) \\
 Random \texttt{int} & $\sim$1.0$\times$ (parity) & Insertion-sort leaves (4.1 / 4.2) \\
-Nearly-sorted & \textcolor{good}{\textbf{up to 19$\times$}} & \texttt{try\_merge\_runs} (4.3) \\
-Reverse-sorted & \textcolor{good}{$\sim$2$\times$} & \texttt{try\_merge\_runs} (4.3) \\
-90\,\% duplicates & \textcolor{good}{2--3$\times$} & DNF partition (4.6b) \\
+Nearly-sorted & $\approx 0.74\times$ (slower) & \texttt{try\_merge\_runs} bails out (4.3) \\
+Reverse-sorted & \textcolor{good}{\textbf{$\approx 10\times$, near-linear}} & \texttt{try\_merge\_runs} (4.3) \\
+Many duplicates (any mix) & \textcolor{good}{1.09--1.18$\times$} & DNF partition (4.6b) \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -585,12 +603,15 @@ Partition tree                Worker deques
 
 **Rules**
 
-- Fork two larger sub-ranges; keep smallest (loop)
-- Steal from tail; sticky-victim to reduce contention
+- Push two larger sub-ranges to own deque; keep smallest (loop)
+- Idle worker steals from another deque's tail (sticky-victim)
 - `MIN_PARALLEL_SORT_SIZE` cutoff prevents micro-tasks
 
-Blumofe–Leiserson [7] / Chase–Lev [8] lineage\; \\
-*(current impl: per-deque mutex; lock-free is future work).*
+**Start-up (few tasks, many idle workers)**
+
+At launch only the root partition exists — 1 task, N-1 idle workers. Idle workers consult a global "done" flag; while it stays unset they spin on a steal loop, picking a random victim deque and trying to pop its tail. As the tree fans out the deques fill and hits become common; steals only fail when the whole tree is nearly drained, at which point the root task's completion flips the flag and every spinner exits.
+
+See refs [7], [8] for the theoretical basis.
 
 ::::
 :::: {.column width=48%}
@@ -605,9 +626,9 @@ Blumofe–Leiserson [7] / Chase–Lev [8] lineage\; \\
 | \textbf{8} | \textbf{108.7} | \textbf{\color{good}4.72$\times$} | 59 % |
 | 16 | 244.9 | 2.10$\times$ | \color{bad}13 % |
 
-\begin{tcolorbox}[colback=bad!5,colframe=bad,boxrule=0.5pt]
-\footnotesize\textbf{8 is the peak.} 16T is \textbf{2.25$\times$ slower} than 8T — a \emph{regression}, not a plateau.
-\end{tcolorbox}
+\vspace{0.4em}
+
+Peak at 8T; 16T regresses (see VTune slide for root cause).
 
 ::::
 :::
@@ -716,9 +737,6 @@ include/
 ```
 
 \normalsize
-\begin{tcolorbox}[colback=accent!5,colframe=accent,boxrule=0.5pt]
-\footnotesize Each optimization lives in a reviewable, independently-testable module.
-\end{tcolorbox}
 
 ::::
 :::
@@ -735,8 +753,6 @@ include/
 - \textcolor{bad}{Not stable} — like `std::sort`, unlike `std::stable_sort`
 - \textcolor{bad}{Move-only types} — run-merger needs a copy path
 - \textcolor{bad}{Nearly-sorted regression} at some sizes — threshold tuning WIP
-- No SIMD partitioning (BlockQuicksort) — future work
-- Mutex-guarded deques — lock-free Chase–Lev is next
 
 **Reflection**
 
@@ -754,14 +770,63 @@ include/
 - Work-stealing parallel — **4.72$\times$** peak
 - VTune-validated root-cause for the scaling curve
 
-\vspace{1em}
-\begin{center}
-\Large\color{accent}\textbf{Thank you}\\[0.3em]
-\normalsize Questions?
-\end{center}
-
 ::::
 :::
+
+---
+
+# Section 7 — Q & A
+
+\large
+
+\begin{enumerate}
+\item {\color{gray}The Product}
+\item {\color{gray}Research Gap \& Methodology}
+\item {\color{gray}Sequential Walkthrough}
+\item {\color{gray}Parallel Path}
+\item {\color{gray}VTune Root-Cause}
+\item {\color{gray}Engineering, Limitations, Conclusion}
+\item \textcolor{accent}{\textbf{Q \& A}} \hfill \textcolor{accent}{\textbf{◀}}
+\end{enumerate}
+
+---
+
+# Q & A
+
+\vfill
+
+\begin{center}
+{\Huge \color{accent}\textbf{Questions?}}\\[1.2em]
+{\large Thank you for your attention.}\\[2em]
+\end{center}
+
+\vfill
+
+---
+
+# References
+
+\footnotesize
+
+[1] C. A. R. Hoare, "Quicksort," *The Computer Journal*, vol. 5, no. 1, pp. 10–16, 1962.
+
+[2] V. Yaroslavskiy, "Dual-pivot quicksort algorithm," Research report, 2009. [Online]. Available: http://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf
+
+[3] D. R. Musser, "Introspective sorting and selection algorithms," *Software: Practice and Experience*, vol. 27, no. 8, pp. 983–993, Aug. 1997.
+
+[4] T. Peters, "Timsort," CPython `listsort` description, 2002. [Online]. Available: https://github.com/python/cpython/blob/main/Objects/listsort.txt
+
+[5] E. W. Dijkstra, *A Discipline of Programming*. Englewood Cliffs, NJ, USA: Prentice-Hall, 1976.
+
+[6] H. H. Seward, "Information sorting in the application of electronic digital computers to business operations," M.S. thesis, MIT, Cambridge, MA, USA, 1954.
+
+[7] R. D. Blumofe and C. E. Leiserson, "Scheduling multithreaded computations by work stealing," *Journal of the ACM*, vol. 46, no. 5, pp. 720–748, Sep. 1999.
+
+[8] D. Chase and Y. Lev, "Dynamic circular work-stealing deque," in *Proc. 17th ACM Symp. Parallelism in Algorithms and Architectures (SPAA)*, 2005, pp. 21–28.
+
+[9] M. Aumüller and M. Dietzfelbinger, "Optimal partitioning for dual-pivot quicksort," *ACM Transactions on Algorithms*, vol. 12, no. 2, art. 18, Feb. 2016.
+
+[10] Intel Corporation, *Intel VTune Profiler User Guide*, version 2025.10, 2025. [Online]. Available: https://www.intel.com/content/www/us/en/docs/vtune-profiler/user-guide/
 
 ---
 
@@ -881,72 +946,3 @@ representative = median(medians)              # absorbs one unlucky seed
 ::::
 
 :::
-
----
-
-# Section 7 — Q & A
-
-\large
-
-\begin{enumerate}
-\item {\color{gray}The Product}
-\item {\color{gray}Research Gap \& Methodology}
-\item {\color{gray}Sequential Walkthrough}
-\item {\color{gray}Parallel Path}
-\item {\color{gray}VTune Root-Cause}
-\item {\color{gray}Engineering, Limitations, Conclusion}
-\item \textcolor{accent}{\textbf{Q \& A}} \hfill \textcolor{accent}{\textbf{◀}}
-\end{enumerate}
-
----
-
-# Q & A
-
-\vfill
-
-\begin{center}
-{\Huge \color{accent}\textbf{Questions?}}\\[1.2em]
-{\large Thank you for your attention.}\\[2em]
-\end{center}
-
-\begin{tcolorbox}[colback=accent!5,colframe=accent,boxrule=0.5pt,title=\textbf{Anticipated Topics}]
-\small
-\begin{itemize}
-\item Stability and move-only type support
-\item Lock-free Chase–Lev deque vs current mutex-guarded design
-\item Alternative partitioning (BlockQuicksort, SIMD)
-\item Scaling beyond 16 threads / NUMA behaviour
-\item Comparison with \texttt{ips4o}, \texttt{pdqsort}, \texttt{parallel\_stable\_sort}
-\item Methodology — multi-seed protocol details
-\end{itemize}
-\end{tcolorbox}
-
-\vfill
-\begin{center}\small Backup slides follow for detailed questions.\end{center}
-
----
-
-# References
-
-\footnotesize
-
-[1] C. A. R. Hoare, "Quicksort," *The Computer Journal*, vol. 5, no. 1, pp. 10–16, 1962.
-
-[2] V. Yaroslavskiy, "Dual-pivot quicksort algorithm," Research report, 2009. [Online]. Available: http://codeblab.com/wp-content/uploads/2009/09/DualPivotQuicksort.pdf
-
-[3] D. R. Musser, "Introspective sorting and selection algorithms," *Software: Practice and Experience*, vol. 27, no. 8, pp. 983–993, Aug. 1997.
-
-[4] T. Peters, "Timsort," CPython `listsort` description, 2002. [Online]. Available: https://github.com/python/cpython/blob/main/Objects/listsort.txt
-
-[5] E. W. Dijkstra, *A Discipline of Programming*. Englewood Cliffs, NJ, USA: Prentice-Hall, 1976.
-
-[6] H. H. Seward, "Information sorting in the application of electronic digital computers to business operations," M.S. thesis, MIT, Cambridge, MA, USA, 1954.
-
-[7] R. D. Blumofe and C. E. Leiserson, "Scheduling multithreaded computations by work stealing," *Journal of the ACM*, vol. 46, no. 5, pp. 720–748, Sep. 1999.
-
-[8] D. Chase and Y. Lev, "Dynamic circular work-stealing deque," in *Proc. 17th ACM Symp. Parallelism in Algorithms and Architectures (SPAA)*, 2005, pp. 21–28.
-
-[9] M. Aumüller and M. Dietzfelbinger, "Optimal partitioning for dual-pivot quicksort," *ACM Transactions on Algorithms*, vol. 12, no. 2, art. 18, Feb. 2016.
-
-[10] Intel Corporation, *Intel VTune Profiler User Guide*, version 2025.10, 2025. [Online]. Available: https://www.intel.com/content/www/us/en/docs/vtune-profiler/user-guide/
-
