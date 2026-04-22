@@ -351,21 +351,40 @@ Delivered: header-only STL-compatible DPQS for C++17, adaptive with counting sor
 
 ---
 
-## Slide 28 — Section 7 divider
+## Slide 28 — Personal Reflection
+
+**[SAY]**
+"Before I take questions, one slide on what this project actually taught me.
+
+First, tuning a program for a *real machine* is as much an exercise in silicon literacy as in algorithms. You can't separate the algorithm from the caches, the SMT sharing, and the hybrid-core scheduler that actually runs it. Every optimisation is a trade-off — the 10× win on reverse-sorted costs us 0.74× on borderline nearly-sorted, and that's a bargain I'm willing to defend with data.
+
+Second, the more specific the target scenario, the easier tuning becomes — and the easier trade-offs are to accept. Universal 'best' sorts don't exist; you pick the shape of the curve you want.
+
+And third, honest disclosure: the generality of this implementation isn't fully proven yet. Everything is tuned on one CPU, one compiler, one workload matrix. Cross-platform, cross-compiler, cross-architecture validation is the real next milestone. So there's still a long way to go — but this repository gave me my first taste of real performance engineering, and the 'measure first, tune second' discipline is something I'll carry forward into every future project."
+
+**[Q]** If generality isn't proven, why claim "drop-in replacement for `std::sort`"?
+**[A]** Correctness is proven — the sort returns a correctly sorted range for every type and pattern in the test matrix. What's not proven is that the *performance* wins generalise to other CPUs. On a different machine the thresholds might need re-tuning, though the shape of the adaptive strategy should transfer.
+
+**[Q]** What's the single most important lesson?
+**[A]** That measurement infrastructure is the real engineering. Without a defensible harness you can't tell an optimisation from a lucky run, and you end up tuning noise.
+
+---
+
+## Slide 29 — Section 7 divider
 
 **[SAY]**
 "Happy to take questions."
 
 ---
 
-## Slide 29 — Q & A
+## Slide 30 — Q & A
 
 **[SAY]**
 "Questions?"
 
 ---
 
-## Slides 30+ — References and Backups
+## Slides 31+ — References and Backups
 
 Backup slides available if the questioner wants detail on:
 - `sort5_network` comparator ordering

@@ -775,6 +775,34 @@ include/
 
 ---
 
+# Personal Reflection
+
+::: columns
+:::: {.column width=55%}
+
+**What this FYP taught me**
+
+- Tuning a program for a \textbf{real machine} is as much an exercise in \emph{silicon literacy} as in algorithms --- caches, SMT, hybrid cores all shape the curve.
+- Every optimisation is a \textbf{trade-off}: a win on one pattern is usually a loss somewhere else. The honest 0.74$\times$ on nearly-sorted is the price of 10$\times$ on reverse-sorted.
+- The \textbf{more specific} the target scenario, the easier tuning becomes --- and the easier a trade-off is to accept.
+
+::::
+:::: {.column width=45%}
+
+**Still a long way to go**
+
+- Generality \emph{not} fully proven --- the implementation is tuned against one CPU, one compiler, one workload matrix.
+- Cross-platform, cross-compiler, and cross-architecture validation is the next milestone.
+- Measure-first, tune-second is a discipline I will carry forward.
+
+\vspace{0.4em}
+\begin{center}\small\color{accent}\emph{The repository gave me my first taste of real performance engineering.}\end{center}
+
+::::
+:::
+
+---
+
 # Section 7 — Q & A
 
 \large
