@@ -39,83 +39,113 @@ std::map<std::string, std::string> parse_args(int argc, char* argv[]) {
 }
 
 template <typename T>
-void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size_t size, const std::string& output_file, const std::string& type_name, int iterations, int threads) {
-    auto data = benchmark_data::generate_data<T>(size, pattern);
+void run_test(const std::string& algo, benchmark_data::DataPattern pattern, size_t size,
+              const std::string& output_file, const std::string& type_name,
+              int iterations, int threads, int num_seeds, unsigned base_seed) {
+    std::vector<double> all_durations;       // flat list of every timing
+    std::vector<unsigned> all_seeds;         // seed paired with each timing
+    std::vector<double> per_seed_medians;    // one median per seed
+    all_durations.reserve(static_cast<size_t>(num_seeds) * iterations);
+    all_seeds.reserve(static_cast<size_t>(num_seeds) * iterations);
+    per_seed_medians.reserve(num_seeds);
 
-    // Warmup: Run 3 iterations to warm caches and stabilize thread pools
-    for (int w = 0; w < 3; ++w) {
-        auto warmup_data = data;
-        if (algo == "std_sort") {
-            std::sort(warmup_data.begin(), warmup_data.end());
-        } else if (algo == "std_stable_sort") {
-            std::stable_sort(warmup_data.begin(), warmup_data.end());
-        } else if (algo == "qsort") {
-            std::qsort(warmup_data.data(), warmup_data.size(), sizeof(T), compare<T>);
-        } else if (algo.find("dual_pivot_parallel") != std::string::npos) {
-            dual_pivot::sort(warmup_data, threads);
-        } else if (algo == "dual_pivot_sequential") {
-            dual_pivot::sort(warmup_data, 1);
-        } else {
-            dual_pivot::sort(warmup_data);
+    bool correctness_checked = false;
+
+    for (int s = 0; s < num_seeds; ++s) {
+        unsigned seed = base_seed + static_cast<unsigned>(s);
+        auto data = benchmark_data::generate_data<T>(size, pattern, seed);
+
+        // Warmup: 3 iterations to warm caches / thread pools
+        for (int w = 0; w < 3; ++w) {
+            auto warmup_data = data;
+            if (algo == "std_sort") {
+                std::sort(warmup_data.begin(), warmup_data.end());
+            } else if (algo == "std_stable_sort") {
+                std::stable_sort(warmup_data.begin(), warmup_data.end());
+            } else if (algo == "qsort") {
+                std::qsort(warmup_data.data(), warmup_data.size(), sizeof(T), compare<T>);
+            } else if (algo.find("dual_pivot_parallel") != std::string::npos) {
+                dual_pivot::sort(warmup_data, threads);
+            } else if (algo == "dual_pivot_sequential") {
+                dual_pivot::sort(warmup_data, 1);
+            } else {
+                dual_pivot::sort(warmup_data);
+            }
+            if (!correctness_checked) {
+                if (!std::is_sorted(warmup_data.begin(), warmup_data.end())) {
+                    std::cerr << "Error: Algorithm " << algo << " failed to sort the array correctly." << std::endl;
+                    std::exit(1);
+                }
+                correctness_checked = true;
+            }
         }
-        // Correctness Check on first warmup only
-        if (w == 0 && !std::is_sorted(warmup_data.begin(), warmup_data.end())) {
-            std::cerr << "Error: Algorithm " << algo << " failed to sort the array correctly." << std::endl;
-            std::exit(1);
+
+        std::vector<double> seed_times;
+        seed_times.reserve(iterations);
+        for (int i = 0; i < iterations; ++i) {
+            auto test_data = data;
+            auto start = std::chrono::high_resolution_clock::now();
+            if (algo == "std_sort") {
+                std::sort(test_data.begin(), test_data.end());
+            } else if (algo == "std_stable_sort") {
+                std::stable_sort(test_data.begin(), test_data.end());
+            } else if (algo == "qsort") {
+                std::qsort(test_data.data(), test_data.size(), sizeof(T), compare<T>);
+            } else if (algo.find("dual_pivot_parallel") != std::string::npos) {
+                dual_pivot::sort(test_data, threads);
+            } else if (algo == "dual_pivot_sequential") {
+                dual_pivot::sort(test_data, 1);
+            } else {
+                dual_pivot::sort(test_data);
+            }
+            auto end = std::chrono::high_resolution_clock::now();
+            double elapsed_ms = std::chrono::duration<double, std::milli>(end - start).count();
+            seed_times.push_back(elapsed_ms);
+            all_durations.push_back(elapsed_ms);
+            all_seeds.push_back(seed);
+
+            // Lightweight sortedness sanity check
+            if (test_data.size() > 1 && test_data[0] > test_data[1]) {
+                std::cerr << "Warning: Iteration " << i << " (seed " << seed
+                          << ") potentially not sorted (first elements check)" << std::endl;
+            }
+            volatile auto sink = test_data.front();
+            (void)sink;
+
+            std::this_thread::yield();
         }
+
+        // Per-seed median (used for median-of-medians representative)
+        std::vector<double> sorted_times = seed_times;
+        std::sort(sorted_times.begin(), sorted_times.end());
+        double median_seed = sorted_times.empty()
+            ? 0.0
+            : sorted_times[sorted_times.size() / 2];
+        per_seed_medians.push_back(median_seed);
     }
 
-    std::vector<double> durations;
-    durations.reserve(iterations);
-
-    for (int i = 0; i < iterations; ++i) {
-        // Copy data for each iteration to ensure we are sorting the same unsorted data
-        auto test_data = data;
-
-        auto start = std::chrono::high_resolution_clock::now();
-        if (algo == "std_sort") {
-            std::sort(test_data.begin(), test_data.end());
-        } else if (algo == "std_stable_sort") {
-            std::stable_sort(test_data.begin(), test_data.end());
-        } else if (algo == "qsort") {
-            std::qsort(test_data.data(), test_data.size(), sizeof(T), compare<T>);
-        } else if (algo.find("dual_pivot_parallel") != std::string::npos) {
-            dual_pivot::sort(test_data, threads);
-        } else if (algo == "dual_pivot_sequential") {
-            dual_pivot::sort(test_data, 1);
-        } else {
-            dual_pivot::sort(test_data);
-        }
-        auto end = std::chrono::high_resolution_clock::now();
-        durations.push_back(std::chrono::duration<double, std::milli>(end - start).count());
-
-        // Verify (lightweight check to prevent optimization and catch bugs)
-        if (test_data.size() > 1 && test_data[0] > test_data[1]) {
-             std::cerr << "Warning: Iteration " << i << " potentially not sorted (first elements check)" << std::endl;
-        }
-        // Force data dependency to prevent dead code elimination
-        volatile auto sink = test_data.front();
-        (void)sink;
-
-        // Brief yield to allow OS scheduler to handle other tasks
-        // (minimum estimator handles noise, so no long sleep needed)
-        std::this_thread::yield();
+    // Representative:
+    //   - num_seeds > 1  -> median of per-seed medians (industry-standard for randomized input)
+    //   - num_seeds == 1 -> minimum (backward-compatible behavior)
+    double representative_value = 0.0;
+    if (num_seeds > 1) {
+        std::vector<double> sorted_medians = per_seed_medians;
+        std::sort(sorted_medians.begin(), sorted_medians.end());
+        representative_value = sorted_medians[sorted_medians.size() / 2];
+    } else if (!all_durations.empty()) {
+        representative_value = *std::min_element(all_durations.begin(), all_durations.end());
     }
-
-    // Calculate Representative Value (Minimum Estimator)
-    double representative_value = *std::min_element(durations.begin(), durations.end());
 
     // Output
     std::ofstream out(output_file);
-    out << "Algorithm,Type,Pattern,Size,Iteration,Time(ms)" << std::endl;
-
-    // Write all raw samples
-    for (size_t i = 0; i < durations.size(); ++i) {
-        out << algo << "," << type_name << "," << benchmark_data::pattern_name(pattern) << "," << size << "," << (i + 1) << "," << durations[i] << std::endl;
+    out << "Algorithm,Type,Pattern,Size,Iteration,Time(ms),Seed" << std::endl;
+    for (size_t i = 0; i < all_durations.size(); ++i) {
+        out << algo << "," << type_name << "," << benchmark_data::pattern_name(pattern)
+            << "," << size << "," << (i + 1) << ","
+            << all_durations[i] << "," << all_seeds[i] << std::endl;
     }
-
-    // Write Representative Value as the last line
-    out << algo << "," << type_name << "," << benchmark_data::pattern_name(pattern) << "," << size << ",Representative," << representative_value << std::endl;
+    out << algo << "," << type_name << "," << benchmark_data::pattern_name(pattern)
+        << "," << size << ",Representative," << representative_value << "," << base_seed << std::endl;
 
     out.close();
 }
@@ -141,6 +171,18 @@ int main(int argc, char* argv[]) {
         threads = std::stoi(args["threads"]);
     }
 
+    // Multi-seed support for statistically robust random-input benchmarks.
+    // seeds=1 (default) preserves legacy single-seed behavior.
+    int num_seeds = 1;
+    if (args.find("seeds") != args.end()) {
+        num_seeds = std::stoi(args["seeds"]);
+        if (num_seeds < 1) num_seeds = 1;
+    }
+    unsigned base_seed = 42;
+    if (args.find("base-seed") != args.end()) {
+        base_seed = static_cast<unsigned>(std::stoul(args["base-seed"]));
+    }
+
     benchmark_data::DataPattern pattern;
     if (pattern_str == "RANDOM") pattern = benchmark_data::DataPattern::RANDOM;
     else if (pattern_str == "NEARLY_SORTED") pattern = benchmark_data::DataPattern::NEARLY_SORTED;
@@ -155,15 +197,15 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     if (type == "int") {
-        run_test<int>(algo, pattern, size, output, "int", iterations, threads);
+        run_test<int>(algo, pattern, size, output, "int", iterations, threads, num_seeds, base_seed);
     } else if (type == "int8_t") {
-        run_test<std::int8_t>(algo, pattern, size, output, "int8_t", iterations, threads);
+        run_test<std::int8_t>(algo, pattern, size, output, "int8_t", iterations, threads, num_seeds, base_seed);
     } else if (type == "int16_t") {
-        run_test<std::int16_t>(algo, pattern, size, output, "int16_t", iterations, threads);
+        run_test<std::int16_t>(algo, pattern, size, output, "int16_t", iterations, threads, num_seeds, base_seed);
     } else if (type == "long") {
-        run_test<long>(algo, pattern, size, output, "long", iterations, threads);
+        run_test<long>(algo, pattern, size, output, "long", iterations, threads, num_seeds, base_seed);
     } else if (type == "double") {
-        run_test<double>(algo, pattern, size, output, "double", iterations, threads);
+        run_test<double>(algo, pattern, size, output, "double", iterations, threads, num_seeds, base_seed);
     } else {
         std::cerr << "Unknown type: " << type << std::endl;
         return 1;

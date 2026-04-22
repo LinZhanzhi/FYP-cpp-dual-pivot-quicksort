@@ -1,0 +1,17 @@
+Algorithm,Type,Pattern,Size,Iteration,Time(ms),Seed
+dual_pivot_parallel_8,int,Random,10000000,1,115.982,42
+dual_pivot_parallel_8,int,Random,10000000,2,116.235,42
+dual_pivot_parallel_8,int,Random,10000000,3,115.843,42
+dual_pivot_parallel_8,int,Random,10000000,4,114.012,42
+dual_pivot_parallel_8,int,Random,10000000,5,114.32,42
+dual_pivot_parallel_8,int,Random,10000000,6,113.985,43
+dual_pivot_parallel_8,int,Random,10000000,7,112.082,43
+dual_pivot_parallel_8,int,Random,10000000,8,114.611,43
+dual_pivot_parallel_8,int,Random,10000000,9,111.622,43
+dual_pivot_parallel_8,int,Random,10000000,10,111.136,43
+dual_pivot_parallel_8,int,Random,10000000,11,124.148,44
+dual_pivot_parallel_8,int,Random,10000000,12,118.288,44
+dual_pivot_parallel_8,int,Random,10000000,13,119.559,44
+dual_pivot_parallel_8,int,Random,10000000,14,120.199,44
+dual_pivot_parallel_8,int,Random,10000000,15,122.959,44
+dual_pivot_parallel_8,int,Random,10000000,Representative,115.843,42

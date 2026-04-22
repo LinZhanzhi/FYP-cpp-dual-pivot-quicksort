@@ -20,6 +20,43 @@ SUMMARY_FULL = os.path.join(AGGREGATE_DIR, "summary_full.csv")
 SUMMARY_REP = os.path.join(AGGREGATE_DIR, "summary_representative.csv")
 TEMP_RESULT = os.path.join(SCRIPT_DIR, "temp_runner_output.csv")
 
+# -----------------------------------------------------------------------------
+# Benchmark methodology configuration
+# -----------------------------------------------------------------------------
+# Default (structured / deterministic) patterns: fixed seed, 30 iterations,
+# representative = minimum (noise-free lower bound).
+DEFAULT_TARGET_ITERATIONS = 30
+DEFAULT_SEED = 42
+
+# RANDOM pattern: industry-standard multi-seed methodology.
+# N=10 seeds x 10 timed iterations per seed = 100 samples, preceded by
+# 3 warmup iterations per seed. Representative = median of per-seed minima.
+# Per-seed min removes OS/scheduler timing noise for a fixed permutation;
+# outer median across seeds absorbs lucky/unlucky permutation variance.
+RANDOM_SEEDS = 10
+RANDOM_ITERS_PER_SEED = 10
+RANDOM_TARGET_ITERATIONS = RANDOM_SEEDS * RANDOM_ITERS_PER_SEED  # 100
+
+def target_iterations_for(pattern):
+    """Return the target sample count for the given pattern."""
+    return RANDOM_TARGET_ITERATIONS if pattern == "RANDOM" else DEFAULT_TARGET_ITERATIONS
+
+def representative_for(pattern, samples):
+    """Compute the representative runtime from a list of (time_ms, seed) tuples.
+
+    - RANDOM   -> median of per-seed minima (robust to input variance).
+    - Others   -> minimum (classical single-seed noise-floor estimator).
+    """
+    if not samples:
+        return None
+    if pattern == "RANDOM":
+        by_seed = defaultdict(list)
+        for t, s in samples:
+            by_seed[s].append(t)
+        per_seed_mins = sorted(min(ts) for ts in by_seed.values())
+        return per_seed_mins[len(per_seed_mins) // 2]
+    return min(t for t, _ in samples)
+
 def get_output_filename(algo, type_, pattern, size):
     """Get the filename for individual result storage."""
     return os.path.join(INDIVIDUAL_DIR, f"{algo}_{type_}_{pattern}_{size}.csv")
@@ -51,7 +88,8 @@ SIZES = [
 class BenchmarkManager:
     def __init__(self):
         self.ensure_dirs()
-        self.results_cache = defaultdict(list) # Key: (algo, type, pattern, size) -> List of times
+        # Key: (algo, type, pattern, size) -> list of (time_ms, seed) tuples
+        self.results_cache = defaultdict(list)
         self.rep_cache = {} # Key: (algo, type, pattern, size) -> rep_time
         self.load_history()
 
@@ -60,25 +98,31 @@ class BenchmarkManager:
             os.makedirs(AGGREGATE_DIR)
 
     def load_history(self):
-        # Load Full Summary
+        # Load Full Summary. Seed column is optional (older rows default to DEFAULT_SEED).
         if os.path.exists(SUMMARY_FULL):
-            with open(SUMMARY_FULL, 'r') as f:
+            with open(SUMMARY_FULL, 'r', encoding='utf-8-sig') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     try:
                         key = (row['Algorithm'], row['Type'], row['Pattern'], int(row['Size']))
-                        self.results_cache[key].append(float(row['Time(ms)']))
+                        time_ms = float(row['Time(ms)'])
+                        seed_str = row.get('Seed')
+                        try:
+                            seed_val = int(seed_str) if seed_str not in (None, '') else DEFAULT_SEED
+                        except ValueError:
+                            seed_val = DEFAULT_SEED
+                        self.results_cache[key].append((time_ms, seed_val))
                     except (ValueError, KeyError):
                         pass # Header or bad data
         else:
-            # Create header
+            # Create header (with Seed column)
             with open(SUMMARY_FULL, 'w', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow(["Algorithm", "Type", "Pattern", "Size", "Iteration", "Time(ms)"])
+                writer.writerow(["Algorithm", "Type", "Pattern", "Size", "Iteration", "Time(ms)", "Seed"])
 
         # Load Representative
         if os.path.exists(SUMMARY_REP):
-             with open(SUMMARY_REP, 'r') as f:
+             with open(SUMMARY_REP, 'r', encoding='utf-8-sig') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     try:
@@ -91,28 +135,30 @@ class BenchmarkManager:
                 writer.writerow(["Algorithm", "Type", "Pattern", "Size", "Time(ms)"])
 
     def get_needed_iterations(self, algo, type_, pattern, size):
+        target = target_iterations_for(pattern)
         existing = len(self.results_cache[(algo, type_, pattern, size)])
-        return max(0, 30 - existing)
+        return max(0, target - existing)
 
-    def save_results(self, algo, type_, pattern, size, times):
-        if not times:
+    def save_results(self, algo, type_, pattern, size, samples):
+        """samples: iterable of (time_ms, seed) tuples."""
+        samples = list(samples)
+        if not samples:
             return
 
         # Append to Full Summary
         with open(SUMMARY_FULL, 'a', newline='') as f:
             writer = csv.writer(f)
-            # Find next iteration index based on cache
             existing = len(self.results_cache[(algo, type_, pattern, size)])
-            for i, t in enumerate(times):
-                writer.writerow([algo, type_, pattern, size, existing + i + 1, t])
+            for i, (t, seed_val) in enumerate(samples):
+                writer.writerow([algo, type_, pattern, size, existing + i + 1, t, seed_val])
 
         # Update Cache
-        self.results_cache[(algo, type_, pattern, size)].extend(times)
+        self.results_cache[(algo, type_, pattern, size)].extend(samples)
 
-        # Update Representative
-        all_times = self.results_cache[(algo, type_, pattern, size)]
-        rep_val = min(all_times)
-        self.rep_cache[(algo, type_, pattern, size)] = rep_val
+        # Update Representative (pattern-aware)
+        rep_val = representative_for(pattern, self.results_cache[(algo, type_, pattern, size)])
+        if rep_val is not None:
+            self.rep_cache[(algo, type_, pattern, size)] = rep_val
         self.update_representative_file()
 
     def update_representative_file(self):
@@ -142,7 +188,7 @@ class BenchmarkManager:
         # Rewrite summary_full.csv without the deleted entries
         if os.path.exists(SUMMARY_FULL):
             rows_to_keep = []
-            with open(SUMMARY_FULL, 'r', newline='') as f:
+            with open(SUMMARY_FULL, 'r', newline='', encoding='utf-8-sig') as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     if not (row['Algorithm'] == algo and
@@ -153,10 +199,11 @@ class BenchmarkManager:
 
             with open(SUMMARY_FULL, 'w', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow(["Algorithm", "Type", "Pattern", "Size", "Iteration", "Time(ms)"])
+                writer.writerow(["Algorithm", "Type", "Pattern", "Size", "Iteration", "Time(ms)", "Seed"])
                 for row in rows_to_keep:
                     writer.writerow([row['Algorithm'], row['Type'], row['Pattern'],
-                                   row['Size'], row['Iteration'], row['Time(ms)']])
+                                   row['Size'], row['Iteration'], row['Time(ms)'],
+                                   row.get('Seed') if row.get('Seed') not in (None, '') else DEFAULT_SEED])
 
         # Update representative file
         self.update_representative_file()
@@ -187,15 +234,25 @@ def run_single_test(algo, type_, pattern, size):
         except ValueError:
             pass
 
-    # Prepare command for native execution
+    # Build command. For RANDOM we always run the full multi-seed batch
+    # (10 seeds x 10 iters); incremental top-up is not meaningful when the
+    # representative is median-of-minima across a fixed seed set.
     cmd = [RUNNER,
         "--algorithm", algo,
         "--type", type_,
         "--pattern", pattern,
         "--size", str(size),
         "--output", TEMP_RESULT,
-        "--iterations", "30"
     ]
+
+    if pattern == "RANDOM":
+        cmd.extend([
+            "--iterations", str(RANDOM_ITERS_PER_SEED),
+            "--seeds", str(RANDOM_SEEDS),
+            "--base-seed", str(DEFAULT_SEED),
+        ])
+    else:
+        cmd.extend(["--iterations", str(DEFAULT_TARGET_ITERATIONS)])
 
     if threads > 0:
         cmd.extend(["--threads", str(threads)])
@@ -205,7 +262,7 @@ def run_single_test(algo, type_, pattern, size):
 
     # Read back results
     if os.path.exists(TEMP_RESULT):
-        new_times = []
+        new_samples = []
         with open(TEMP_RESULT, 'r') as f:
             reader = csv.DictReader(f)
             for row in reader:
@@ -213,12 +270,22 @@ def run_single_test(algo, type_, pattern, size):
                     continue
                 try:
                     t_val = float(row['Time(ms)'])
-                    new_times.append(t_val)
+                    seed_str = row.get('Seed')
+                    try:
+                        seed_val = int(seed_str) if seed_str not in (None, '') else DEFAULT_SEED
+                    except ValueError:
+                        seed_val = DEFAULT_SEED
+                    new_samples.append((t_val, seed_val))
                 except ValueError:
                     pass
 
+        # For RANDOM we replace any stale single-seed data so the
+        # representative is computed over a clean multi-seed batch.
+        if pattern == "RANDOM":
+            manager.delete_results(algo, type_, pattern, size)
+
         # Save to aggregate
-        manager.save_results(algo, type_, pattern, size, new_times)
+        manager.save_results(algo, type_, pattern, size, new_samples)
 
         # Clean up temp file
         os.remove(TEMP_RESULT)
@@ -251,15 +318,25 @@ def run_benchmark():
             except ValueError:
                 pass
 
-        # Prepare command for native execution
+        # Prepare command for native execution. RANDOM uses the industry-
+        # standard multi-seed methodology; other patterns top up to the
+        # single-seed target incrementally.
         cmd = [RUNNER,
             "--algorithm", algo,
             "--type", type_,
             "--pattern", pattern,
             "--size", str(size),
             "--output", TEMP_RESULT,
-            "--iterations", str(needed)
         ]
+
+        if pattern == "RANDOM":
+            cmd.extend([
+                "--iterations", str(RANDOM_ITERS_PER_SEED),
+                "--seeds", str(RANDOM_SEEDS),
+                "--base-seed", str(DEFAULT_SEED),
+            ])
+        else:
+            cmd.extend(["--iterations", str(needed)])
 
         if threads > 0:
             cmd.extend(["--threads", str(threads)])
@@ -270,7 +347,7 @@ def run_benchmark():
 
             # Read back the results from the temp file
             if os.path.exists(TEMP_RESULT):
-                new_times = []
+                new_samples = []
                 with open(TEMP_RESULT, 'r') as f:
                     reader = csv.DictReader(f)
                     for row in reader:
@@ -279,13 +356,25 @@ def run_benchmark():
                             continue
                         try:
                             t_val = row.get('Time(ms)')
-                            if t_val is not None:
-                                new_times.append(float(t_val))
+                            if t_val is None:
+                                continue
+                            time_ms = float(t_val)
+                            seed_str = row.get('Seed')
+                            try:
+                                seed_val = int(seed_str) if seed_str not in (None, '') else DEFAULT_SEED
+                            except ValueError:
+                                seed_val = DEFAULT_SEED
+                            new_samples.append((time_ms, seed_val))
                         except (ValueError, TypeError):
                             pass
 
+                # RANDOM batches are atomic (10 seeds x 10 iters); replace any
+                # stale single-seed data before saving the fresh batch.
+                if pattern == "RANDOM":
+                    manager.delete_results(algo, type_, pattern, size)
+
                 # Save to aggregate
-                manager.save_results(algo, type_, pattern, size, new_times)
+                manager.save_results(algo, type_, pattern, size, new_samples)
 
                 # Clean up temp file
                 os.remove(TEMP_RESULT)
